@@ -1,0 +1,24 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "mm-exam-studio-pdf-renderer",
+  "main": "src/pdf-worker.ts",
+  "compatibility_date": "2026-03-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "define": {
+    "__CLOUDFLARE_WORKER_BUILD__": "true",
+  },
+  "alias": {
+    "@/db": "./src/db/worker-db.ts",
+  },
+  "minify": true,
+  "workers_dev": false,
+  "observability": {
+    "enabled": true,
+  },
+  "vars": {
+    "NODE_ENV": "production",
+    "LOG_FORMAT": "json",
+    "LOG_LEVEL": "info",
+    "HTTP_SLOW_REQUEST_MS": "1200",
+  },
+}

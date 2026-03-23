@@ -1,0 +1,15 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="androidBg" x1="64" y1="52" x2="462" y2="460" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#42A8FF"/>
+      <stop offset="0.58" stop-color="#1E84F0"/>
+      <stop offset="1" stop-color="#0C58CE"/>
+    </linearGradient>
+    <radialGradient id="androidGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(194 156) rotate(50) scale(202)">
+      <stop stop-color="white" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="124" fill="url(#androidBg)"/>
+  <rect width="512" height="512" rx="124" fill="url(#androidGlow)"/>
+</svg>

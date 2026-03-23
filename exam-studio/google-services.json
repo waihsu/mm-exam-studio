@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "14001286116",
+    "project_id": "exam-studio-3256c",
+    "storage_bucket": "exam-studio-3256c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:14001286116:android:b53626da8fe3e624d535f1",
+        "android_client_info": {
+          "package_name": "com.waihsu1999.examstudio"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3pD0AkKIZ_RoBP036HXPTU8IQgdweveQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

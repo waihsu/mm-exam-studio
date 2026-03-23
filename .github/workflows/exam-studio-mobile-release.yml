@@ -1,0 +1,66 @@
+name: exam-studio-mobile-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Build platform"
+        required: true
+        default: android
+        type: choice
+        options:
+          - android
+          - ios
+          - all
+      profile:
+        description: "EAS profile"
+        required: true
+        default: production
+        type: choice
+        options:
+          - preview
+          - production
+      api_base_url:
+        description: "Public HTTPS API base URL (e.g. https://api.example.com)"
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: exam-studio
+    env:
+      EXPO_PUBLIC_API_BASE_URL: ${{ inputs.api_base_url }}
+      EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: exam-studio/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate production env
+        run: npm run check:prod-env
+
+      - name: Typecheck
+        run: npm run check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build Android
+        if: ${{ inputs.platform == 'android' || inputs.platform == 'all' }}
+        run: npx eas build --non-interactive --platform android --profile ${{ inputs.profile }}
+
+      - name: Build iOS
+        if: ${{ inputs.platform == 'ios' || inputs.platform == 'all' }}
+        run: npx eas build --non-interactive --platform ios --profile ${{ inputs.profile }}

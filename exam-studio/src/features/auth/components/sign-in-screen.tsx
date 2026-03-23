@@ -1,0 +1,115 @@
+import { useRouter, type RelativePathString } from "expo-router";
+import React, { useMemo, useState } from "react";
+import { Pressable, Text, View } from "react-native";
+import { useTranslation } from "@/i18n";
+import { AuthScreenShell } from "./auth-screen-shell";
+import { AuthBanner, AuthButton, AuthField, authUiStyles } from "./auth-ui";
+import { useSignInEmailMutation } from "../hooks/use-sign-in-email-mutation";
+
+export const SignInScreen = () => {
+  const router = useRouter();
+  const { t } = useTranslation("auth");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const signInMutation = useSignInEmailMutation();
+  const submitting = signInMutation.isPending;
+
+  const canSubmit = useMemo(
+    () => email.trim().length > 0 && password.length > 0 && !submitting,
+    [email, password, submitting],
+  );
+
+  const submit = async () => {
+    if (!canSubmit) return;
+
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const result = await signInMutation.mutateAsync({
+        email: email.trim(),
+        password,
+      });
+
+      if (result.requiresTwoFactor) {
+        setInfoMessage(result.message ?? t("signIn.twoFactorRequired"));
+        router.replace("/mfa");
+        return;
+      }
+
+      router.replace("/practice" as RelativePathString);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error && error.message.trim().length > 0
+          ? error.message
+          : t("signIn.failed"),
+      );
+    }
+  };
+
+  return (
+    <AuthScreenShell
+      accentLabel={t("shell.signIn")}
+      mode="sign-in"
+      subtitle={t("signIn.subtitle")}
+      title={t("signIn.title")}
+    >
+      <View style={authUiStyles.sectionHeader}>
+        <Text style={authUiStyles.sectionKicker}>{t("signIn.kicker")}</Text>
+        <Text style={authUiStyles.sectionTitle}>{t("signIn.sectionTitle")}</Text>
+      </View>
+
+      <AuthField
+        autoCapitalize="none"
+        autoComplete="email"
+        autoCorrect={false}
+        keyboardType="email-address"
+        label={t("signIn.emailLabel")}
+        placeholder={t("signIn.emailPlaceholder")}
+        returnKeyType="next"
+        textContentType="emailAddress"
+        value={email}
+        onChangeText={setEmail}
+      />
+
+      <AuthField
+        autoCapitalize="none"
+        autoComplete="password"
+        autoCorrect={false}
+        label={t("signIn.passwordLabel")}
+        placeholder={t("signIn.passwordPlaceholder")}
+        secureTextEntry
+        secureToggle
+        textContentType="password"
+        value={password}
+        onChangeText={setPassword}
+      />
+
+      <AuthBanner message={errorMessage} tone="error" />
+      <AuthBanner message={infoMessage} tone="info" />
+
+      <View style={authUiStyles.actionStack}>
+        <AuthButton
+          disabled={!canSubmit}
+          label={t("signIn.submit")}
+          loading={submitting}
+          onPress={submit}
+        />
+        <Pressable
+          onPress={() => router.push("/forgot-password" as RelativePathString)}
+          style={authUiStyles.textLink}
+        >
+          <Text style={authUiStyles.textLinkLabel}>{t("signIn.forgotPassword")}</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => router.replace("/sign-up" as RelativePathString)}
+          style={authUiStyles.textLink}
+        >
+          <Text style={authUiStyles.textLinkLabel}>{t("signIn.createAccount")}</Text>
+        </Pressable>
+      </View>
+    </AuthScreenShell>
+  );
+};

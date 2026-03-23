@@ -1,0 +1,20 @@
+<svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="adminBg" x1="24" y1="20" x2="136" y2="144" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="0.55" stop-color="#1D4ED8"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="adminGlow" x1="48" y1="42" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#BFDBFE"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="128" height="128" rx="36" fill="url(#adminBg)"/>
+  <path d="M80 34L114 48V79C114 100.17 99.97 119.251 80 126C60.03 119.251 46 100.17 46 79V48L80 34Z" fill="url(#adminGlow)" fill-opacity="0.18"/>
+  <path d="M80 45L105 55.5V78.3C105 93.8994 95.2285 108.252 80 113.5C64.7715 108.252 55 93.8994 55 78.3V55.5L80 45Z" fill="white" fill-opacity="0.12" stroke="white" stroke-opacity="0.32" stroke-width="2"/>
+  <rect x="61" y="64" width="38" height="29" rx="6" fill="white"/>
+  <path d="M80 64V93" stroke="#1D4ED8" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M67 72H74M67 78H74M86 72H93M86 78H93" stroke="#1D4ED8" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M54 114C61.763 103.944 70.3344 98.916 80 98.916C89.6656 98.916 98.237 103.944 106 114" stroke="white" stroke-opacity="0.8" stroke-width="5" stroke-linecap="round"/>
+</svg>
