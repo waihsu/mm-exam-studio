@@ -1,0 +1,19 @@
+<svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="studyBg" x1="24" y1="24" x2="136" y2="136" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#14532D"/>
+      <stop offset="0.5" stop-color="#16A34A"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+    <linearGradient id="studyPage" x1="52" y1="52" x2="108" y2="112" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFBEB"/>
+      <stop offset="1" stop-color="#FEF3C7"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="128" height="128" rx="36" fill="url(#studyBg)"/>
+  <path d="M80 43C63.592 43 50 51.331 50 62.5V101.5C50 102.978 50.7934 104.342 52.0767 105.072C53.3599 105.802 54.9368 105.784 56.204 105.025C63.1524 100.866 70.5103 98.7871 80 98.7871C89.4897 98.7871 96.8476 100.866 103.796 105.025C105.063 105.784 106.64 105.802 107.923 105.072C109.207 104.342 110 102.978 110 101.5V62.5C110 51.331 96.408 43 80 43Z" fill="url(#studyPage)"/>
+  <path d="M80 49C67.2647 49 57 55.1836 57 62.5V94.7127C63.5307 91.5788 70.6435 90.0118 80 90.0118C89.3565 90.0118 96.4693 91.5788 103 94.7127V62.5C103 55.1836 92.7353 49 80 49Z" fill="white" fill-opacity="0.55"/>
+  <path d="M80 49V90.0118" stroke="#16A34A" stroke-width="3" stroke-linecap="round"/>
+  <path d="M63 63H74M63 71H74M86 63H97M86 71H97" stroke="#15803D" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M80 33L84.0172 41.5754L93.5 42.8303L86.75 49.0646L88.4472 58.1697L80 53.5L71.5528 58.1697L73.25 49.0646L66.5 42.8303L75.9828 41.5754L80 33Z" fill="#FCD34D"/>
+</svg>

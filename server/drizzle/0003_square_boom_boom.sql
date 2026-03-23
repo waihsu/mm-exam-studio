@@ -1,0 +1,1 @@
+ALTER TYPE "public"."QuestionType" ADD VALUE 'long_answer' BEFORE 'fill_blank';
