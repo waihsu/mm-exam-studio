@@ -27,7 +27,6 @@ const LABELS = {
   list: { en: "Draft List", my: "မူကြမ်းစာရင်း" },
   templates: { en: "Templates", my: "Template များ" },
   "pdf-presets": { en: "PDF Presets", my: "PDF Preset များ" },
-  students: { en: "Students", my: "ကျောင်းသားများ" },
   support: { en: "Support", my: "ပံ့ပိုးမှု" },
   settings: { en: "Settings", my: "ဆက်တင်" },
   teachers: { en: "Teachers", my: "ဆရာများ" },
@@ -57,7 +56,6 @@ const RESOURCE_LABELS = {
   quizzes: { en: "Quiz", my: "မေးခွန်းစမ်းသပ်မှု" },
   questions: { en: "Question", my: "မေးခွန်း" },
   grades: { en: "Grade", my: "အတန်း" },
-  students: { en: "Student", my: "ကျောင်းသား" },
   teachers: { en: "Teacher", my: "ဆရာ" },
 };
 
@@ -100,10 +98,6 @@ const prettifySegment = (
 
   if (segment === "questions" && segments[index - 2] === "quizzes") {
     return tr({ en: "Question Bank", my: "မေးခွန်းစုစည်းမှု" });
-  }
-
-  if (segment === "roles" && segments[index - 2] === "students") {
-    return tr({ en: "Role Access", my: "Role အခွင့်အရေး" });
   }
 
   return segment

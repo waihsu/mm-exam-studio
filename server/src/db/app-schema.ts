@@ -21,7 +21,7 @@ const createId = () =>
     ? crypto.randomUUID()
     : Math.random().toString(36).slice(2);
 
-export const roleEnum = pgEnum("Role", ["user", "admin"]);
+export const roleEnum = pgEnum("Role", ["user", "admin", "superadmin"]);
 export const accountStatusEnum = pgEnum("AccountStatus", [
   "active",
   "suspended",
@@ -50,6 +50,22 @@ export const practiceSessionStatusEnum = pgEnum("PracticeSessionStatus", [
 export const questionPaperStatusEnum = pgEnum("QuestionPaperStatus", [
   "draft",
   "finalized",
+]);
+export const paperBlueprintModeEnum = pgEnum("PaperBlueprintMode", [
+  "mcq_only",
+  "all_type",
+  "custom",
+]);
+export const paperBlueprintStatusEnum = pgEnum("PaperBlueprintStatus", [
+  "draft",
+  "ready",
+  "archived",
+]);
+export const paperBlueprintDifficultyEnum = pgEnum("PaperBlueprintDifficulty", [
+  "easy",
+  "normal",
+  "hard",
+  "advance",
 ]);
 export const planCodeEnum = pgEnum("PlanCode", ["free", "pro", "premium"]);
 export const subscriptionStatusEnum = pgEnum("SubscriptionStatus", [
@@ -197,12 +213,21 @@ export const question = pgTable(
     type: questionTypeEnum("type").default("mcq").notNull(),
     difficulty: difficultyEnum("difficulty").default("medium").notNull(),
     mode: questionModeEnum("mode").default("static").notNull(),
+    swapGroupId: text("swapGroupId"),
+    variationNumber: integer("variationNumber"),
     title: text("title"),
     body: text("body").notNull(),
+    questionTopText: text("questionTopText"),
+    questionBottomText: text("questionBottomText"),
+    questionImageUrls: json("questionImageUrls"),
     explanation: text("explanation"),
+    solutionTopText: text("solutionTopText"),
+    solutionBottomText: text("solutionBottomText"),
+    solutionImageUrls: json("solutionImageUrls"),
     answerText: text("answerText"),
     answerFormula: text("answerFormula"),
     variablesSchema: json("variablesSchema"),
+    parametricValueSets: json("parametricValueSets"),
     reviewStatus: questionReviewStatusEnum("reviewStatus")
       .default("draft")
       .notNull(),
@@ -227,7 +252,55 @@ export const question = pgTable(
       table.chapterId,
       table.subChapterId,
     ),
+    index("question_catalog_lookup_idx").on(
+      table.isPublished,
+      table.isActive,
+      table.gradeId,
+      table.subjectId,
+      table.chapterId,
+      table.subChapterId,
+      table.type,
+      table.marks,
+      table.updatedAt,
+    ),
+    index("question_swap_group_idx").on(table.swapGroupId),
+    unique().on(table.swapGroupId, table.variationNumber),
     check("question_marks_allowed_ck", sql`${table.marks} in (1, 2, 3, 5, 10)`),
+    check(
+      "question_type_marks_match_ck",
+      sql`(${table.type} in ('mcq', 'true_false', 'fill_blank') and ${table.marks} = 1)
+        or (${table.type} = 'short_answer' and ${table.marks} in (2, 3))
+        or (${table.type} = 'matching' and ${table.marks} = 5)
+        or (${table.type} = 'long_answer' and ${table.marks} = 10)`,
+    ),
+    check(
+      "question_swap_group_not_blank_ck",
+      sql`${table.swapGroupId} is null or length(trim(${table.swapGroupId})) > 0`,
+    ),
+    check(
+      "question_swap_group_variation_pair_ck",
+      sql`(${table.swapGroupId} is null and ${table.variationNumber} is null) or (${table.swapGroupId} is not null and ${table.variationNumber} is not null)`,
+    ),
+    check(
+      "question_variation_number_allowed_ck",
+      sql`${table.variationNumber} is null or ${table.variationNumber} between 1 and 3`,
+    ),
+    check(
+      "question_image_urls_array_limit_ck",
+      sql`${table.questionImageUrls} is null
+        or (
+          jsonb_typeof(${table.questionImageUrls}::jsonb) = 'array'
+          and jsonb_array_length(${table.questionImageUrls}::jsonb) <= 4
+        )`,
+    ),
+    check(
+      "solution_image_urls_array_limit_ck",
+      sql`${table.solutionImageUrls} is null
+        or (
+          jsonb_typeof(${table.solutionImageUrls}::jsonb) = 'array'
+          and jsonb_array_length(${table.solutionImageUrls}::jsonb) <= 4
+        )`,
+    ),
   ],
 );
 
@@ -248,6 +321,119 @@ export const questionOption = pgTable(
     unique().on(table.questionId, table.label),
     unique().on(table.questionId, table.sortOrder),
     index("question_option_question_idx").on(table.questionId),
+  ],
+);
+
+export const paperBlueprint = pgTable(
+  "paper_blueprint",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    userId: text("userId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    mode: paperBlueprintModeEnum("mode").default("custom").notNull(),
+    status: paperBlueprintStatusEnum("status").default("draft").notNull(),
+    gradeId: text("gradeId")
+      .notNull()
+      .references(() => grade.id),
+    subjectId: text("subjectId")
+      .notNull()
+      .references(() => subject.id),
+    totalMarks: integer("totalMarks").notNull(),
+    pdfTemplateKey: text("pdfTemplateKey").default("default").notNull(),
+    examYearLabel: text("examYearLabel"),
+    timeAllowedLabel: text("timeAllowedLabel"),
+    departmentLine: text("departmentLine"),
+    answerInstructionLine: text("answerInstructionLine"),
+    includeAnswerPaper: boolean("includeAnswerPaper").default(false).notNull(),
+    difficultyDistribution: json("difficultyDistribution").notNull(),
+    presetConfig: json("presetConfig"),
+    templateConfig: json("templateConfig"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("paper_blueprint_user_updated_idx").on(table.userId, table.updatedAt),
+    index("paper_blueprint_status_idx").on(table.status),
+    check("paper_blueprint_total_marks_positive_ck", sql`${table.totalMarks} > 0`),
+  ],
+);
+
+export const paperBlueprintSection = pgTable(
+  "paper_blueprint_section",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    blueprintId: text("blueprintId")
+      .notNull()
+      .references(() => paperBlueprint.id, { onDelete: "cascade" }),
+    code: text("code").notNull(),
+    title: text("title"),
+    questionType: questionTypeEnum("questionType"),
+    marksPerQuestion: integer("marksPerQuestion"),
+    questionCount: integer("questionCount").notNull(),
+    totalMarks: integer("totalMarks").notNull(),
+    sortOrder: integer("sortOrder").default(0).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique().on(table.blueprintId, table.code),
+    unique().on(table.blueprintId, table.sortOrder),
+    index("paper_blueprint_section_blueprint_idx").on(table.blueprintId),
+    check(
+      "paper_blueprint_section_question_count_positive_ck",
+      sql`${table.questionCount} > 0`,
+    ),
+    check(
+      "paper_blueprint_section_total_marks_positive_ck",
+      sql`${table.totalMarks} > 0`,
+    ),
+    check(
+      "paper_blueprint_section_marks_allowed_ck",
+      sql`${table.marksPerQuestion} is null or ${table.marksPerQuestion} in (1, 2, 3, 5, 10)`,
+    ),
+  ],
+);
+
+export const paperBlueprintSlot = pgTable(
+  "paper_blueprint_slot",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    blueprintId: text("blueprintId")
+      .notNull()
+      .references(() => paperBlueprint.id, { onDelete: "cascade" }),
+    sectionId: text("sectionId").references(() => paperBlueprintSection.id, {
+      onDelete: "set null",
+    }),
+    slotNumber: integer("slotNumber").notNull(),
+    questionType: questionTypeEnum("questionType").notNull(),
+    marks: integer("marks").notNull(),
+    difficultyTarget: paperBlueprintDifficultyEnum("difficultyTarget"),
+    chapterId: text("chapterId").references(() => chapter.id),
+    subChapterId: text("subChapterId").references(() => subChapter.id),
+    lockedQuestionId: text("lockedQuestionId").references(() => question.id),
+    generatedQuestionId: text("generatedQuestionId").references(() => question.id),
+    swapLimit: integer("swapLimit").default(3).notNull(),
+    slotConfig: json("slotConfig"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique().on(table.blueprintId, table.slotNumber),
+    index("paper_blueprint_slot_blueprint_idx").on(table.blueprintId),
+    index("paper_blueprint_slot_section_idx").on(table.sectionId),
+    check("paper_blueprint_slot_marks_allowed_ck", sql`${table.marks} in (1, 2, 3, 5, 10)`),
+    check("paper_blueprint_slot_swap_limit_positive_ck", sql`${table.swapLimit} > 0`),
   ],
 );
 
@@ -342,11 +528,19 @@ export const questionPaper = pgTable(
     userId: text("userId")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    blueprintId: text("blueprintId").references(() => paperBlueprint.id, {
+      onDelete: "set null",
+    }),
     brandAssetId: text("brandAssetId").references(() => brandAsset.id),
     title: text("title").notNull(),
     instructions: text("instructions"),
     schoolName: text("schoolName"),
     academicYear: text("academicYear"),
+    pdfTemplateKey: text("pdfTemplateKey").default("default").notNull(),
+    examYearLabel: text("examYearLabel"),
+    timeAllowedLabel: text("timeAllowedLabel"),
+    departmentLine: text("departmentLine"),
+    answerInstructionLine: text("answerInstructionLine"),
     status: questionPaperStatusEnum("status").default("draft").notNull(),
     includeAnswerKey: boolean("includeAnswerKey").default(false).notNull(),
     gradeId: text("gradeId").references(() => grade.id),
@@ -364,6 +558,7 @@ export const questionPaper = pgTable(
   },
   (table) => [
     index("question_paper_user_created_idx").on(table.userId, table.createdAt),
+    index("question_paper_blueprint_idx").on(table.blueprintId),
     index("question_paper_brand_idx").on(table.brandAssetId),
     index("question_paper_status_idx").on(table.status),
     index("question_paper_exported_idx").on(table.exportedAt),
@@ -380,10 +575,18 @@ export const questionPaperItem = pgTable(
     questionId: text("questionId")
       .notNull()
       .references(() => question.id),
+    blueprintSectionId: text("blueprintSectionId").references(() => paperBlueprintSection.id, {
+      onDelete: "set null",
+    }),
+    blueprintSlotId: text("blueprintSlotId").references(() => paperBlueprintSlot.id, {
+      onDelete: "set null",
+    }),
     position: integer("position").notNull(),
     questionCode: text("questionCode").notNull(),
     questionType: questionTypeEnum("questionType").notNull(),
     marks: integer("marks").default(1).notNull(),
+    swapCount: integer("swapCount").default(0).notNull(),
+    swapLimit: integer("swapLimit").default(3).notNull(),
     renderedBody: text("renderedBody").notNull(),
     renderedAnswerText: text("renderedAnswerText"),
     renderedOptions: json("renderedOptions"),
@@ -393,9 +596,15 @@ export const questionPaperItem = pgTable(
     unique().on(table.paperId, table.position),
     index("question_paper_item_paper_idx").on(table.paperId),
     index("question_paper_item_question_idx").on(table.questionId),
+    index("question_paper_item_blueprint_section_idx").on(table.blueprintSectionId),
+    index("question_paper_item_blueprint_slot_idx").on(table.blueprintSlotId),
     check(
       "question_paper_item_marks_allowed_ck",
       sql`${table.marks} in (1, 2, 3, 5, 10)`,
+    ),
+    check(
+      "question_paper_item_swap_count_allowed_ck",
+      sql`${table.swapCount} >= 0 and ${table.swapCount} <= ${table.swapLimit}`,
     ),
   ],
 );
@@ -725,6 +934,12 @@ export const questionRelations = relations(question, ({ one, many }) => ({
     relationName: "QuestionReviewer",
   }),
   options: many(questionOption),
+  lockedBlueprintSlots: many(paperBlueprintSlot, {
+    relationName: "PaperBlueprintSlotLockedQuestion",
+  }),
+  generatedBlueprintSlots: many(paperBlueprintSlot, {
+    relationName: "PaperBlueprintSlotGeneratedQuestion",
+  }),
 }));
 
 export const questionOptionRelations = relations(questionOption, ({ one }) => ({
@@ -733,6 +948,72 @@ export const questionOptionRelations = relations(questionOption, ({ one }) => ({
     references: [question.id],
   }),
 }));
+
+export const paperBlueprintRelations = relations(
+  paperBlueprint,
+  ({ one, many }) => ({
+    user: one(user, {
+      fields: [paperBlueprint.userId],
+      references: [user.id],
+    }),
+    grade: one(grade, {
+      fields: [paperBlueprint.gradeId],
+      references: [grade.id],
+    }),
+    subject: one(subject, {
+      fields: [paperBlueprint.subjectId],
+      references: [subject.id],
+    }),
+    generatedPapers: many(questionPaper),
+    sections: many(paperBlueprintSection),
+    slots: many(paperBlueprintSlot),
+  }),
+);
+
+export const paperBlueprintSectionRelations = relations(
+  paperBlueprintSection,
+  ({ one, many }) => ({
+    blueprint: one(paperBlueprint, {
+      fields: [paperBlueprintSection.blueprintId],
+      references: [paperBlueprint.id],
+    }),
+    slots: many(paperBlueprintSlot),
+    paperItems: many(questionPaperItem),
+  }),
+);
+
+export const paperBlueprintSlotRelations = relations(
+  paperBlueprintSlot,
+  ({ one, many }) => ({
+    blueprint: one(paperBlueprint, {
+      fields: [paperBlueprintSlot.blueprintId],
+      references: [paperBlueprint.id],
+    }),
+    section: one(paperBlueprintSection, {
+      fields: [paperBlueprintSlot.sectionId],
+      references: [paperBlueprintSection.id],
+    }),
+    chapter: one(chapter, {
+      fields: [paperBlueprintSlot.chapterId],
+      references: [chapter.id],
+    }),
+    subChapter: one(subChapter, {
+      fields: [paperBlueprintSlot.subChapterId],
+      references: [subChapter.id],
+    }),
+    lockedQuestion: one(question, {
+      fields: [paperBlueprintSlot.lockedQuestionId],
+      references: [question.id],
+      relationName: "PaperBlueprintSlotLockedQuestion",
+    }),
+    generatedQuestion: one(question, {
+      fields: [paperBlueprintSlot.generatedQuestionId],
+      references: [question.id],
+      relationName: "PaperBlueprintSlotGeneratedQuestion",
+    }),
+    paperItems: many(questionPaperItem),
+  }),
+);
 
 export const practiceSessionRelations = relations(practiceSession, ({ one, many }) => ({
   user: one(user, { fields: [practiceSession.userId], references: [user.id] }),
@@ -773,6 +1054,10 @@ export const brandAssetRelations = relations(brandAsset, ({ one, many }) => ({
 
 export const questionPaperRelations = relations(questionPaper, ({ one, many }) => ({
   user: one(user, { fields: [questionPaper.userId], references: [user.id] }),
+  blueprint: one(paperBlueprint, {
+    fields: [questionPaper.blueprintId],
+    references: [paperBlueprint.id],
+  }),
   brandAsset: one(brandAsset, {
     fields: [questionPaper.brandAssetId],
     references: [brandAsset.id],
@@ -801,6 +1086,14 @@ export const questionPaperItemRelations = relations(questionPaperItem, ({ one })
   question: one(question, {
     fields: [questionPaperItem.questionId],
     references: [question.id],
+  }),
+  blueprintSection: one(paperBlueprintSection, {
+    fields: [questionPaperItem.blueprintSectionId],
+    references: [paperBlueprintSection.id],
+  }),
+  blueprintSlot: one(paperBlueprintSlot, {
+    fields: [questionPaperItem.blueprintSlotId],
+    references: [paperBlueprintSlot.id],
   }),
 }));
 

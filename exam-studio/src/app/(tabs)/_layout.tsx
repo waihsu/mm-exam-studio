@@ -1,6 +1,7 @@
 import { Redirect, Tabs } from "expo-router";
 import React from "react";
 import { Text } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FullscreenLoading } from "@/features/app-shell/components/fullscreen-loading";
 import { useAuthSessionAutoRefresh } from "@/features/auth/hooks/use-auth-session-auto-refresh";
 import { useAuthSessionQuery } from "@/features/auth/hooks/use-auth-session-query";
@@ -13,6 +14,7 @@ const TabIcon = ({ icon, color }: { icon: string; color: string }) => (
 
 export default function TabsLayout() {
   const sessionQuery = useAuthSessionQuery();
+  const insets = useSafeAreaInsets();
   useAuthSessionAutoRefresh();
   useSyncPushRegistration(Boolean(sessionQuery.data));
   useMySupportConversationRealtime(Boolean(sessionQuery.data), {
@@ -37,8 +39,8 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: "#FFFFFF",
           borderTopColor: "#D8DEE9",
-          height: 62,
-          paddingBottom: 6,
+          height: 56 + insets.bottom,
+          paddingBottom: Math.max(insets.bottom, 8),
           paddingTop: 6,
         },
       }}

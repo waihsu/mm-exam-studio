@@ -35,8 +35,22 @@ workspacePaperExportRoute.get("/papers/:id/pdf", async (c) => {
   }
 });
 
+workspacePaperExportRoute.get("/papers/:id/pdf-answer", async (c) => {
+  const { user } = await ensureAuthContext(c);
+
+  try {
+    return await generateQuestionPaperPdfResponse({
+      bindings: c.env,
+      userId: user.id,
+      paperId: c.req.param("id"),
+      variant: "answer",
+    });
+  } catch (error) {
+    toHttpError(error, "Failed to generate answer PDF.");
+  }
+});
+
 workspacePaperExportRoute.get("/exports", async (c) => {
   const { user } = await ensureAuthContext(c);
   return c.json(await listExportedPapers(user.id));
 });
-

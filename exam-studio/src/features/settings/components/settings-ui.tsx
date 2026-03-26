@@ -34,17 +34,19 @@ export const SettingsPage = ({
 
   return (
     <AppShell>
-      <View style={settingsUiStyles.pageHeader}>
+      <View style={[settingsUiStyles.pageHeader, showBack && settingsUiStyles.pageHeaderCard]}>
         {showBack ? (
-          <Pressable
-            style={({ pressed }) => [
-              settingsUiStyles.backButton,
-              pressed && settingsUiStyles.buttonPressed,
-            ]}
-            onPress={() => router.replace(backHref)}
-          >
-            <Text style={settingsUiStyles.backButtonLabel}>{t("actions.back")}</Text>
-          </Pressable>
+          <View style={settingsUiStyles.pageHeaderTopRow}>
+            <Pressable
+              style={({ pressed }) => [
+                settingsUiStyles.backButton,
+                pressed && settingsUiStyles.buttonPressed,
+              ]}
+              onPress={() => router.replace(backHref)}
+            >
+              <Text style={settingsUiStyles.backButtonLabel}>{`‹ ${t("actions.back")}`}</Text>
+            </Pressable>
+          </View>
         ) : null}
         <Text style={settingsUiStyles.heading}>{title}</Text>
         <Text style={settingsUiStyles.subheading}>{subtitle}</Text>

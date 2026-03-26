@@ -1,4 +1,4 @@
-import { and, count as dbCount, desc, eq, ilike, or } from "drizzle-orm";
+import { and, count as dbCount, eq, ilike, or } from "drizzle-orm";
 
 import { db, question as questionTable } from "@/db";
 

@@ -1,11 +1,14 @@
 import { Linking, Platform } from "react-native";
 import * as FileSystem from "expo-file-system/legacy";
-import * as Sharing from "expo-sharing";
+import * as Print from "expo-print";
 import { getAuthToken } from "@/lib/auth-token-store";
 import { getQuestionPaperPdfUrl } from "./papers.service";
 
 const PDF_CACHE_PREFIX = "question-paper-preview-";
 const PDF_PRINT_PREFIX = "question-paper-print-";
+const PDF_DOWNLOAD_RETRY_COUNT = 2;
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const getCacheDirectory = () => {
   if (!FileSystem.cacheDirectory) {
@@ -47,21 +50,45 @@ const downloadQuestionPaperPdf = async (paperId: string, fileUri: string) => {
 
   await deleteFileIfPresent(fileUri);
 
-  const result = await FileSystem.downloadAsync(getQuestionPaperPdfUrl(paperId), fileUri, {
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
-  });
+  let lastError: unknown = null;
 
-  if (result.status >= 400) {
-    await deleteFileIfPresent(fileUri);
-    throw new Error("Failed to download PDF.");
+  for (let attempt = 0; attempt < PDF_DOWNLOAD_RETRY_COUNT; attempt += 1) {
+    try {
+      const result = await FileSystem.downloadAsync(getQuestionPaperPdfUrl(paperId), fileUri, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (result.status < 400) {
+        return {
+          mode: "native" as const,
+          fileUri: result.uri,
+        };
+      }
+
+      await deleteFileIfPresent(fileUri);
+
+      if (result.status === 404) {
+        throw new Error("Question paper PDF was not found.");
+      }
+
+      if (result.status === 408 || result.status >= 500) {
+        lastError = new Error("PDF download timed out on the server. Please retry.");
+      } else {
+        lastError = new Error("Failed to download PDF.");
+      }
+    } catch (error) {
+      await deleteFileIfPresent(fileUri);
+      lastError = error;
+    }
+
+    if (attempt < PDF_DOWNLOAD_RETRY_COUNT - 1) {
+      await wait(350);
+    }
   }
 
-  return {
-    mode: "native" as const,
-    fileUri: result.uri,
-  };
+  throw (lastError instanceof Error ? lastError : new Error("Failed to download PDF."));
 };
 
 export const prepareQuestionPaperPdfPreview = async (paperId: string) =>
@@ -70,7 +97,7 @@ export const prepareQuestionPaperPdfPreview = async (paperId: string) =>
 export const prepareQuestionPaperPdfPrintExport = async (paperId: string) =>
   downloadQuestionPaperPdf(paperId, getPrintTargetUri(paperId));
 
-export const shareQuestionPaperPdfForPrint = async (paperId: string) => {
+export const openQuestionPaperPdfForPrint = async (paperId: string) => {
   const prepared = await prepareQuestionPaperPdfPrintExport(paperId);
 
   if (prepared.mode === "web") {
@@ -81,15 +108,8 @@ export const shareQuestionPaperPdfForPrint = async (paperId: string) => {
     };
   }
 
-  const sharingAvailable = await Sharing.isAvailableAsync();
-  if (!sharingAvailable) {
-    throw new Error("Print sharing is unavailable on this device.");
-  }
-
-  await Sharing.shareAsync(prepared.fileUri, {
-    dialogTitle: "Share Printable PDF",
-    mimeType: "application/pdf",
-    UTI: "com.adobe.pdf",
+  await Print.printAsync({
+    uri: prepared.fileUri,
   });
 
   return {
@@ -103,15 +123,10 @@ export const clearCachedQuestionPaperPdfPreview = async (paperId: string) => {
     return;
   }
 
-  await deleteFileIfPresent(getPreviewTargetUri(paperId));
-};
-
-export const clearCachedQuestionPaperPdfPrintExport = async (paperId: string) => {
-  if (Platform.OS === "web") {
-    return;
-  }
-
-  await deleteFileIfPresent(getPrintTargetUri(paperId));
+  await Promise.all([
+    deleteFileIfPresent(getPreviewTargetUri(paperId)),
+    deleteFileIfPresent(getPrintTargetUri(paperId)),
+  ]);
 };
 
 export const clearAllCachedQuestionPaperPdfPreviews = async () => {

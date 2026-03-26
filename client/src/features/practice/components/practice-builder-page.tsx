@@ -1,229 +1,156 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ClipboardList, LoaderCircle, RotateCcw } from "lucide-react";
+import { ArrowRight, ClipboardList, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
-import { QuestionCatalogSelector } from "@/features/workspace/components/question-catalog-selector";
-import { QuestionFilterPanel } from "@/features/workspace/components/question-filter-panel";
+import { PageHeader, SectionCard } from "@/components/ui/page-shell";
+import { QuestionMixPanel } from "@/features/workspace/components/question-mix-panel";
+import { QuestionScopePanel } from "@/features/workspace/components/question-scope-panel";
 import { usePracticeBuilderPageData } from "../hooks/use-practice-builder-page-data";
 import { QuickStat, SummaryRow } from "./practice-shared";
+
+const PRACTICE_MIX_ITEMS = [
+  { type: "mcq", label: "MCQ", helperText: "Set 0 to leave this type out." },
+  { type: "true_false", label: "True/False", helperText: "Use 0 if you do not need quick binary checks." },
+  { type: "fill_blank", label: "Fill Blank", helperText: "Good for short recall checks." },
+  { type: "short_answer", label: "Short Answer", helperText: "Use this for brief written responses." },
+  { type: "matching", label: "Matching", helperText: "Use 0 to skip matching in this session." },
+] as const;
 
 export function PracticeBuilderPage() {
   const {
     filters,
-    generatorMode,
-    page,
-    catalogQuery,
+    metaQuery,
+    countsQuery,
     sessionsQuery,
     createSessionMutation,
     meta,
-    catalog,
-    lockedRows,
-    lockedTotal,
+    counts,
     sessions,
     summary,
     planCode,
     questionLimit,
-    selectedQuestionIds,
-    selectedCount,
+    mixCounts,
+    configuredMixCount,
+    activeMixTypes,
     activeSessionsCount,
     exceedsLimit,
-    selectionLabel,
-    setPage,
-    updateMode,
+    exceedsAvailableMix,
+    countValue,
     updateFilters,
-    toggleQuestion,
-    clearSelection,
+    setMixCount,
+    clearMix,
+    setCountValue,
     startPractice,
   } = usePracticeBuilderPageData();
 
+  const fallbackCount = Math.max(1, Number.parseInt(countValue || "10", 10) || 10);
+  const totalPlanned = configuredMixCount > 0 ? configuredMixCount : fallbackCount;
+  const canStart =
+    totalPlanned > 0 &&
+    totalPlanned <= 50 &&
+    !exceedsLimit &&
+    !exceedsAvailableMix &&
+    !createSessionMutation.isPending;
+
   return (
     <div className="space-y-4">
-      <section className="app-hero">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-              Practice
-            </p>
-            <h2 className="mt-1 text-2xl font-semibold text-slate-900">
-              Build a session
-            </h2>
-            <p className="mt-1 text-sm text-slate-600">Choose questions and launch practice fast.</p>
-          </div>
+      <PageHeader
+        eyebrow="Practice"
+        title="Practice Builder"
+        description="Use one mini blueprint flow for both scope and question mix."
+        actions={
           <div className="grid w-full grid-cols-3 gap-2 sm:w-auto sm:min-w-[260px] sm:gap-3">
-            <QuickStat label="Selected" value={String(selectedCount)} />
-            <QuickStat label="Catalog" value={String(catalog?.total ?? 0)} />
+            <QuickStat label="Planned" value={String(totalPlanned)} />
+            <QuickStat label="Types" value={String(activeMixTypes)} />
             <QuickStat label="Active" value={String(activeSessionsCount)} />
           </div>
-        </div>
-      </section>
+        }
+      />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-5 reveal-up reveal-delay-1">
-          <section className="rounded-xl border border-slate-200 bg-white p-4">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">Generator mode</p>
-                <p className="mt-1 text-sm text-slate-500">Choose session mode.</p>
-              </div>
-              <div className="inline-flex w-full rounded-lg border border-slate-200 bg-slate-50 p-1 sm:w-auto">
-                <button
-                  type="button"
-                  onClick={() => updateMode("all_questions")}
-                  className={`flex-1 rounded-xl px-3 py-2 text-sm font-semibold transition sm:flex-none ${
-                    generatorMode === "all_questions"
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-600"
-                  }`}
-                >
-                  All Questions
-                </button>
-                <button
-                  type="button"
-                  onClick={() => updateMode("mcq_only")}
-                  className={`flex-1 rounded-xl px-3 py-2 text-sm font-semibold transition sm:flex-none ${
-                    generatorMode === "mcq_only" ? "bg-slate-900 text-white" : "text-slate-600"
-                  }`}
-                >
-                  MCQ Only
-                </button>
-              </div>
-            </div>
-            <QuestionFilterPanel
-              meta={meta}
-              planCode={planCode}
-              value={filters}
-              onChange={(next) => {
-                updateFilters(next);
-              }}
-            />
-          </section>
+        <div className="space-y-5">
+          <QuestionScopePanel
+            meta={meta}
+            planCode={planCode}
+            value={filters}
+            onChange={updateFilters}
+            title="Practice Scope"
+            hint="Choose the syllabus scope once, then use the mini blueprint to set exact practice counts."
+          />
 
-          <section className="rounded-xl border border-slate-200 bg-white p-4 pb-20 sm:pb-5">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">{selectionLabel}</p>
-                <p className="mt-1 text-sm text-slate-500">Pick questions and start.</p>
-                <p className="mt-2 text-xs font-medium text-slate-600">
-                  Mode: {generatorMode === "mcq_only" ? "MCQ Only" : "All Questions"}
-                </p>
-                {planCode === "free" ? (
-                  <p className="mt-2 text-xs font-medium text-amber-700">
-                    Free plan is limited to free preview chapters and lessons, with up to{" "}
-                    {questionLimit ?? 0} questions per practice session.
-                  </p>
-                ) : null}
-                {exceedsLimit ? (
-                  <p className="mt-2 text-xs font-medium text-red-700">
-                    Reduce the selection to {questionLimit} questions or fewer to start practice.
-                  </p>
-                ) : null}
-                {lockedTotal > 0 ? (
-                  <p className="mt-2 text-xs font-medium text-amber-700">
-                    {lockedTotal} question{lockedTotal > 1 ? "s are" : " is"} locked for your{" "}
-                    {summary?.subscription.name ?? "current"} plan.
-                  </p>
-                ) : null}
-              </div>
-              <div className="hidden items-center gap-2 sm:flex">
-                {selectedCount > 0 ? (
-                  <Button
-                    variant="outline"
-                    className="bg-white"
-                    onClick={clearSelection}
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                    Clear
-                  </Button>
-                ) : null}
-                <Button
-                  className="hidden lg:hidden sm:inline-flex"
-                  disabled={selectedCount === 0 || exceedsLimit || createSessionMutation.isPending}
-                  onClick={() => {
-                    void startPractice();
-                  }}
-                >
-                  {createSessionMutation.isPending ? "Starting..." : "Start practice"}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+          <QuestionMixPanel
+            title="Mini Blueprint"
+            hint="Set exact counts by question type. Leave every row at 0 to use the fallback count below."
+            items={PRACTICE_MIX_ITEMS.map((item) => ({ ...item }))}
+            values={mixCounts}
+            onChange={setMixCount}
+            totalPlanned={configuredMixCount}
+            availableCounts={counts}
+            unavailableMessage={
+              exceedsAvailableMix
+                ? "One or more requested question types exceed the available questions in this scope."
+                : null
+            }
+          />
 
-            {catalogQuery.data && !catalogQuery.data.ok ? (
-              <Notice tone="error" className="mt-4 px-4 py-3">
-                {catalogQuery.data.message}
+          <SectionCard
+            title="Quick Start"
+            description="Use the fallback count only when every mini blueprint row stays at 0."
+            actions={
+              <button
+                type="button"
+                onClick={clearMix}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+              >
+                Clear mix
+              </button>
+            }
+          >
+            {configuredMixCount === 0 ? (
+              <label className="block space-y-2">
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+                  Question count
+                </span>
+                <input
+                  value={countValue}
+                  onChange={(event) =>
+                    setCountValue(event.target.value.replace(/[^\d]/g, "").slice(0, 2))
+                  }
+                  inputMode="numeric"
+                  className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-900 sm:max-w-[180px]"
+                />
+              </label>
+            ) : (
+              <Notice tone="info">
+                The exact mix above will be used for this session.
+              </Notice>
+            )}
+
+            {countsQuery.data && !countsQuery.data.ok ? (
+              <Notice tone="error">
+                {countsQuery.data.message}
               </Notice>
             ) : null}
             {createSessionMutation.data && !createSessionMutation.data.ok ? (
-              <Notice tone="error" className="mt-4 px-4 py-3">
+              <Notice tone="error">
                 {createSessionMutation.data.message}
               </Notice>
             ) : null}
-
-            <div className="mt-4">
-              {catalogQuery.isLoading ? (
-                <EmptyState
-                  title="Loading questions..."
-                  description="Preparing catalog based on your filters."
-                  icon={LoaderCircle}
-                />
-              ) : (
-                <QuestionCatalogSelector
-                  rows={catalog?.rows ?? []}
-                  lockedRows={lockedRows}
-                  lockedTotal={lockedTotal}
-                  selectedIds={selectedQuestionIds}
-                  onToggle={toggleQuestion}
-                />
-              )}
-            </div>
-
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-slate-500">
-                Page {catalog?.page ?? 1} of {catalog?.totalPages ?? 1}
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1 bg-white sm:flex-none"
-                  disabled={(catalog?.page ?? 1) <= 1}
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1 bg-white sm:flex-none"
-                  disabled={(catalog?.page ?? 1) >= (catalog?.totalPages ?? 1)}
-                  onClick={() => setPage(page + 1)}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
-          <section className="hidden rounded-xl border border-slate-200 bg-white p-4 lg:block">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-              Session
-            </p>
-            <h3 className="mt-2 text-base font-semibold text-slate-900">Session summary</h3>
-            <p className="mt-1 text-sm text-slate-500">Selection and status.</p>
-            {summary ? (
-              <p className="mt-2 text-xs font-medium text-slate-600">
-                Plan: {summary.subscription.name}
-              </p>
+            {planCode === "free" ? (
+              <Notice tone="warning">
+                Free plan can use free preview chapters and lessons only, up to {questionLimit ?? 0} questions per practice session.
+              </Notice>
             ) : null}
-            <div className="mt-4 space-y-2">
-              <SummaryRow label="Selected" value={String(selectedCount)} />
-              <SummaryRow label="Catalog" value={String(catalog?.total ?? 0)} />
-              <SummaryRow label="Active" value={String(activeSessionsCount)} />
-            </div>
-            <div className="mt-4 flex flex-col gap-2">
+            {exceedsLimit ? (
+              <Notice tone="error">
+                Reduce this session to {questionLimit} questions or fewer for your current plan.
+              </Notice>
+            ) : null}
+
+            <div className="flex flex-wrap items-center gap-3">
               <Button
-                disabled={selectedCount === 0 || exceedsLimit || createSessionMutation.isPending}
+                disabled={!canStart}
                 onClick={() => {
                   void startPractice();
                 }}
@@ -231,32 +158,36 @@ export function PracticeBuilderPage() {
                 {createSessionMutation.isPending ? "Starting..." : "Start practice"}
                 <ArrowRight className="h-4 w-4" />
               </Button>
-              {selectedCount > 0 ? (
-                <Button
-                  variant="outline"
-                  className="bg-white"
-                  onClick={clearSelection}
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Clear selection
-                </Button>
-              ) : null}
+              <p className="text-sm text-slate-500">
+                Planned session: {totalPlanned} question{totalPlanned === 1 ? "" : "s"}
+              </p>
             </div>
-          </section>
+          </SectionCard>
+        </div>
 
-          <section className="rounded-xl border border-slate-200 bg-white p-4">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-lg font-semibold text-slate-900">Recent sessions</h3>
+        <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
+          <SectionCard title="Builder Summary" description="Scope, counts, and plan status.">
+            {summary ? (
+              <p className="text-xs font-medium text-slate-600">
+                Plan: {summary.subscription.name}
+              </p>
+            ) : null}
+            <div className="space-y-2">
+              <SummaryRow label="Planned" value={String(totalPlanned)} />
+              <SummaryRow label="Types" value={String(activeMixTypes)} />
+              <SummaryRow label="Active" value={String(activeSessionsCount)} />
             </div>
+          </SectionCard>
 
+          <SectionCard title="Recent Sessions">
             {sessionsQuery.data && !sessionsQuery.data.ok ? (
-              <Notice tone="error" className="mt-4 px-4 py-3">
+              <Notice tone="error" className="px-4 py-3">
                 {sessionsQuery.data.message}
               </Notice>
             ) : null}
 
-            <div className="mt-4 space-y-3">
-              {sessionsQuery.isLoading ? (
+            <div className="space-y-3">
+              {sessionsQuery.isLoading || metaQuery.isLoading ? (
                 <EmptyState title="Loading sessions..." icon={LoaderCircle} className="py-6" />
               ) : sessions.length > 0 ? (
                 sessions.map((session) => (
@@ -293,40 +224,8 @@ export function PracticeBuilderPage() {
                 />
               )}
             </div>
-          </section>
+          </SectionCard>
         </aside>
-      </div>
-
-      <div className="sticky bottom-2 z-20 pb-[max(env(safe-area-inset-bottom),0.5rem)] sm:hidden">
-        <div className="rounded-lg border border-slate-200 bg-white p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-                Selection
-              </p>
-              <p className="text-sm font-semibold text-slate-900">{selectionLabel}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              {selectedCount > 0 ? (
-                <Button
-                  variant="outline"
-                  className="bg-white"
-                  onClick={clearSelection}
-                >
-                  Clear
-                </Button>
-              ) : null}
-              <Button
-                disabled={selectedCount === 0 || exceedsLimit || createSessionMutation.isPending}
-                onClick={() => {
-                  void startPractice();
-                }}
-              >
-                {createSessionMutation.isPending ? "Starting..." : "Start"}
-              </Button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

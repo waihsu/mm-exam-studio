@@ -5,8 +5,10 @@ import type { CreateQuestionInput } from "../question.schema";
 import { validateVariableConfiguration } from "../utils/math-engine";
 import { invalidateQuestionReadCaches } from "./question-read.service";
 import {
+  assertSwapGroupVariationIntegrity,
   assertPublishState,
   normalizeReviewStatus,
+  validateStructuredQuestionData,
   validateQuestionRelations,
 } from "./question-shared.service";
 import { insertQuestionOptions } from "./question-write-shared.service";
@@ -41,6 +43,17 @@ export const createQuestion = async (
     answerFormula: data.answerFormula,
     options: data.options,
     variablesSchema: data.variablesSchema,
+    parametricValueSets: data.parametricValueSets,
+  });
+
+  validateStructuredQuestionData(data);
+  await assertSwapGroupVariationIntegrity({
+    swapGroupId: data.swapGroupId,
+    variationNumber: data.variationNumber,
+    gradeId: data.gradeId,
+    subjectId: data.subjectId,
+    type: data.type,
+    marks: data.marks ?? 1,
   });
 
   const [question] = await db

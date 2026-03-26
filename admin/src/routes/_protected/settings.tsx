@@ -2,6 +2,7 @@ import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Shield, ShieldCheck, UserRound } from "lucide-react";
 import { PageContainer, PagePanel } from "@/components/page-container";
+import { AdminPageHeader } from "@/components/page-shell";
 import { ADMIN_ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
@@ -36,26 +37,20 @@ function SettingsLayout() {
 
   return (
     <PageContainer className="space-y-4 sm:space-y-5">
+      <AdminPageHeader
+        eyebrow="Settings"
+        title="Account settings"
+        description="Keep admin identity details and session security in one place so operations stay consistent, auditable, and safe."
+        chips={
+          <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700">
+            <ShieldCheck className="h-4 w-4 text-slate-500" />
+            Security-aware admin controls
+          </span>
+        }
+      />
+
       <PagePanel className="space-y-5 bg-white/88">
         <div className="space-y-5">
-          <div className="space-y-4 rounded-2xl border border-slate-200 bg-[linear-gradient(125deg,rgba(15,23,42,0.03)_0%,rgba(14,116,144,0.06)_100%)] p-5 sm:p-6">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <div className="space-y-2">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-                Settings
-              </p>
-              <h1 className="text-2xl font-black text-slate-900 sm:text-3xl">
-                Account Settings
-              </h1>
-              <p className="max-w-2xl text-sm leading-7 text-slate-600">
-                Keep admin identity details and session security in one place so operations
-                stay consistent, auditable, and safe.
-              </p>
-            </div>
-          </div>
-
           <div className="grid gap-3 sm:grid-cols-2">
             {settingsTabs.map((tab) => {
               const Icon = tab.icon;

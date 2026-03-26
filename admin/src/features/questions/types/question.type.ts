@@ -74,6 +74,8 @@ export type QuestionRecord = {
   reviewStatus: QuestionReviewStatus;
   reviewNotes?: string | null;
   explanation?: string | null;
+  questionImageUrls?: string[] | null;
+  solutionImageUrls?: string[] | null;
   answerText?: string | null;
   answerFormula?: string | null;
   variablesSchema?: QuestionVariableDefinition[] | null;

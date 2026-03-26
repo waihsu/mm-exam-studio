@@ -1,7 +1,12 @@
-import type { CreateQuestionInput, QuestionVariableInput } from "../question.schema";
+import type {
+  CreateQuestionInput,
+  QuestionParametricValueSetInput,
+  QuestionVariableInput,
+} from "../question.schema";
 
 type VariableContextValue = string | number;
 type VariableContext = Record<string, VariableContextValue>;
+type VariablePreviewValues = Record<string, string | number>;
 type MathFunctionDefinition = {
   minArgs: number;
   maxArgs?: number;
@@ -776,20 +781,46 @@ const generateVariableValue = (variable: QuestionVariableInput) => {
 
 const buildVariableContext = (
   variables: QuestionVariableInput[] | undefined,
-  previewValues?: Record<string, string | number>,
+  previewValues?: VariablePreviewValues,
+  parametricValueSets?: QuestionParametricValueSetInput[],
+  parametricSetIndex?: number,
 ) => {
   if (!variables?.length) {
-    return {};
+    return {
+      context: {} as VariableContext,
+      selectedParametricSetIndex: null as number | null,
+    };
   }
 
-  return variables.reduce<VariableContext>((context, variable) => {
-    const override = previewValues?.[variable.key];
-    context[variable.key] =
+  let selectedParametricSetIndex: number | null = null;
+  let selectedParametricValueSet: QuestionParametricValueSetInput | undefined;
+
+  if (parametricValueSets?.length) {
+    if (
+      typeof parametricSetIndex === "number" &&
+      (parametricSetIndex < 0 || parametricSetIndex >= parametricValueSets.length)
+    ) {
+      throw new Error("Selected parametric value set index is out of range.");
+    }
+
+    selectedParametricSetIndex =
+      typeof parametricSetIndex === "number"
+        ? parametricSetIndex
+        : Math.floor(Math.random() * parametricValueSets.length);
+    selectedParametricValueSet = parametricValueSets[selectedParametricSetIndex];
+  }
+
+  const context = variables.reduce<VariableContext>((nextContext, variable) => {
+    const override =
+      previewValues?.[variable.key] ?? selectedParametricValueSet?.[variable.key];
+    nextContext[variable.key] =
       override !== undefined
         ? coerceVariableOverride(variable, override)
         : generateVariableValue(variable);
-    return context;
+    return nextContext;
   }, {});
+
+  return { context, selectedParametricSetIndex };
 };
 
 const renderTemplate = (
@@ -814,6 +845,7 @@ export const validateVariableConfiguration = (input: {
   answerFormula?: string | null;
   options?: Array<{ label?: string; text: string; isCorrect: boolean }>;
   variablesSchema?: QuestionVariableInput[];
+  parametricValueSets?: QuestionParametricValueSetInput[];
 }) => {
   if (input.mode !== "variable") {
     return;
@@ -871,6 +903,19 @@ export const validateVariableConfiguration = (input: {
       );
     }
   }
+
+  for (const [setIndex, valueSet] of (input.parametricValueSets ?? []).entries()) {
+    for (const [key, value] of Object.entries(valueSet)) {
+      const variable = variableMap.get(key);
+      if (!variable) {
+        throw new Error(
+          `Parametric value set ${setIndex + 1} references unknown variable "${key}".`,
+        );
+      }
+
+      coerceVariableOverride(variable, value);
+    }
+  }
 };
 
 export const renderQuestionPreviewResult = (
@@ -883,12 +928,19 @@ export const renderQuestionPreviewResult = (
     | "options"
     | "mode"
     | "variablesSchema"
+    | "parametricValueSets"
   > & {
-    previewValues?: Record<string, string | number>;
+    previewValues?: VariablePreviewValues;
+    parametricSetIndex?: number;
   },
 ) => {
   const variables = data.variablesSchema;
-  const context = buildVariableContext(variables, data.previewValues);
+  const { context, selectedParametricSetIndex } = buildVariableContext(
+    variables,
+    data.previewValues,
+    data.parametricValueSets,
+    data.parametricSetIndex,
+  );
 
   const renderedAnswer =
     data.mode === "variable" && data.answerFormula?.trim()
@@ -897,6 +949,7 @@ export const renderQuestionPreviewResult = (
 
   return {
     context,
+    selectedParametricSetIndex,
     body: renderTemplate(data.body, context) ?? "",
     explanation: renderTemplate(data.explanation, context),
     answerText: renderedAnswer,

@@ -18,6 +18,20 @@ const QUESTION_MARKS_BY_TYPE = {
   long_answer: [10],
 } as const satisfies Record<(typeof QUESTION_TYPES)[number], readonly number[]>;
 
+const questionMediaArraySchema = z
+  .array(z.string().trim().min(1, "Image URL cannot be empty."))
+  .max(4, "You can add up to 4 image URLs.")
+  .superRefine((value, ctx) => {
+    const normalized = value.map((item) => item.trim());
+    const unique = new Set(normalized);
+    if (unique.size !== normalized.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Duplicate image URLs are not allowed.",
+      });
+    }
+  });
+
 const reservedVariableNames = new Set([
   "pi",
   "e",
@@ -136,6 +150,8 @@ export const questionSchema = z
     subjectId: z.string().min(1, "Select a subject"),
     chapterId: z.string().optional(),
     subChapterId: z.string().optional(),
+    questionImageUrls: questionMediaArraySchema.default([]),
+    solutionImageUrls: questionMediaArraySchema.default([]),
     explanation: z.string().optional(),
     answerText: z.string().optional(),
     answerFormula: z.string().optional(),

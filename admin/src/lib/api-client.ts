@@ -68,6 +68,17 @@ export const api = {
       body,
     });
   },
+  patch<T = unknown>(
+    path: string,
+    body?: ApiRequestInit["body"],
+    init?: Omit<ApiRequestInit, "body" | "method">,
+  ) {
+    return requestApi<T>(path, {
+      ...(init ?? {}),
+      method: "PATCH",
+      body,
+    });
+  },
   delete<T = unknown>(path: string, init?: Omit<ApiRequestInit, "body" | "method">) {
     return requestApi<T>(path, {
       ...(init ?? {}),

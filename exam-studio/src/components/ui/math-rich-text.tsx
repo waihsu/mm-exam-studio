@@ -22,6 +22,7 @@ type MathRichTextProps = {
   containerStyle?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
   renderMode?: "auto" | "native";
+  touchThrough?: boolean;
 };
 
 const hasNativeWebView = () => {
@@ -60,12 +61,19 @@ export const MathRichText = ({
   containerStyle,
   textStyle,
   renderMode = "auto",
+  touchThrough = false,
 }: MathRichTextProps) => {
   const value = content ?? "";
   const [webViewFailed, setWebViewFailed] = useState(false);
   const [webViewHeight, setWebViewHeight] = useState(inline ? 28 : 48);
   const flattenedTextStyle = StyleSheet.flatten(textStyle);
+  const segments = useMemo(() => parseMathSegments(value), [value]);
   const containsMath = hasMathSegments(value);
+  const containsDisplayMath = useMemo(
+    () => segments.some((segment) => segment.type === "math" && segment.displayMode),
+    [segments],
+  );
+  const useInlineFlow = inline || !containsDisplayMath;
   const WebView = useMemo(() => getWebViewComponent(), []);
 
   if (!value.trim()) {
@@ -83,15 +91,19 @@ export const MathRichText = ({
 
   if (shouldUseWebView) {
     const html = buildMathHtmlDocument(value, {
-      inline,
+      inline: useInlineFlow,
       fontSize: flattenedTextStyle?.fontSize,
       lineHeight: flattenedTextStyle?.lineHeight,
       textColor: toCssColor(flattenedTextStyle?.color),
     });
 
     return (
-      <View style={[styles.webViewWrap, inline && styles.webViewWrapInline, containerStyle]}>
+      <View
+        pointerEvents={touchThrough ? "none" : "auto"}
+        style={[styles.webViewWrap, inline && styles.webViewWrapInline, containerStyle]}
+      >
         <WebView
+          pointerEvents={touchThrough ? "none" : "auto"}
           originWhitelist={["*"]}
           scrollEnabled={false}
           showsVerticalScrollIndicator={false}
@@ -116,11 +128,10 @@ export const MathRichText = ({
     );
   }
 
-  const segments = parseMathSegments(value);
   return (
     <View
       style={[
-        inline ? styles.inlineSegments : styles.blockSegments,
+        useInlineFlow ? styles.inlineSegments : styles.blockSegments,
         containerStyle,
       ]}
     >
@@ -130,7 +141,7 @@ export const MathRichText = ({
             key={`text-${index}`}
             style={[
               styles.baseText,
-              inline ? styles.inlineText : styles.blockText,
+              useInlineFlow ? styles.inlineText : styles.blockText,
               textStyle,
             ]}
           >
@@ -142,7 +153,7 @@ export const MathRichText = ({
             style={[
               styles.fallbackMath,
               segment.displayMode && styles.fallbackMathBlock,
-              inline && styles.fallbackMathInline,
+              useInlineFlow && styles.fallbackMathInline,
               textStyle,
             ]}
           >
@@ -179,7 +190,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   inlineSegments: {
-    alignItems: "center",
+    alignItems: "flex-start",
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 4,

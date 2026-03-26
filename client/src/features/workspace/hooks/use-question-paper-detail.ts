@@ -21,15 +21,13 @@ const invalidatePaperCaches = async (
   ]);
 };
 
-const saveBlobAsFile = (blob: Blob, fileName: string) => {
+const openBlobForPrint = (blob: Blob) => {
   const objectUrl = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = objectUrl;
-  anchor.download = fileName;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1_000);
+  const opened = window.open(objectUrl, "_blank", "noopener,noreferrer");
+  if (!opened) {
+    window.location.assign(objectUrl);
+  }
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
 };
 
 export const buildQuestionPaperForm = (
@@ -67,7 +65,7 @@ export const useQuestionPaperDetail = (paperId: string) => {
     mutationFn: () => workspaceApi.downloadQuestionPaperPdf(paperId),
     onSuccess: async (response) => {
       if (!response.ok) return;
-      saveBlobAsFile(response.data.blob, response.data.fileName);
+      openBlobForPrint(response.data.blob);
       await invalidatePaperCaches(queryClient, paperId);
     },
   });

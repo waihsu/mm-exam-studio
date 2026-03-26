@@ -111,14 +111,6 @@ const apiRateLimitPerHour = readPositiveInt(
   5_000,
 );
 
-const workspaceCatalogPerMinute = readPositiveInt(
-  process.env.WORKSPACE_CATALOG_RATE_LIMIT_PER_MINUTE,
-  90,
-);
-const workspaceCatalogPerHour = readPositiveInt(
-  process.env.WORKSPACE_CATALOG_RATE_LIMIT_PER_HOUR,
-  1_800,
-);
 const workspacePracticeCreatePerMinute = readPositiveInt(
   process.env.WORKSPACE_PRACTICE_CREATE_RATE_LIMIT_PER_MINUTE,
   24,
@@ -150,6 +142,22 @@ const workspacePaperPdfPerMinute = readPositiveInt(
 const workspacePaperPdfPerHour = readPositiveInt(
   process.env.WORKSPACE_PAPER_PDF_RATE_LIMIT_PER_HOUR,
   240,
+);
+const workspacePaperExportPerMinute = readPositiveInt(
+  process.env.WORKSPACE_PAPER_EXPORT_RATE_LIMIT_PER_MINUTE,
+  20,
+);
+const workspacePaperExportPerHour = readPositiveInt(
+  process.env.WORKSPACE_PAPER_EXPORT_RATE_LIMIT_PER_HOUR,
+  240,
+);
+const workspaceBlueprintMaterializePerMinute = readPositiveInt(
+  process.env.WORKSPACE_BLUEPRINT_MATERIALIZE_RATE_LIMIT_PER_MINUTE,
+  8,
+);
+const workspaceBlueprintMaterializePerHour = readPositiveInt(
+  process.env.WORKSPACE_BLUEPRINT_MATERIALIZE_RATE_LIMIT_PER_HOUR,
+  120,
 );
 const workspaceDefaultPerMinute = readPositiveInt(
   process.env.WORKSPACE_DEFAULT_RATE_LIMIT_PER_MINUTE,
@@ -186,9 +194,6 @@ export const apiRateLimitMiddleware: MiddlewareHandler<AppBindings> = async (
 };
 
 const resolveWorkspaceRateKey = (method: string, path: string) => {
-  if (method === "GET" && path.endsWith("/catalog")) {
-    return "catalog";
-  }
   if (method === "POST" && path.endsWith("/practice/sessions")) {
     return "practice-create";
   }
@@ -201,17 +206,22 @@ const resolveWorkspaceRateKey = (method: string, path: string) => {
   ) {
     return "paper-swap";
   }
-  if (method === "GET" && /\/papers\/[^/]+\/pdf$/.test(path)) {
+  if (method === "GET" && /\/papers\/[^/]+\/pdf(?:-answer)?$/.test(path)) {
     return "paper-pdf";
+  }
+  if (method === "POST" && /\/papers\/[^/]+\/export$/.test(path)) {
+    return "paper-export";
+  }
+  if (
+    method === "POST" &&
+    /\/paper-blueprints\/[^/]+\/materialize$/.test(path)
+  ) {
+    return "paper-blueprint-materialize";
   }
   return "default";
 };
 
 const workspaceRateWindowsByKey: Record<string, readonly RateLimitWindow[]> = {
-  catalog: [
-    { windowMs: 60_000, max: workspaceCatalogPerMinute },
-    { windowMs: 3_600_000, max: workspaceCatalogPerHour },
-  ],
   "practice-create": [
     { windowMs: 60_000, max: workspacePracticeCreatePerMinute },
     { windowMs: 3_600_000, max: workspacePracticeCreatePerHour },
@@ -227,6 +237,14 @@ const workspaceRateWindowsByKey: Record<string, readonly RateLimitWindow[]> = {
   "paper-pdf": [
     { windowMs: 60_000, max: workspacePaperPdfPerMinute },
     { windowMs: 3_600_000, max: workspacePaperPdfPerHour },
+  ],
+  "paper-export": [
+    { windowMs: 60_000, max: workspacePaperExportPerMinute },
+    { windowMs: 3_600_000, max: workspacePaperExportPerHour },
+  ],
+  "paper-blueprint-materialize": [
+    { windowMs: 60_000, max: workspaceBlueprintMaterializePerMinute },
+    { windowMs: 3_600_000, max: workspaceBlueprintMaterializePerHour },
   ],
   default: [
     { windowMs: 60_000, max: workspaceDefaultPerMinute },

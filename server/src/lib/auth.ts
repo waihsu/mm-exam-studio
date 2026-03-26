@@ -53,11 +53,19 @@ const verificationWebhookUrl = (
   process.env.AUTH_EMAIL_VERIFICATION_WEBHOOK_URL ?? ""
 ).trim();
 const resendApiKey = (process.env.RESEND_API_KEY ?? "").trim();
-const resendFromEmail = (
+const resetPasswordFromEmail = (
   process.env.AUTH_RESET_PASSWORD_FROM_EMAIL ?? ""
 ).trim();
-const resendFromName = (
+const resetPasswordFromName = (
   process.env.AUTH_RESET_PASSWORD_FROM_NAME ?? "Study Platform"
+).trim();
+const verificationFromEmail = (
+  process.env.AUTH_EMAIL_VERIFICATION_FROM_EMAIL ??
+  resetPasswordFromEmail
+).trim();
+const verificationFromName = (
+  process.env.AUTH_EMAIL_VERIFICATION_FROM_NAME ??
+  resetPasswordFromName
 ).trim();
 const shouldLogResetLink =
   (
@@ -83,6 +91,20 @@ const maskEmail = (email: string) => {
   return `${namePart.slice(0, 2)}***@${domainPart}`;
 };
 
+const assertEmailDeliveryConfigured = (params: {
+  kind: "password reset" | "email verification";
+  viaResend: boolean;
+  viaWebhook: boolean;
+}) => {
+  if (params.viaResend || params.viaWebhook) {
+    return;
+  }
+
+  throw new Error(
+    `Auth ${params.kind} delivery is not configured. Set Resend sender env vars or a webhook URL.`,
+  );
+};
+
 const deliverResetPassword = async (payload: {
   user: { email?: string | null };
   url: string;
@@ -100,7 +122,7 @@ const deliverResetPassword = async (payload: {
   }
 
   const sendViaResend = async () => {
-    if (!resendApiKey || !resendFromEmail || !email) {
+    if (!resendApiKey || !resetPasswordFromEmail || !email) {
       return false;
     }
 
@@ -136,7 +158,7 @@ const deliverResetPassword = async (payload: {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        from: `${resendFromName} <${resendFromEmail}>`,
+        from: `${resetPasswordFromName} <${resetPasswordFromEmail}>`,
         to: [email],
         subject,
         text,
@@ -154,7 +176,15 @@ const deliverResetPassword = async (payload: {
     return true;
   };
 
-  if (resendApiKey && resendFromEmail) {
+  const hasResendDelivery = Boolean(resendApiKey && resetPasswordFromEmail);
+  const hasWebhookDelivery = Boolean(resetPasswordWebhookUrl);
+  assertEmailDeliveryConfigured({
+    kind: "password reset",
+    viaResend: hasResendDelivery,
+    viaWebhook: hasWebhookDelivery,
+  });
+
+  if (hasResendDelivery) {
     await sendViaResend();
     return;
   }
@@ -203,7 +233,7 @@ const deliverVerificationEmail = async (payload: {
   }
 
   const sendViaResend = async () => {
-    if (!resendApiKey || !resendFromEmail || !email) {
+    if (!resendApiKey || !verificationFromEmail || !email) {
       return false;
     }
 
@@ -241,7 +271,7 @@ const deliverVerificationEmail = async (payload: {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        from: `${resendFromName} <${resendFromEmail}>`,
+        from: `${verificationFromName} <${verificationFromEmail}>`,
         to: [email],
         subject,
         text,
@@ -259,7 +289,15 @@ const deliverVerificationEmail = async (payload: {
     return true;
   };
 
-  if (resendApiKey && resendFromEmail) {
+  const hasResendDelivery = Boolean(resendApiKey && verificationFromEmail);
+  const hasWebhookDelivery = Boolean(verificationWebhookUrl);
+  assertEmailDeliveryConfigured({
+    kind: "email verification",
+    viaResend: hasResendDelivery,
+    viaWebhook: hasWebhookDelivery,
+  });
+
+  if (hasResendDelivery) {
     await sendViaResend();
     return;
   }
@@ -313,6 +351,8 @@ export const auth = betterAuth({
   trustedOrigins,
   emailAndPassword: {
     enabled: true, // Enable authentication using email and password.
+    autoSignIn: false,
+    requireEmailVerification: true,
     password: {
       hash: hashAuthPassword,
       verify: verifyAuthPassword,
@@ -324,6 +364,7 @@ export const auth = betterAuth({
   },
   emailVerification: {
     sendOnSignUp: true,
+    sendOnSignIn: false,
     sendVerificationEmail: async ({ user, url, token }) => {
       await deliverVerificationEmail({ user, url, token });
     },

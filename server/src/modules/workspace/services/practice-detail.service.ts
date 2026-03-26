@@ -48,6 +48,14 @@ export const getPracticeSessionDetail = async (userId: string, sessionId: string
       },
       items: {
         orderBy: (table, { asc }) => [asc(table.position)],
+        with: {
+          question: {
+            columns: {
+              questionImageUrls: true,
+              solutionImageUrls: true,
+            },
+          },
+        },
       },
     },
   });
@@ -71,7 +79,15 @@ export const getPracticeSessionDetail = async (userId: string, sessionId: string
     subject: session.subject,
     chapter: session.chapter,
     subChapter: session.subChapter,
-    items: session.items.map((item) => mapPracticeItemForClient(item, revealAnswers)),
+    items: session.items.map((item) =>
+      mapPracticeItemForClient(
+        {
+          ...item,
+          questionImageUrls: item.question?.questionImageUrls,
+          solutionImageUrls: item.question?.solutionImageUrls,
+        },
+        revealAnswers,
+      ),
+    ),
   };
 };
-

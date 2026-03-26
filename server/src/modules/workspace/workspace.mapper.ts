@@ -1,3 +1,5 @@
+import { toQuestionImageUrls } from "../questions/services/question-shared.service";
+
 export type RenderedOption = {
   label?: string | null;
   text: string;
@@ -14,6 +16,8 @@ export type PracticeSessionItemForClient = {
   renderedExplanation: string | null;
   renderedAnswerText: string | null;
   renderedOptions: unknown;
+  questionImageUrls?: unknown;
+  solutionImageUrls?: unknown;
   variableContext: unknown;
   submittedAnswer: string | null;
   isCorrect: boolean | null;
@@ -70,6 +74,8 @@ export const mapPracticeItemForClient = (
     body: item.renderedBody,
     explanation: revealAnswers ? item.renderedExplanation : null,
     answerText: revealAnswers ? item.renderedAnswerText : null,
+    questionImageUrls: toQuestionImageUrls(item.questionImageUrls) ?? [],
+    solutionImageUrls: revealAnswers ? (toQuestionImageUrls(item.solutionImageUrls) ?? []) : [],
     options,
     variableContext: item.variableContext,
     submittedAnswer: item.submittedAnswer,

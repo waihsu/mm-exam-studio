@@ -4,6 +4,7 @@ import { FileText, FolderOpen, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
+import { PageHeader, SectionCard } from "@/components/ui/page-shell";
 import { workspaceApi } from "@/features/workspace/api/workspace-api";
 import type { QuestionPaperSummary } from "@/features/workspace/types";
 
@@ -21,23 +22,21 @@ export function QuestionPaperListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="app-hero flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-            Question Papers
-          </p>
-          <h2 className="mt-1 text-2xl font-semibold text-slate-900">{papers.length} saved</h2>
-          <p className="mt-1 text-sm text-slate-500">Manage drafts and exports.</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
+      <PageHeader
+        eyebrow="Question Papers"
+        title={`${papers.length} saved`}
+        description="Manage drafts and exports."
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
           <StatPill label="Drafts" value={String(draftPapers.length)} />
           <StatPill label="Finalized" value={String(finalizedPapers.length)} />
           <StatPill label="Exported" value={String(exportedCount)} />
           <Button asChild>
             <Link to="/question-papers/new">New paper</Link>
           </Button>
-        </div>
-      </div>
+          </div>
+        }
+      />
 
       {papersQuery.data && !papersQuery.data.ok ? (
         <Notice tone="error">
@@ -76,18 +75,17 @@ export function QuestionPaperListPage() {
         />
       )}
 
-      <section className="reveal-up reveal-delay-2 rounded-xl border border-slate-200 bg-white p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold text-slate-900">Recent exports</p>
-            <p className="mt-1 text-sm text-slate-500">Latest PDF exports.</p>
-          </div>
+      <SectionCard
+        title="Recent Exports"
+        description="Latest PDF exports."
+        actions={
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
             {exportedCount} total
           </span>
-        </div>
-
-        <div className="mt-4 space-y-3">
+        }
+        className="reveal-up reveal-delay-2"
+      >
+        <div className="space-y-3">
           {papersQuery.isLoading ? (
             <EmptyState
               title="Loading export activity..."
@@ -126,7 +124,7 @@ export function QuestionPaperListPage() {
             />
           )}
         </div>
-      </section>
+      </SectionCard>
     </div>
   );
 }
@@ -143,25 +141,23 @@ function PaperSection({
   emptyLabel: string;
 }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold text-slate-900">{title}</p>
-          <p className="mt-1 text-sm text-slate-500">{note}</p>
-        </div>
+    <SectionCard
+      title={title}
+      description={note}
+      actions={
         <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
           {rows.length}
         </span>
-      </div>
-
-      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+      }
+    >
+      <div className="grid gap-3 lg:grid-cols-2">
         {rows.length > 0 ? (
           rows.map((paper) => (
             <Link
               key={paper.id}
               to="/question-papers/$paperId"
               params={{ paperId: paper.id }}
-            className="hover-lift block rounded-lg border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-900"
+              className="hover-lift block rounded-lg border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-900"
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -203,7 +199,7 @@ function PaperSection({
           <EmptyState title={emptyLabel} icon={FolderOpen} className="lg:col-span-2" />
         )}
       </div>
-    </section>
+    </SectionCard>
   );
 }
 

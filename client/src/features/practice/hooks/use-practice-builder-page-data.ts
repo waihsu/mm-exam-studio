@@ -12,27 +12,40 @@ const DEFAULT_FILTERS: WorkspaceFilters = {
   subChapterId: "",
 };
 
+const PRACTICE_MIX_TYPES = [
+  "mcq",
+  "true_false",
+  "fill_blank",
+  "short_answer",
+  "matching",
+] as const;
+
+type PracticeMixType = (typeof PRACTICE_MIX_TYPES)[number];
+
+const EMPTY_MIX = PRACTICE_MIX_TYPES.reduce<Record<PracticeMixType, string>>(
+  (next, type) => {
+    next[type] = "0";
+    return next;
+  },
+  {} as Record<PracticeMixType, string>,
+);
+
 export function usePracticeBuilderPageData() {
   const navigate = useNavigate();
   const [filters, setFilters] = useState<WorkspaceFilters>(DEFAULT_FILTERS);
-  const [generatorMode, setGeneratorMode] = useState<"all_questions" | "mcq_only">(
-    "all_questions",
-  );
-  const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
-  const [page, setPage] = useState(1);
+  const [mixCounts, setMixCounts] = useState<Record<PracticeMixType, string>>(EMPTY_MIX);
+  const [countValue, setCountValue] = useState("10");
 
   const metaQuery = useQuery({
     queryKey: ["workspace-meta"],
     queryFn: () => workspaceApi.getMeta(),
   });
-  const catalogQuery = useQuery({
-    queryKey: ["workspace-catalog", filters, generatorMode, page],
+  const countsQuery = useQuery({
+    queryKey: ["workspace-catalog-counts", filters, "practice"],
     queryFn: () =>
-      workspaceApi.getCatalog({
+      workspaceApi.getCatalogCounts({
         ...filters,
-        questionType: generatorMode === "mcq_only" ? "mcq" : undefined,
-        page,
-        pageSize: 20,
+        excludeQuestionType: ["long_answer"],
       }),
   });
   const sessionsQuery = useQuery({
@@ -44,13 +57,35 @@ export function usePracticeBuilderPageData() {
     queryFn: () => workspaceApi.getSummary(),
   });
 
+  const configuredMixCount = useMemo(
+    () =>
+      PRACTICE_MIX_TYPES.reduce(
+        (sum, type) => sum + (Number.parseInt(mixCounts[type] || "0", 10) || 0),
+        0,
+      ),
+    [mixCounts],
+  );
+
+  const activeMixTypes = useMemo(
+    () =>
+      PRACTICE_MIX_TYPES.filter((type) => (Number.parseInt(mixCounts[type] || "0", 10) || 0) > 0)
+        .length,
+    [mixCounts],
+  );
+
   const createSessionMutation = useMutation({
-    mutationFn: () =>
-      workspaceApi.createPracticeSession({
+    mutationFn: () => {
+      const questionMix = PRACTICE_MIX_TYPES.map((type) => ({
+        questionType: type,
+        count: Number.parseInt(mixCounts[type] || "0", 10) || 0,
+      })).filter((entry) => entry.count > 0);
+
+      return workspaceApi.createPracticeSession({
         ...filters,
-        generatorMode,
-        questionIds: selectedQuestionIds,
-      }),
+        count: questionMix.length > 0 ? undefined : Math.max(1, Number.parseInt(countValue || "10", 10) || 10),
+        questionMix: questionMix.length > 0 ? questionMix : undefined,
+      });
+    },
     onSuccess: async (response) => {
       if (!response.ok) return;
       await navigate({
@@ -61,44 +96,36 @@ export function usePracticeBuilderPageData() {
   });
 
   const meta = metaQuery.data?.ok ? metaQuery.data.data : undefined;
-  const catalog = catalogQuery.data?.ok ? catalogQuery.data.data : undefined;
-  const lockedRows = catalog?.lockedRows ?? [];
-  const lockedTotal = catalog?.lockedTotal ?? 0;
+  const counts = countsQuery.data?.ok ? countsQuery.data.data : undefined;
   const sessions = sessionsQuery.data?.ok ? sessionsQuery.data.data.rows : [];
   const summary = summaryQuery.data?.ok ? summaryQuery.data.data : undefined;
   const planCode = summary?.subscription.code;
   const questionLimit = summary?.subscription.limits.maxQuestionsPerPractice ?? null;
-
-  const selectedCount = selectedQuestionIds.length;
   const activeSessionsCount = sessions.filter((session) => session.status === "active").length;
-  const exceedsLimit = typeof questionLimit === "number" ? selectedCount > questionLimit : false;
 
-  const selectionLabel = useMemo(() => {
-    if (selectedCount === 0) return "Select questions to begin";
-    return `${selectedCount} question${selectedCount > 1 ? "s" : ""} selected`;
-  }, [selectedCount]);
+  const exceedsAvailableMix = useMemo(() => {
+    if (!counts) return false;
+    return PRACTICE_MIX_TYPES.some((type) => {
+      const requested = Number.parseInt(mixCounts[type] || "0", 10) || 0;
+      return requested > (counts[type] ?? 0);
+    });
+  }, [counts, mixCounts]);
 
-  const toggleQuestion = (questionId: string) => {
-    setSelectedQuestionIds((current) =>
-      current.includes(questionId)
-        ? current.filter((id) => id !== questionId)
-        : [...current, questionId],
-    );
-  };
-
-  const clearSelection = () => setSelectedQuestionIds([]);
-
-  const updateMode = (mode: "all_questions" | "mcq_only") => {
-    setPage(1);
-    clearSelection();
-    setGeneratorMode(mode);
-  };
+  const totalRequested = configuredMixCount > 0 ? configuredMixCount : Math.max(1, Number.parseInt(countValue || "10", 10) || 10);
+  const exceedsLimit = typeof questionLimit === "number" ? totalRequested > questionLimit : false;
 
   const updateFilters = (next: WorkspaceFilters) => {
-    setPage(1);
-    clearSelection();
     setFilters(next);
   };
+
+  const setMixCount = (type: PracticeMixType, value: string) => {
+    setMixCounts((current) => ({
+      ...current,
+      [type]: value,
+    }));
+  };
+
+  const clearMix = () => setMixCounts(EMPTY_MIX);
 
   const startPractice = async () => {
     await createSessionMutation.mutateAsync();
@@ -106,31 +133,28 @@ export function usePracticeBuilderPageData() {
 
   return {
     filters,
-    generatorMode,
-    page,
     metaQuery,
-    catalogQuery,
+    countsQuery,
     sessionsQuery,
     summaryQuery,
     createSessionMutation,
     meta,
-    catalog,
-    lockedRows,
-    lockedTotal,
+    counts,
     sessions,
     summary,
     planCode,
     questionLimit,
-    selectedQuestionIds,
-    selectedCount,
+    mixCounts,
+    configuredMixCount,
+    activeMixTypes,
     activeSessionsCount,
     exceedsLimit,
-    selectionLabel,
-    setPage,
-    updateMode,
+    exceedsAvailableMix,
+    countValue,
     updateFilters,
-    toggleQuestion,
-    clearSelection,
+    setMixCount,
+    clearMix,
+    setCountValue,
     startPractice,
   };
 }

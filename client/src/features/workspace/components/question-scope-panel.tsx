@@ -1,5 +1,3 @@
-import { useDeferredValue, useEffect, useState } from "react";
-import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import type { WorkspaceFilters, WorkspaceMeta } from "../types";
 import {
   getChaptersForSelection,
@@ -7,11 +5,13 @@ import {
   getSubjectsForGrade,
 } from "../utils/workspace-taxonomy";
 
-type FilterPanelProps = {
+type QuestionScopePanelProps = {
   meta?: WorkspaceMeta;
   value: WorkspaceFilters;
   onChange: (next: WorkspaceFilters) => void;
   planCode?: "free" | "pro" | "premium";
+  title?: string;
+  hint?: string;
 };
 
 const inputClassName =
@@ -34,78 +34,53 @@ function FieldBlock({
   );
 }
 
-export function QuestionFilterPanel({
+export function QuestionScopePanel({
   meta,
   value,
   onChange,
   planCode,
-}: FilterPanelProps) {
-  const [searchInput, setSearchInput] = useState(value.search);
-  const deferredSearchInput = useDeferredValue(searchInput);
-  const debouncedSearchInput = useDebouncedValue(deferredSearchInput, 280);
+  title = "Scope",
+  hint = "Choose the syllabus scope once, then set the exact mix below.",
+}: QuestionScopePanelProps) {
   const subjects = getSubjectsForGrade(meta, value.gradeId);
   const chapters = getChaptersForSelection(meta, value.gradeId, value.subjectId);
   const subChapters = getSubChaptersForChapter(meta, value.chapterId);
   const isFreePlan = planCode === "free";
-
-  useEffect(() => {
-    setSearchInput(value.search);
-  }, [value.search]);
-
-  useEffect(() => {
-    if (debouncedSearchInput === value.search) {
-      return;
-    }
-
-    onChange({
-      ...value,
-      search: debouncedSearchInput,
-    });
-  }, [debouncedSearchInput, onChange, value]);
 
   const update = (patch: Partial<WorkspaceFilters>) => {
     onChange({ ...value, ...patch });
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-slate-900">Filters</p>
+          <p className="text-sm font-semibold text-slate-900">{title}</p>
+          <p className="mt-1 text-sm text-slate-500">{hint}</p>
           {isFreePlan ? (
-            <p className="mt-1 text-xs text-slate-500">
-              Free plan can use free chapters and lessons only.
+            <p className="mt-2 text-xs text-slate-500">
+              Free plan can use free preview chapters and lessons only.
             </p>
           ) : null}
         </div>
         <button
           type="button"
-          onClick={() => {
-            setSearchInput("");
+          onClick={() =>
             onChange({
               search: "",
               gradeId: "",
               subjectId: "",
               chapterId: "",
               subChapterId: "",
-            });
-          }}
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 sm:w-auto"
+            })
+          }
+          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
         >
           Clear
         </button>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <FieldBlock label="Search">
-          <input
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-            placeholder="Search by body or code"
-            className={inputClassName}
-          />
-        </FieldBlock>
-
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <FieldBlock label="Grade">
           <select
             value={value.gradeId}
@@ -174,13 +149,13 @@ export function QuestionFilterPanel({
           </select>
         </FieldBlock>
 
-        <FieldBlock label="Sub-chapter">
+        <FieldBlock label="Lesson">
           <select
             value={value.subChapterId}
             onChange={(event) => update({ subChapterId: event.target.value })}
             className={inputClassName}
           >
-            <option value="">All sub-chapters</option>
+            <option value="">All lessons</option>
             {subChapters.map((subChapter) => (
               <option
                 key={subChapter.id}

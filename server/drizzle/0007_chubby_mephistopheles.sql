@@ -1,0 +1,3 @@
+ALTER TABLE "question_paper" ADD COLUMN "blueprintId" text;--> statement-breakpoint
+ALTER TABLE "question_paper" ADD CONSTRAINT "question_paper_blueprintId_paper_blueprint_id_fk" FOREIGN KEY ("blueprintId") REFERENCES "public"."paper_blueprint"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "question_paper_blueprint_idx" ON "question_paper" USING btree ("blueprintId");

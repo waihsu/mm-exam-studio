@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { securityStore } from "@/lib/security-store";
 import type { AppBindings, AppRole, AppUser } from "@/core/types/app";
 import { resolveUserRoles } from "@/middlewares/rbac";
 import type { Context } from "hono";
@@ -10,6 +11,41 @@ import { getMySupportConversation } from "../services/support-user.service";
 
 const SUPPORT_REALTIME_PATH = "/api/v1/support/realtime";
 const SUPPORT_CHAT_HUB_NAME = "support-chat-hub";
+const textDecoder = new TextDecoder();
+const textEncoder = new TextEncoder();
+
+const readPositiveInt = (value: string | undefined, fallback: number) => {
+  const parsed = Number.parseInt(String(value ?? ""), 10);
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return fallback;
+  }
+  return parsed;
+};
+
+const supportRealtimeConnectPerMinute = readPositiveInt(
+  process.env.SUPPORT_REALTIME_CONNECT_PER_MINUTE,
+  20,
+);
+const supportRealtimeConnectPerHour = readPositiveInt(
+  process.env.SUPPORT_REALTIME_CONNECT_PER_HOUR,
+  120,
+);
+const supportRealtimeMessagesPerMinute = readPositiveInt(
+  process.env.SUPPORT_REALTIME_MESSAGES_PER_MINUTE,
+  60,
+);
+const supportRealtimeMaxSubscriptions = readPositiveInt(
+  process.env.SUPPORT_REALTIME_MAX_SUBSCRIPTIONS,
+  8,
+);
+const supportRealtimeMaxMessageBytes = readPositiveInt(
+  process.env.SUPPORT_REALTIME_MAX_MESSAGE_BYTES,
+  8_192,
+);
+const supportRealtimeMaxInvalidMessages = readPositiveInt(
+  process.env.SUPPORT_REALTIME_MAX_INVALID_MESSAGES,
+  4,
+);
 
 declare const WebSocketPair:
   | (new () => {
@@ -125,8 +161,6 @@ type SupportRealtimeRefreshTarget =
       conversationId: string;
     };
 
-const textDecoder = new TextDecoder();
-
 const hasAdminRole = (roles: AppRole[]) =>
   roles.includes("admin") || roles.includes("superadmin");
 
@@ -142,6 +176,18 @@ const normalizePositiveNumber = (value: unknown, fallback: number) => {
     return fallback;
   }
   return Math.trunc(parsed);
+};
+
+const getClientIp = (request: Request) => {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    return forwarded.split(",")[0]?.trim() || "unknown";
+  }
+  return (
+    request.headers.get("cf-connecting-ip") ??
+    request.headers.get("x-real-ip") ??
+    "unknown"
+  );
 };
 
 const decodeSocketMessage = (raw: unknown) => {
@@ -160,6 +206,19 @@ const decodeSocketMessage = (raw: unknown) => {
   }
 
   return "";
+};
+
+const measureSocketMessageBytes = (raw: unknown) => {
+  if (typeof raw === "string") {
+    return textEncoder.encode(raw).byteLength;
+  }
+  if (raw instanceof ArrayBuffer) {
+    return raw.byteLength;
+  }
+  if (ArrayBuffer.isView(raw)) {
+    return raw.byteLength;
+  }
+  return 0;
 };
 
 const parseSocketEvent = (raw: unknown): SupportRealtimeClientEvent => {
@@ -318,12 +377,9 @@ export const authenticateSupportRealtimeRequest = async (request: Request) => {
     };
   }
 
+  let authContext: SupportRealtimeAuthContext;
   try {
-    const authContext = await resolveRealtimeAuthContext(request);
-    return {
-      ok: true as const,
-      authContext,
-    };
+    authContext = await resolveRealtimeAuthContext(request);
   } catch (error) {
     return {
       ok: false as const,
@@ -338,14 +394,60 @@ export const authenticateSupportRealtimeRequest = async (request: Request) => {
       ),
     };
   }
+
+  try {
+    const now = Date.now();
+    const ip = getClientIp(request);
+
+    for (const window of [
+      { windowMs: 60_000, max: supportRealtimeConnectPerMinute },
+      { windowMs: 3_600_000, max: supportRealtimeConnectPerHour },
+    ]) {
+      const counter = await securityStore.incrementRateLimit(
+        `support-ws:connect:${ip}:${authContext.user.id}:${window.windowMs}`,
+        window.windowMs,
+        now,
+      );
+
+      if (counter.count > window.max) {
+        const response = jsonResponse(
+          { message: "Too many realtime connection attempts. Please wait and try again." },
+          429,
+        );
+        response.headers.set(
+          "retry-after",
+          String(Math.ceil((counter.resetAt - now) / 1000)),
+        );
+        response.headers.set("x-rate-limit-scope", "support-realtime-connect");
+        return {
+          ok: false as const,
+          response,
+        };
+      }
+    }
+  } catch (error) {
+    console.warn(
+      "[support-realtime] connect rate-limit check failed:",
+      error instanceof Error ? error.message : error,
+    );
+  }
+
+  return {
+    ok: true as const,
+    authContext,
+  };
 };
 
 export class SupportRealtimeSocketSession {
   private readonly subscriptions = new Map<string, SupportRealtimeSubscription>();
+  private messageWindowStartedAt = Date.now();
+  private messageCount = 0;
+  private invalidMessageCount = 0;
 
   constructor(
     private readonly authContext: SupportRealtimeAuthContext,
     private readonly send: (event: SupportRealtimeServerEvent) => void,
+    private readonly close?: (code: number, reason: string) => void,
   ) {}
 
   onOpen() {
@@ -369,8 +471,27 @@ export class SupportRealtimeSocketSession {
   }
 
   async onMessage(raw: unknown) {
+    if (measureSocketMessageBytes(raw) > supportRealtimeMaxMessageBytes) {
+      this.send({
+        type: "error",
+        message: "Realtime payload is too large.",
+      });
+      this.close?.(1009, "Realtime payload is too large.");
+      return;
+    }
+
+    if (!this.consumeMessageAllowance()) {
+      this.send({
+        type: "error",
+        message: "Too many realtime messages. Please slow down.",
+      });
+      this.close?.(1008, "Too many realtime messages.");
+      return;
+    }
+
     try {
       const event = parseSocketEvent(raw);
+      this.invalidMessageCount = 0;
 
       if (event.type === "ping") {
         this.send({
@@ -382,6 +503,12 @@ export class SupportRealtimeSocketSession {
 
       if (event.type === "subscribe") {
         const subscription = buildSubscription(event, this.authContext.roles);
+        if (
+          !this.subscriptions.has(subscription.key) &&
+          this.subscriptions.size >= supportRealtimeMaxSubscriptions
+        ) {
+          throw new Error("Too many realtime subscriptions on one socket.");
+        }
         this.subscriptions.set(subscription.key, subscription);
         this.send({
           type: "subscribed",
@@ -407,6 +534,7 @@ export class SupportRealtimeSocketSession {
         }
       }
     } catch (error) {
+      this.invalidMessageCount += 1;
       this.send({
         type: "error",
         message:
@@ -414,7 +542,22 @@ export class SupportRealtimeSocketSession {
             ? error.message
             : "Realtime message handling failed.",
       });
+
+      if (this.invalidMessageCount >= supportRealtimeMaxInvalidMessages) {
+        this.close?.(1008, "Too many invalid realtime messages.");
+      }
     }
+  }
+
+  private consumeMessageAllowance() {
+    const now = Date.now();
+    if (this.messageWindowStartedAt + 60_000 <= now) {
+      this.messageWindowStartedAt = now;
+      this.messageCount = 0;
+    }
+
+    this.messageCount += 1;
+    return this.messageCount <= supportRealtimeMessagesPerMinute;
   }
 
   private async sendSnapshot(subscription: SupportRealtimeSubscription) {
@@ -474,6 +617,8 @@ export const handleSupportRealtimeWorkerRequest = async (request: Request) => {
   const server = pair[1];
   const session = new SupportRealtimeSocketSession(authResult.authContext, (event) => {
     server.send(JSON.stringify(event));
+  }, (code, reason) => {
+    server.close(code, reason);
   });
 
   server.accept();
@@ -575,6 +720,8 @@ export class SupportChatHub {
 
     const session = new SupportRealtimeSocketSession(authContext, (event) => {
       ws.send(JSON.stringify(event));
+    }, (code, reason) => {
+      ws.close(code, reason);
     });
     this.sessions.set(ws, session);
     return session;

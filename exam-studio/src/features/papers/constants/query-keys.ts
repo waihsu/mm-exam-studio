@@ -1,6 +1,8 @@
 export const PAPERS_QUERY_KEYS = {
   root: ["papers"] as const,
   list: () => ["papers", "list"] as const,
+  templates: () => ["papers", "templates"] as const,
+  templateDetail: (templateId: string) => ["papers", "template-detail", templateId] as const,
   detail: (paperId: string) => ["papers", "detail", paperId] as const,
   exported: () => ["papers", "exported"] as const,
   swapCandidates: (paperId: string, itemId: string) =>

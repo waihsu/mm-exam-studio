@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, type RelativePathString } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { RefreshControl, Text } from "react-native";
+import { Pressable, RefreshControl, Text, View } from "react-native";
 import { useTranslation } from "@/i18n";
 import { useAuthSessionQuery } from "@/features/auth/hooks/use-auth-session-query";
 import { hasSeenAppOnboarding } from "@/features/onboarding/services/app-onboarding-store";
@@ -13,7 +13,7 @@ import { useWorkspaceSummaryQuery } from "@/features/workspace/hooks/use-workspa
 import { SETTINGS_QUERY_KEYS } from "../constants/query-keys";
 import { useAppSettingsQuery } from "../hooks/use-app-settings-query";
 import { DEFAULT_APP_SETTINGS } from "../types/settings.types";
-import { SettingsCard, SettingsLinkRow, SettingsLoadingRow, SettingsPage } from "./settings-ui";
+import { SettingsPage } from "./settings-ui";
 import { settingsUiStyles } from "./settings-ui.styles";
 
 export const SettingsScreen = () => {
@@ -34,10 +34,33 @@ export const SettingsScreen = () => {
     authSessionQuery.data?.user.name?.trim() ||
     authSessionQuery.data?.user.email ||
     t("settings:home.defaultUserName");
+  const userEmail = authSessionQuery.data?.user.email ?? "";
   const currentSubscription = workspaceSummaryQuery.data?.subscription;
+  const notificationSummary = workspaceSummaryQuery.data?.notifications;
+  const supportUnreadCount = notificationSummary?.supportUnreadCount ?? 0;
+  const reminderState = settings.practiceReminderEnabled ? t("common:states.on") : t("common:states.off");
+  const planValue = currentSubscription?.name ?? "-";
+  const draftCountValue = `${draftsQuery.data ?? 0}`;
+  const supportValue =
+    supportUnreadCount > 0
+      ? t("settings:home.supportUnreadValue", { count: supportUnreadCount })
+      : t("common:actions.open");
+  const statusMessages = [
+    authSessionQuery.isLoading ? t("settings:home.loadingAccount") : null,
+    workspaceSummaryQuery.isLoading ? t("settings:home.loadingWorkspace") : null,
+    authSessionQuery.isError
+      ? authSessionQuery.error instanceof Error
+        ? authSessionQuery.error.message
+        : t("settings:home.failedAccount")
+      : null,
+    workspaceSummaryQuery.isError
+      ? workspaceSummaryQuery.error instanceof Error
+        ? workspaceSummaryQuery.error.message
+        : t("settings:home.failedWorkspace")
+      : null,
+  ].filter((message): message is string => Boolean(message));
   const settingsRefresh = useRefreshAction(async () => {
     await Promise.allSettled([
-      authSessionQuery.refetch(),
       workspaceSummaryQuery.refetch(),
       appSettingsQuery.refetch(),
       draftsQuery.refetch(),
@@ -67,6 +90,98 @@ export const SettingsScreen = () => {
     };
   }, [authSessionQuery.data?.user.id]);
 
+  const accountRows: SettingsHomeLinkItem[] = [
+    {
+      title: t("settings:home.subscriptionTitle"),
+      hint: t("settings:home.subscriptionHint"),
+      value: planValue,
+      badge: "PLAN",
+      tone: "blue",
+      href: "/settings/subscription" as RelativePathString,
+    },
+    {
+      title: t("settings:home.accountTitle"),
+      hint: t("settings:home.accountHint"),
+      value: t("common:actions.open"),
+      badge: "USER",
+      tone: "slate",
+      href: "/settings/account" as RelativePathString,
+    },
+    {
+      title: t("settings:home.securityTitle"),
+      hint: t("settings:home.securityHint"),
+      value: t("common:actions.open"),
+      badge: "SAFE",
+      tone: "green",
+      href: "/settings/security" as RelativePathString,
+    },
+  ];
+
+  if (showHelpGuideEntry) {
+    accountRows.push({
+      title: t("settings:home.helpTitle"),
+      hint: t("settings:home.helpHint"),
+      value: t("settings:home.helpNew"),
+      badge: "GUIDE",
+      tone: "amber",
+      href: "/settings/help" as RelativePathString,
+    });
+  }
+
+  const experienceRows: SettingsHomeLinkItem[] = [
+    {
+      title: t("settings:home.preferencesTitle"),
+      hint: t("settings:home.preferencesHint"),
+      value: t("common:actions.open"),
+      badge: "APP",
+      tone: "purple",
+      href: "/settings/preferences" as RelativePathString,
+    },
+    {
+      title: t("settings:home.notificationsTitle"),
+      hint: t("settings:home.notificationsHint"),
+      value: reminderState,
+      badge: "PING",
+      tone: "blue",
+      href: "/settings/notifications" as RelativePathString,
+    },
+    {
+      title: t("settings:home.storageTitle"),
+      hint: t("settings:home.storageHint"),
+      value: draftCountValue,
+      badge: "SAVE",
+      tone: "slate",
+      href: "/settings/storage" as RelativePathString,
+    },
+  ];
+
+  const supportRows: SettingsHomeLinkItem[] = [
+    {
+      title: t("settings:home.supportTitle"),
+      hint: t("settings:home.supportHint"),
+      value: supportValue,
+      badge: "HELP",
+      tone: "green",
+      href: "/settings/support" as RelativePathString,
+    },
+    {
+      title: t("settings:home.aboutTitle"),
+      hint: t("settings:home.aboutHint"),
+      value: t("common:actions.open"),
+      badge: "APP",
+      tone: "blue",
+      href: "/settings/about" as RelativePathString,
+    },
+    {
+      title: t("settings:home.legalTitle"),
+      hint: t("settings:home.legalHint"),
+      value: t("common:actions.open"),
+      badge: "RULE",
+      tone: "amber",
+      href: "/settings/legal" as RelativePathString,
+    },
+  ];
+
   return (
     <SettingsPage
       title={t("settings:home.title")}
@@ -82,101 +197,160 @@ export const SettingsScreen = () => {
         ),
       }}
     >
-      <SettingsCard>
-        <Text style={settingsUiStyles.cardTitle}>{t("settings:home.overview")}</Text>
-        {authSessionQuery.isLoading ? (
-          <SettingsLoadingRow label={t("settings:home.loadingAccount")} />
-        ) : null}
-        {workspaceSummaryQuery.isLoading ? (
-          <SettingsLoadingRow label={t("settings:home.loadingWorkspace")} />
-        ) : null}
-        {authSessionQuery.isError ? (
-          <Text style={settingsUiStyles.errorText}>
-            {authSessionQuery.error instanceof Error
-              ? authSessionQuery.error.message
-              : t("settings:home.failedAccount")}
-          </Text>
-        ) : null}
-        {workspaceSummaryQuery.isError ? (
-          <Text style={settingsUiStyles.errorText}>
-            {workspaceSummaryQuery.error instanceof Error
-              ? workspaceSummaryQuery.error.message
-              : t("settings:home.failedWorkspace")}
-          </Text>
-        ) : null}
-        <Text style={settingsUiStyles.summaryBadge}>{userName}</Text>
-        <Text style={settingsUiStyles.metaText}>
-          {t("settings:home.plan", { name: currentSubscription?.name ?? "-" })}
-        </Text>
-        <Text style={settingsUiStyles.metaText}>
-          {t("settings:home.reminder", {
-            state: settings.practiceReminderEnabled ? t("common:states.on") : t("common:states.off"),
-          })}
-        </Text>
-        <Text style={settingsUiStyles.metaText}>
-          {t("settings:home.draftsSaved", { count: draftsQuery.data ?? 0 })}
-        </Text>
-      </SettingsCard>
+      <View style={settingsUiStyles.homeSummaryCard}>
+        <View style={settingsUiStyles.homeSummaryHeader}>
+          <View style={settingsUiStyles.homeSummaryTextWrap}>
+            <Text style={settingsUiStyles.homeSummaryName}>{userName}</Text>
+            <Text style={settingsUiStyles.homeSummaryEmail}>
+              {userEmail || t("settings:home.subtitle")}
+            </Text>
+          </View>
+          <Text style={settingsUiStyles.homeSummaryPlanPill}>{planValue}</Text>
+        </View>
 
-      <SettingsCard>
-        <Text style={settingsUiStyles.cardTitle}>{t("settings:home.manage")}</Text>
-        <SettingsLinkRow
-          title={t("settings:home.subscriptionTitle")}
-          hint={t("settings:home.subscriptionHint")}
-          value={currentSubscription?.code === "premium" ? "Premium" : t("common:actions.open")}
-          onPress={() => router.push("/settings/subscription" as RelativePathString)}
-        />
-        {showHelpGuideEntry ? (
-          <SettingsLinkRow
-            title={t("settings:home.helpTitle")}
-            hint={t("settings:home.helpHint")}
-            value={t("settings:home.helpNew")}
-            onPress={() => router.push("/settings/help" as RelativePathString)}
-          />
+        <View style={settingsUiStyles.homeSummaryMetaRow}>
+          <View style={settingsUiStyles.homeSummaryMetaChip}>
+            <Text style={settingsUiStyles.homeSummaryMetaLabel}>
+              {t("settings:home.reminder", { state: reminderState })}
+            </Text>
+          </View>
+          <View style={settingsUiStyles.homeSummaryMetaChip}>
+            <Text style={settingsUiStyles.homeSummaryMetaLabel}>
+              {t("settings:home.draftsSaved", { count: draftsQuery.data ?? 0 })}
+            </Text>
+          </View>
+          <View style={settingsUiStyles.homeSummaryMetaChip}>
+            <Text style={settingsUiStyles.homeSummaryMetaLabel}>
+              {t("settings:home.supportInbox", { count: supportUnreadCount })}
+            </Text>
+          </View>
+        </View>
+
+        {statusMessages.length > 0 ? (
+          <View style={settingsUiStyles.homeStatusList}>
+            {statusMessages.map((message) => (
+              <Text key={message} style={settingsUiStyles.homeSummaryStatusText}>
+                {message}
+              </Text>
+            ))}
+          </View>
         ) : null}
-        <SettingsLinkRow
-          title={t("settings:home.securityTitle")}
-          hint={t("settings:home.securityHint")}
-          onPress={() => router.push("/settings/security" as RelativePathString)}
-        />
-        <SettingsLinkRow
-          title={t("settings:home.preferencesTitle")}
-          hint={t("settings:home.preferencesHint")}
-          onPress={() => router.push("/settings/preferences" as RelativePathString)}
-        />
-        <SettingsLinkRow
-          title={t("settings:home.notificationsTitle")}
-          hint={t("settings:home.notificationsHint")}
-          value={settings.practiceReminderEnabled ? t("common:states.on") : t("common:states.off")}
-          onPress={() => router.push("/settings/notifications" as RelativePathString)}
-        />
-        <SettingsLinkRow
-          title={t("settings:home.storageTitle")}
-          hint={t("settings:home.storageHint")}
-          value={draftsQuery.data ? `${draftsQuery.data}` : t("common:actions.open")}
-          onPress={() => router.push("/settings/storage" as RelativePathString)}
-        />
-        <SettingsLinkRow
-          title={t("settings:home.supportTitle")}
-          hint={t("settings:home.supportHint")}
-          onPress={() => router.push("/settings/support" as RelativePathString)}
-        />
-        <SettingsLinkRow
-          title={t("settings:home.aboutTitle")}
-          hint={t("settings:home.aboutHint")}
-          onPress={() => router.push("/settings/about" as RelativePathString)}
-        />
-        <SettingsLinkRow
-          title={t("settings:home.legalTitle")}
-          hint={t("settings:home.legalHint")}
-          onPress={() => router.push("/settings/legal" as RelativePathString)}
-        />
-        <SettingsLinkRow
-          title={t("settings:home.accountTitle")}
-          hint={t("settings:home.accountHint")}
-          onPress={() => router.push("/settings/account" as RelativePathString)}
-        />
-      </SettingsCard>
+      </View>
+
+      <SettingsHomeSection
+        title={t("settings:home.accountSectionTitle")}
+        hint={t("settings:home.accountSectionHint")}
+        items={accountRows}
+        onNavigate={(href) => router.push(href)}
+      />
+
+      <SettingsHomeSection
+        title={t("settings:home.experienceSectionTitle")}
+        hint={t("settings:home.experienceSectionHint")}
+        items={experienceRows}
+        onNavigate={(href) => router.push(href)}
+      />
+
+      <SettingsHomeSection
+        title={t("settings:home.supportSectionTitle")}
+        hint={t("settings:home.supportSectionHint")}
+        items={supportRows}
+        onNavigate={(href) => router.push(href)}
+      />
     </SettingsPage>
   );
+};
+
+type SettingsHomeLinkItem = {
+  title: string;
+  hint: string;
+  value: string;
+  badge: string;
+  tone: HomeTone;
+  href: RelativePathString;
+};
+
+type HomeTone = "amber" | "blue" | "green" | "purple" | "slate";
+
+const SettingsHomeSection = ({
+  title,
+  hint,
+  items,
+  onNavigate,
+}: {
+  title: string;
+  hint: string;
+  items: SettingsHomeLinkItem[];
+  onNavigate: (href: RelativePathString) => void;
+}) => (
+  <View style={[settingsUiStyles.card, settingsUiStyles.homeSectionCard]}>
+    <View style={settingsUiStyles.homeSectionHeader}>
+      <Text style={settingsUiStyles.homeSectionTitle}>{title}</Text>
+      <Text style={settingsUiStyles.homeSectionHint}>{hint}</Text>
+    </View>
+
+    <View style={settingsUiStyles.homeLinkList}>
+      {items.map((item) => (
+        <Pressable
+          key={item.href}
+          style={({ pressed }) => [
+            settingsUiStyles.homeLinkRow,
+            pressed && settingsUiStyles.buttonPressed,
+          ]}
+          onPress={() => onNavigate(item.href)}
+        >
+          <View style={[settingsUiStyles.homeLinkBadge, homeToneStyles[item.tone].badge]}>
+            <Text style={[settingsUiStyles.homeLinkBadgeLabel, homeToneStyles[item.tone].badgeLabel]}>
+              {item.badge}
+            </Text>
+          </View>
+
+          <View style={settingsUiStyles.homeLinkTextWrap}>
+            <Text style={settingsUiStyles.homeLinkTitle}>{item.title}</Text>
+            <Text style={settingsUiStyles.homeLinkHint}>{item.hint}</Text>
+          </View>
+
+          <View style={settingsUiStyles.homeLinkMetaWrap}>
+            <Text style={settingsUiStyles.homeLinkValue}>{item.value}</Text>
+            <Text style={settingsUiStyles.homeLinkChevron}>›</Text>
+          </View>
+        </Pressable>
+      ))}
+    </View>
+  </View>
+);
+
+const homeToneStyles: Record<
+  HomeTone,
+  {
+    badge: object;
+    badgeLabel: object;
+    card: object;
+  }
+> = {
+  amber: {
+    badge: settingsUiStyles.homeToneBadgeAmber,
+    badgeLabel: settingsUiStyles.homeToneBadgeLabelAmber,
+    card: settingsUiStyles.homeToneCardAmber,
+  },
+  blue: {
+    badge: settingsUiStyles.homeToneBadgeBlue,
+    badgeLabel: settingsUiStyles.homeToneBadgeLabelBlue,
+    card: settingsUiStyles.homeToneCardBlue,
+  },
+  green: {
+    badge: settingsUiStyles.homeToneBadgeGreen,
+    badgeLabel: settingsUiStyles.homeToneBadgeLabelGreen,
+    card: settingsUiStyles.homeToneCardGreen,
+  },
+  purple: {
+    badge: settingsUiStyles.homeToneBadgePurple,
+    badgeLabel: settingsUiStyles.homeToneBadgeLabelPurple,
+    card: settingsUiStyles.homeToneCardPurple,
+  },
+  slate: {
+    badge: settingsUiStyles.homeToneBadgeSlate,
+    badgeLabel: settingsUiStyles.homeToneBadgeLabelSlate,
+    card: settingsUiStyles.homeToneCardSlate,
+  },
 };

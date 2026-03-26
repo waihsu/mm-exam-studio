@@ -26,6 +26,17 @@ export type WorkspaceSummaryResponse = {
   papersCount: number;
   exportedPapersCount: number;
   brandingCount: number;
+  notifications: {
+    unreadCount: number;
+    supportUnreadCount: number;
+    supportConversation: {
+      status: "open" | "closed";
+      allowUserReplies: boolean;
+      lastMessagePreview: string | null;
+      lastMessageAt: string | null;
+    } | null;
+    hasPendingSubscriptionRequest: boolean;
+  };
   subscription: {
     code: "free" | "pro" | "premium";
     name: string;

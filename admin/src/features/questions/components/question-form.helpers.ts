@@ -111,6 +111,11 @@ export const normalizeVariableDefinitions = (
     choices: variable.choices ?? [],
   }));
 
+export const normalizeMediaUrls = (urls: string[] | null | undefined) =>
+  Array.from(
+    new Set((urls ?? []).map((url) => url.trim()).filter(Boolean)),
+  ).slice(0, 4);
+
 export const createInitialFormState = (
   initialValue?: QuestionRecord | null,
 ): QuestionInput => {
@@ -125,6 +130,8 @@ export const createInitialFormState = (
       subjectId: "",
       chapterId: "",
       subChapterId: "",
+      questionImageUrls: [],
+      solutionImageUrls: [],
       explanation: "",
       answerText: "",
       answerFormula: "",
@@ -145,6 +152,8 @@ export const createInitialFormState = (
     subjectId: initialValue.subject.id,
     chapterId: initialValue.chapter?.id ?? "",
     subChapterId: initialValue.subChapter?.id ?? "",
+    questionImageUrls: normalizeMediaUrls(initialValue.questionImageUrls),
+    solutionImageUrls: normalizeMediaUrls(initialValue.solutionImageUrls),
     explanation: initialValue.explanation ?? "",
     answerText: initialValue.answerText ?? "",
     answerFormula: initialValue.answerFormula ?? "",
@@ -212,6 +221,8 @@ export const createQuestionValidationPayload = (
   ...form,
   chapterId: form.chapterId || undefined,
   subChapterId: form.subChapterId || undefined,
+  questionImageUrls: normalizeMediaUrls(form.questionImageUrls),
+  solutionImageUrls: normalizeMediaUrls(form.solutionImageUrls),
   explanation: form.explanation?.trim() || undefined,
   answerText: form.answerText?.trim() || undefined,
   answerFormula:
@@ -227,6 +238,8 @@ export const createQuestionSubmitPayload = (
   ...form,
   chapterId: form.chapterId || null,
   subChapterId: form.subChapterId || null,
+  questionImageUrls: normalizeMediaUrls(form.questionImageUrls),
+  solutionImageUrls: normalizeMediaUrls(form.solutionImageUrls),
   explanation: form.explanation?.trim() || null,
   answerText: form.answerText?.trim() || null,
   answerFormula:

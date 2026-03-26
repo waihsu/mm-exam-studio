@@ -2,6 +2,8 @@ import { useRouter, type RelativePathString } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +13,13 @@ import {
 } from "react-native";
 import { ConfirmationSheet } from "@/components/ui/confirmation-sheet";
 import { MathRichText } from "@/components/ui/math-rich-text";
+import { QuestionMediaGallery } from "@/components/ui/question-media-gallery";
+import {
+  EmptyStateCard,
+  InlineErrorState,
+  InlineLoadingState,
+  PageStateCard,
+} from "@/components/ui/state-blocks";
 import { AppShell } from "@/features/app-shell/components/app-shell";
 import { useAppDateTimeFormatter } from "@/features/settings/hooks/use-app-date-time-formatter";
 import { useTranslation } from "@/i18n";
@@ -23,7 +32,6 @@ import { useReorderQuestionPaperItemsMutation } from "../hooks/use-reorder-quest
 import { useSwapQuestionPaperItemMutation } from "../hooks/use-swap-question-paper-item-mutation";
 import { useUpdateQuestionPaperMutation } from "../hooks/use-update-question-paper-mutation";
 import { useUpdateQuestionPaperStatusMutation } from "../hooks/use-update-question-paper-status-mutation";
-import { shareQuestionPaperPdfForPrint } from "../services/paper-pdf.service";
 import type { QuestionPaperItem } from "../types/papers.types";
 
 type PaperDetailScreenProps = {
@@ -43,6 +51,125 @@ const toQuestionTypeLabelKey = (value: string) => {
 const normalizeOptionalText = (value: string) => {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+};
+
+const SkeletonBlock = ({
+  animatedValue,
+  style,
+}: {
+  animatedValue: Animated.Value;
+  style?: object;
+}) => <Animated.View style={[styles.loadingSkeletonBlock, style, { opacity: animatedValue }]} />;
+
+const PaperDetailLoadingState = ({ title }: { title: string }) => {
+  const pulse = React.useRef(new Animated.Value(0.42)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          duration: 900,
+          easing: Easing.inOut(Easing.ease),
+          toValue: 1,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          duration: 900,
+          easing: Easing.inOut(Easing.ease),
+          toValue: 0.42,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+
+    loop.start();
+
+    return () => {
+      loop.stop();
+    };
+  }, [pulse]);
+
+  return (
+    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <View style={styles.loadingHeroCard}>
+        <View style={styles.loadingHeroTopRow}>
+          <SkeletonBlock animatedValue={pulse} style={styles.loadingBackPill} />
+          <SkeletonBlock animatedValue={pulse} style={styles.loadingStatusPill} />
+        </View>
+        <Text style={styles.loadingHeroLabel}>{title}</Text>
+        <View style={styles.loadingHeroCopy}>
+          <SkeletonBlock animatedValue={pulse} style={styles.loadingLineStrong} />
+          <SkeletonBlock animatedValue={pulse} style={styles.loadingLineMedium} />
+        </View>
+        <View style={styles.metricsRow}>
+          <View style={styles.loadingMetricCard}>
+            <SkeletonBlock animatedValue={pulse} style={styles.loadingMetricLabel} />
+            <SkeletonBlock animatedValue={pulse} style={styles.loadingMetricValue} />
+          </View>
+          <View style={styles.loadingMetricCard}>
+            <SkeletonBlock animatedValue={pulse} style={styles.loadingMetricLabel} />
+            <SkeletonBlock animatedValue={pulse} style={styles.loadingMetricValue} />
+          </View>
+          <View style={styles.loadingMetricCardWide}>
+            <SkeletonBlock animatedValue={pulse} style={styles.loadingMetricLabelWide} />
+            <SkeletonBlock animatedValue={pulse} style={styles.loadingMetricValueWide} />
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.loadingCard}>
+        <View style={styles.loadingCardHeader}>
+          <SkeletonBlock animatedValue={pulse} style={styles.loadingSectionTitle} />
+          <SkeletonBlock animatedValue={pulse} style={styles.loadingTinyPill} />
+        </View>
+        <SkeletonBlock animatedValue={pulse} style={styles.loadingLineStrong} />
+        <View style={styles.loadingButtonRow}>
+          <SkeletonBlock animatedValue={pulse} style={styles.loadingPrimaryButton} />
+          <SkeletonBlock animatedValue={pulse} style={styles.loadingSecondaryButton} />
+        </View>
+      </View>
+
+      <View style={styles.loadingCard}>
+        <SkeletonBlock animatedValue={pulse} style={styles.loadingSectionTitle} />
+        <View style={styles.loadingFormGrid}>
+          <View style={styles.loadingFormField}>
+            <SkeletonBlock animatedValue={pulse} style={styles.loadingInputLabel} />
+            <SkeletonBlock animatedValue={pulse} style={styles.loadingInput} />
+          </View>
+          <View style={styles.loadingFormField}>
+            <SkeletonBlock animatedValue={pulse} style={styles.loadingInputLabel} />
+            <SkeletonBlock animatedValue={pulse} style={styles.loadingInput} />
+          </View>
+        </View>
+        <View style={styles.loadingFormField}>
+          <SkeletonBlock animatedValue={pulse} style={styles.loadingInputLabelWide} />
+          <SkeletonBlock animatedValue={pulse} style={styles.loadingTextarea} />
+        </View>
+      </View>
+
+      <View style={styles.loadingCard}>
+        <View style={styles.loadingCardHeader}>
+          <SkeletonBlock animatedValue={pulse} style={styles.loadingSectionTitle} />
+          <SkeletonBlock animatedValue={pulse} style={styles.loadingTinyPillWide} />
+        </View>
+        {[0, 1, 2].map((itemIndex) => (
+          <View key={`loading-question-${itemIndex}`} style={styles.loadingQuestionCard}>
+            <View style={styles.loadingQuestionHeader}>
+              <SkeletonBlock animatedValue={pulse} style={styles.loadingQuestionTitle} />
+              <SkeletonBlock animatedValue={pulse} style={styles.loadingQuestionChip} />
+            </View>
+            <SkeletonBlock animatedValue={pulse} style={styles.loadingLineStrong} />
+            <SkeletonBlock animatedValue={pulse} style={styles.loadingLineWide} />
+            <View style={styles.loadingButtonRow}>
+              <SkeletonBlock animatedValue={pulse} style={styles.loadingActionChip} />
+              <SkeletonBlock animatedValue={pulse} style={styles.loadingActionChip} />
+              <SkeletonBlock animatedValue={pulse} style={styles.loadingActionChip} />
+            </View>
+          </View>
+        ))}
+      </View>
+    </ScrollView>
+  );
 };
 
 const buildReorderedItemIds = (
@@ -137,10 +264,10 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
   const [schoolName, setSchoolName] = useState("");
   const [academicYear, setAcademicYear] = useState("");
   const [includeAnswerKey, setIncludeAnswerKey] = useState(false);
-  const [isSharingPrintExport, setIsSharingPrintExport] = useState(false);
   const [confirmAction, setConfirmAction] = useState<
     | { kind: "remove-item"; itemId: string }
     | { kind: "delete-paper"; paperId: string }
+    | { kind: "export-pdf"; paperId: string }
     | null
   >(null);
   const paper = detailQuery.data;
@@ -177,12 +304,10 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
       swapMutation.isPending ||
       removeItemMutation.isPending ||
       exportMutation.isPending ||
-      deleteMutation.isPending ||
-      isSharingPrintExport,
+      deleteMutation.isPending,
     [
       deleteMutation.isPending,
       exportMutation.isPending,
-      isSharingPrintExport,
       removeItemMutation.isPending,
       reorderMutation.isPending,
       statusMutation.isPending,
@@ -302,8 +427,16 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
     }
   };
 
-  const markExported = async () => {
-    if (!paper || hasActionPending) {
+  const requestExportPdf = () => {
+    if (!paper || hasActionPending || paper.status !== "finalized") {
+      return;
+    }
+
+    setConfirmAction({ kind: "export-pdf", paperId: paper.id });
+  };
+
+  const markExported = async (targetPaperId: string) => {
+    if (!paper || hasActionPending || paper.id !== targetPaperId) {
       return;
     }
 
@@ -323,28 +456,6 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
 
     setActionMessage(null);
     router.push(`/papers/preview/${paper.id}` as RelativePathString);
-  };
-
-  const sharePrintablePdf = async () => {
-    if (!paper?.exportedAt || hasActionPending) {
-      return;
-    }
-
-    setActionMessage(null);
-    setIsSharingPrintExport(true);
-
-    try {
-      const result = await shareQuestionPaperPdfForPrint(paper.id);
-      setActionMessage(
-        result.mode === "web"
-          ? t("papers:detail.browserOpened")
-          : t("papers:detail.printableReady"),
-      );
-    } catch (error) {
-      setActionMessage(error instanceof Error ? error.message : t("papers:detail.printableFailed"));
-    } finally {
-      setIsSharingPrintExport(false);
-    }
   };
 
   const deletePaper = () => {
@@ -376,6 +487,15 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
       return;
     }
 
+    if (confirmAction.kind === "export-pdf") {
+      try {
+        await markExported(confirmAction.paperId);
+      } finally {
+        setConfirmAction(null);
+      }
+      return;
+    }
+
     try {
       await deleteMutation.mutateAsync(confirmAction.paperId);
       setConfirmAction(null);
@@ -389,10 +509,7 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
   if (detailQuery.isLoading) {
     return (
       <AppShell>
-        <View style={styles.centeredBlock}>
-          <ActivityIndicator color="#2563EB" />
-          <Text style={styles.metaText}>{t("papers:detail.loading")}</Text>
-        </View>
+        <PaperDetailLoadingState title={t("papers:detail.loading")} />
       </AppShell>
     );
   }
@@ -400,19 +517,16 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
   if (detailQuery.isError || !paper) {
     return (
       <AppShell>
-        <View style={styles.centeredBlock}>
-          <Text style={styles.errorText}>
-            {detailQuery.error instanceof Error
+        <PageStateCard
+          title={t("papers:detail.failedLoad")}
+          hint={
+            detailQuery.error instanceof Error
               ? detailQuery.error.message
-              : t("papers:detail.failedLoad")}
-          </Text>
-          <Pressable
-            style={({ pressed }) => [styles.primaryButton, pressed && styles.buttonPressed]}
-            onPress={backToPapers}
-          >
-            <Text style={styles.primaryButtonLabel}>{t("papers:detail.backToPapers")}</Text>
-          </Pressable>
-        </View>
+              : t("papers:detail.failedLoad")
+          }
+          actionLabel={t("papers:detail.backToPapers")}
+          onAction={backToPapers}
+        />
       </AppShell>
     );
   }
@@ -421,6 +535,30 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
     <AppShell>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.headerCard}>
+          <View style={styles.headerTopRow}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.secondaryButton,
+                styles.headerBackButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={backToPapers}
+            >
+              <Text style={styles.secondaryButtonLabel}>{t("papers:detail.back")}</Text>
+            </Pressable>
+            <Text
+              style={[
+                styles.exportStatusPill,
+                paper.exportedAt
+                  ? styles.exportStatusPillReady
+                  : paper.status === "finalized"
+                    ? styles.exportStatusPillPending
+                    : styles.exportStatusPillDraft,
+              ]}
+            >
+              {paper.exportedAt ? t("papers:status.pdfReady") : t(`papers:status.${paper.status}`)}
+            </Text>
+          </View>
           <Text style={styles.heading}>{paper.title}</Text>
           <Text style={styles.metaText}>
             {t("papers:detail.statusLine", {
@@ -429,21 +567,27 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
               marks: paper.totalMarks,
             })}
           </Text>
-          <Text style={styles.metaText}>{t("papers:detail.updated", { value: formatDateTime(paper.updatedAt) })}</Text>
-          <Text style={styles.metaText}>{t("papers:detail.exported", { value: formatDateTime(paper.exportedAt) })}</Text>
+          <View style={styles.metricsRow}>
+            <View style={styles.metricCard}>
+              <Text style={styles.metricLabel}>{t("papers:detail.questions")}</Text>
+              <Text style={styles.metricValue}>{paper.totalQuestions}</Text>
+            </View>
+            <View style={styles.metricCard}>
+              <Text style={styles.metricLabel}>{t("papers:home.totalMarks")}</Text>
+              <Text style={styles.metricValue}>{paper.totalMarks}</Text>
+            </View>
+            <View style={styles.metricCardWide}>
+              <Text style={styles.metricLabel}>{t("papers:detail.updated", { value: "" }).split(":")[0]}</Text>
+              <Text style={styles.metricValueSmall}>{formatDateTime(paper.updatedAt)}</Text>
+            </View>
+          </View>
+          {paper.exportedAt ? (
+            <Text style={styles.metaText}>
+              {t("papers:detail.exported", { value: formatDateTime(paper.exportedAt) })}
+            </Text>
+          ) : null}
 
           <View style={styles.actionRow}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.secondaryButton,
-                styles.actionButton,
-                pressed && styles.buttonPressed,
-              ]}
-              onPress={backToPapers}
-            >
-              <Text style={styles.secondaryButtonLabel}>{t("papers:detail.back")}</Text>
-            </Pressable>
-
             {isDraft ? (
               <Pressable
                 disabled={hasActionPending || !metadataDirty || !title.trim()}
@@ -489,14 +633,11 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
           </Pressable>
 
           {actionMessage ? (
-            <Text
-              style={[
-                styles.actionMessage,
-                actionMessage.toLowerCase().includes("failed") && styles.errorText,
-              ]}
-            >
-              {actionMessage}
-            </Text>
+            actionMessage.toLowerCase().includes("failed") ? (
+              <InlineErrorState message={actionMessage} />
+            ) : (
+              <Text style={styles.actionMessage}>{actionMessage}</Text>
+            )
           ) : null}
         </View>
 
@@ -533,7 +674,7 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
                 (hasActionPending || paper.status !== "finalized") && styles.buttonDisabled,
                 pressed && paper.status === "finalized" && styles.buttonPressed,
               ]}
-              onPress={markExported}
+              onPress={requestExportPdf}
             >
               {exportMutation.isPending ? (
                 <ActivityIndicator color="#FFFFFF" />
@@ -562,27 +703,6 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
                   </Pressable>
                 </View>
 
-                <View style={styles.previewCard}>
-                  <Text style={styles.previewCardTitle}>{t("papers:detail.printableExportTitle")}</Text>
-                  <Text style={styles.sectionHint}>{t("papers:detail.printableExportHint")}</Text>
-                  <Pressable
-                    disabled={hasActionPending}
-                    style={({ pressed }) => [
-                      styles.secondaryButton,
-                      hasActionPending && styles.buttonDisabled,
-                      pressed && !hasActionPending && styles.buttonPressed,
-                    ]}
-                    onPress={() => {
-                      void sharePrintablePdf();
-                    }}
-                  >
-                    {isSharingPrintExport ? (
-                      <ActivityIndicator color="#1D4ED8" />
-                    ) : (
-                      <Text style={styles.secondaryButtonLabel}>{t("papers:detail.shareOrSave")}</Text>
-                    )}
-                  </Pressable>
-                </View>
               </>
             ) : null}
           </View>
@@ -689,7 +809,7 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
           </Text>
 
           {paper.items.length === 0 ? (
-            <Text style={styles.metaText}>{t("papers:detail.noQuestions")}</Text>
+            <EmptyStateCard title={t("papers:detail.noQuestions")} />
           ) : null}
 
           {paper.items.map((item, index) => {
@@ -700,20 +820,25 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
             return (
               <View key={item.id} style={styles.questionCard}>
                 <View style={styles.questionHeadingRow}>
-                  <Text style={styles.questionCode}>
-                    Q{item.position} • {item.questionCode}
-                  </Text>
-                  <Text style={styles.questionMetaLabel}>
-                    {t(toQuestionTypeLabelKey(item.questionType))} • {item.marks} marks
-                  </Text>
+                  <Text style={styles.questionCode}>Q{item.position}</Text>
+                  <View style={styles.questionMetaPills}>
+                    <Text style={styles.questionMetaPill}>
+                      {t(toQuestionTypeLabelKey(item.questionType))}
+                    </Text>
+                    <Text style={styles.questionMetaPill}>
+                      {item.marks} {item.marks === 1 ? "mark" : "marks"}
+                    </Text>
+                  </View>
                 </View>
 
                 <MathRichText content={item.body} textStyle={styles.questionBody} />
+                <QuestionMediaGallery imageUrls={item.questionImageUrls} />
 
                 {answerDisplay && includeAnswerKey ? (
                   <View style={styles.answerRow}>
                     <Text style={styles.answerPrefix}>{t("papers:detail.answer")}</Text>
                     <MathRichText content={answerDisplay} textStyle={styles.answerText} />
+                    <QuestionMediaGallery imageUrls={item.solutionImageUrls} />
                   </View>
                 ) : null}
 
@@ -787,24 +912,21 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
                   <View style={styles.swapPanel}>
                     <Text style={styles.swapPanelTitle}>{t("papers:detail.replacementCandidates")}</Text>
                     {swapCandidatesQuery.isLoading ? (
-                      <View style={styles.loadingRow}>
-                        <ActivityIndicator color="#2563EB" />
-                        <Text style={styles.metaText}>{t("papers:detail.loadingReplacements")}</Text>
-                      </View>
+                      <InlineLoadingState label={t("papers:detail.loadingReplacements")} />
                     ) : null}
                     {swapCandidatesQuery.isError ? (
-                      <Text style={styles.errorText}>
-                        {swapCandidatesQuery.error instanceof Error
-                          ? swapCandidatesQuery.error.message
-                          : t("papers:detail.failedReplacements")}
-                      </Text>
+                      <InlineErrorState
+                        message={
+                          swapCandidatesQuery.error instanceof Error
+                            ? swapCandidatesQuery.error.message
+                            : t("papers:detail.failedReplacements")
+                        }
+                      />
                     ) : null}
                     {!swapCandidatesQuery.isLoading &&
                     !swapCandidatesQuery.isError &&
                     swapCandidates.length === 0 ? (
-                      <Text style={styles.metaText}>
-                        {t("papers:detail.noReplacements")}
-                      </Text>
+                      <EmptyStateCard title={t("papers:detail.noReplacements")} />
                     ) : null}
                     {swapCandidates.map((candidate) => (
                       <View key={candidate.id} style={styles.candidateCard}>
@@ -814,7 +936,7 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
                         </Text>
                         <MathRichText
                           content={candidate.bodyPreview}
-                          renderMode="native"
+                          renderMode="auto"
                           textStyle={styles.candidateBody}
                         />
                         <Text style={styles.metaText}>
@@ -844,20 +966,38 @@ export const PaperDetailScreen = ({ paperId }: PaperDetailScreenProps) => {
 
       <ConfirmationSheet
         visible={Boolean(confirmAction)}
-        title={confirmAction?.kind === "delete-paper" ? t("papers:detail.deletePaper") : t("papers:detail.removeQuestion")}
+        title={
+          confirmAction?.kind === "delete-paper"
+            ? t("papers:detail.deletePaper")
+            : confirmAction?.kind === "export-pdf"
+              ? t("papers:detail.exportConfirmTitle")
+              : t("papers:detail.removeQuestion")
+        }
         message={
           confirmAction?.kind === "delete-paper"
             ? t("papers:detail.deleteMessage")
-            : t("papers:detail.removeMessage")
+            : confirmAction?.kind === "export-pdf"
+              ? t("papers:detail.exportConfirmMessage")
+              : t("papers:detail.removeMessage")
         }
         hint={
           confirmAction?.kind === "delete-paper"
             ? t("papers:detail.deleteHint")
-            : t("papers:detail.removeHint")
+            : confirmAction?.kind === "export-pdf"
+              ? t("papers:detail.exportConfirmHint")
+              : t("papers:detail.removeHint")
         }
-        confirmLabel={confirmAction?.kind === "delete-paper" ? t("papers:detail.deletePaper") : t("papers:detail.removeQuestion")}
-        confirmTone="danger"
-        isPending={removeItemMutation.isPending || deleteMutation.isPending}
+        confirmLabel={
+          confirmAction?.kind === "delete-paper"
+            ? t("papers:detail.deletePaper")
+            : confirmAction?.kind === "export-pdf"
+              ? t("papers:detail.generatePdfExport")
+              : t("papers:detail.removeQuestion")
+        }
+        confirmTone={confirmAction?.kind === "delete-paper" ? "danger" : "primary"}
+        isPending={
+          removeItemMutation.isPending || deleteMutation.isPending || exportMutation.isPending
+        }
         onClose={() => setConfirmAction(null)}
         onConfirm={() => {
           void confirmPaperAction();
@@ -872,11 +1012,180 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingBottom: 20,
   },
-  centeredBlock: {
+  loadingHeroCard: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#D8DEE9",
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 14,
+    overflow: "hidden",
+    padding: 16,
+  },
+  loadingHeroTopRow: {
     alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  loadingHeroLabel: {
+    color: "#2563EB",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  loadingHeroCopy: {
+    gap: 10,
+  },
+  loadingSkeletonBlock: {
+    backgroundColor: "#DBEAFE",
+    borderRadius: 999,
+  },
+  loadingBackPill: {
+    height: 38,
+    width: 92,
+  },
+  loadingStatusPill: {
+    height: 28,
+    width: 88,
+  },
+  loadingLineStrong: {
+    height: 16,
+    width: "72%",
+  },
+  loadingLineMedium: {
+    height: 12,
+    width: "54%",
+  },
+  loadingLineWide: {
+    height: 12,
+    width: "92%",
+  },
+  loadingMetricCard: {
+    backgroundColor: "#F8FAFC",
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    borderWidth: 1,
     flex: 1,
     gap: 10,
-    justifyContent: "center",
+    minWidth: 96,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  loadingMetricCardWide: {
+    backgroundColor: "#F8FAFC",
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    borderWidth: 1,
+    flex: 1.4,
+    gap: 10,
+    minWidth: 150,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  loadingMetricLabel: {
+    height: 10,
+    width: "58%",
+  },
+  loadingMetricLabelWide: {
+    height: 10,
+    width: "42%",
+  },
+  loadingMetricValue: {
+    height: 18,
+    width: "44%",
+  },
+  loadingMetricValueWide: {
+    height: 14,
+    width: "74%",
+  },
+  loadingCard: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#D8DEE9",
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 12,
+    padding: 14,
+  },
+  loadingCardHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  loadingSectionTitle: {
+    height: 16,
+    width: "38%",
+  },
+  loadingTinyPill: {
+    height: 24,
+    width: 70,
+  },
+  loadingTinyPillWide: {
+    height: 24,
+    width: 108,
+  },
+  loadingButtonRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  loadingPrimaryButton: {
+    height: 42,
+    width: 148,
+  },
+  loadingSecondaryButton: {
+    height: 42,
+    width: 112,
+  },
+  loadingFormGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  loadingFormField: {
+    flex: 1,
+    gap: 8,
+    minWidth: 140,
+  },
+  loadingInputLabel: {
+    height: 10,
+    width: "34%",
+  },
+  loadingInputLabelWide: {
+    height: 10,
+    width: "22%",
+  },
+  loadingInput: {
+    borderRadius: 12,
+    height: 46,
+    width: "100%",
+  },
+  loadingTextarea: {
+    borderRadius: 14,
+    height: 108,
+    width: "100%",
+  },
+  loadingQuestionCard: {
+    backgroundColor: "#F8FAFC",
+    borderColor: "#E2E8F0",
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 10,
+    padding: 12,
+  },
+  loadingQuestionHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  loadingQuestionTitle: {
+    height: 14,
+    width: "48%",
+  },
+  loadingQuestionChip: {
+    height: 24,
+    width: 74,
+  },
+  loadingActionChip: {
+    height: 34,
+    width: 84,
   },
   headerCard: {
     backgroundColor: "#FFFFFF",
@@ -899,6 +1208,15 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "800",
   },
+  headerTopRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  headerBackButton: {
+    minHeight: 38,
+    paddingHorizontal: 12,
+  },
   cardTitle: {
     color: "#0F172A",
     fontSize: 16,
@@ -914,6 +1232,50 @@ const styles = StyleSheet.create({
   },
   metaGrid: {
     gap: 4,
+  },
+  metricsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 4,
+  },
+  metricCard: {
+    backgroundColor: "#F8FAFC",
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    borderWidth: 1,
+    flex: 1,
+    minWidth: 96,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  metricCardWide: {
+    backgroundColor: "#F8FAFC",
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    borderWidth: 1,
+    flex: 1.4,
+    minWidth: 150,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  metricLabel: {
+    color: "#64748B",
+    fontSize: 11,
+    fontWeight: "700",
+    marginBottom: 4,
+    textTransform: "uppercase",
+  },
+  metricValue: {
+    color: "#0F172A",
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  metricValueSmall: {
+    color: "#0F172A",
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 16,
   },
   exportStatusCard: {
     backgroundColor: "#F8FAFC",
@@ -1092,13 +1454,26 @@ const styles = StyleSheet.create({
   questionCode: {
     color: "#0F172A",
     flex: 1,
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 15,
+    fontWeight: "800",
   },
-  questionMetaLabel: {
+  questionMetaPills: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    justifyContent: "flex-end",
+  },
+  questionMetaPill: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#CBD5E1",
+    borderRadius: 999,
+    borderWidth: 1,
     color: "#475569",
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 11,
+    fontWeight: "700",
+    overflow: "hidden",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
   questionBody: {
     color: "#1E293B",
@@ -1196,11 +1571,6 @@ const styles = StyleSheet.create({
     color: "#334155",
     fontSize: 13,
     lineHeight: 18,
-  },
-  loadingRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 8,
   },
   buttonDisabled: {
     opacity: 0.6,

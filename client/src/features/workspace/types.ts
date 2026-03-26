@@ -44,31 +44,27 @@ export type WorkspaceCatalogQuestion = {
   isFreePreview: boolean;
 };
 
-export type WorkspaceCatalogLockedQuestion = {
-  id: string;
-  questionCode: string;
-  type: "mcq" | "true_false" | "short_answer" | "fill_blank" | "matching";
-  difficulty: "easy" | "medium" | "hard";
-  mode: "static" | "variable";
-  marks: number;
-  estimatedTimeSec?: number | null;
-  grade: WorkspaceTaxonomyOption;
-  subject: WorkspaceTaxonomyOption;
-  chapter?: WorkspaceTaxonomyOption | null;
-  subChapter?: WorkspaceTaxonomyOption | null;
-  isFreePreview: boolean;
-  lockReasonCode: "free_preview_only";
-  lockReason: string;
+export type WorkspaceQuestionType =
+  | "mcq"
+  | "true_false"
+  | "short_answer"
+  | "long_answer"
+  | "fill_blank"
+  | "matching";
+
+export type WorkspaceQuestionMixEntry = {
+  questionType: WorkspaceQuestionType;
+  count: number;
 };
 
-export type WorkspaceCatalogPage = {
-  rows: WorkspaceCatalogQuestion[];
-  lockedRows: WorkspaceCatalogLockedQuestion[];
-  lockedTotal: number;
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
+export type WorkspaceCatalogQuickCountsResponse = {
+  all: number;
+  mcq: number;
+  true_false: number;
+  short_answer: number;
+  long_answer: number;
+  fill_blank: number;
+  matching: number;
 };
 
 export type WorkspaceSummary = {
@@ -78,6 +74,17 @@ export type WorkspaceSummary = {
   papersCount: number;
   exportedPapersCount: number;
   brandingCount: number;
+  notifications: {
+    unreadCount: number;
+    supportUnreadCount: number;
+    supportConversation: {
+      status: "open" | "closed";
+      allowUserReplies: boolean;
+      lastMessagePreview: string | null;
+      lastMessageAt: string | null;
+    } | null;
+    hasPendingSubscriptionRequest: boolean;
+  };
   subscription: {
     code: "free" | "pro" | "premium";
     name: string;

@@ -8,7 +8,7 @@ import {
   user,
 } from "@/db";
 
-type AdminUserRole = "user" | "admin";
+type AdminUserRole = "user" | "admin" | "superadmin";
 type AccountStatus = "active" | "suspended" | "deactivated";
 type SubscriptionStatus = "active" | "canceled" | "past_due" | "expired";
 type BillingCycle = "monthly" | "yearly" | "lifetime";

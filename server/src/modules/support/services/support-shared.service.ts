@@ -38,6 +38,8 @@ export type SupportMessageRecord = {
   createdAt: string;
 };
 
+const ADMIN_SUPPORT_SENDER_NAME = "Admin";
+
 const toIso = (value: Date | null | undefined) => (value ? value.toISOString() : null);
 
 const toPreview = (value: string) => {
@@ -130,7 +132,12 @@ export const listSupportMessages = async (
     conversationId: row.conversationId,
     senderRole: row.senderRole,
     senderUserId: row.senderUserId ?? null,
-    senderName: row.senderUserId ? senderMap.get(row.senderUserId)?.name ?? null : null,
+    senderName:
+      row.senderRole === "admin"
+        ? ADMIN_SUPPORT_SENDER_NAME
+        : row.senderUserId
+          ? senderMap.get(row.senderUserId)?.name ?? null
+          : null,
     body: row.body,
     createdAt: row.createdAt.toISOString(),
   }));
@@ -190,7 +197,10 @@ export const addSupportMessage = async (params: {
     conversationId: messageRow.conversationId,
     senderRole: messageRow.senderRole,
     senderUserId: messageRow.senderUserId ?? null,
-    senderName: senderRows[0]?.name ?? null,
+    senderName:
+      params.senderRole === "admin"
+        ? ADMIN_SUPPORT_SENDER_NAME
+        : senderRows[0]?.name ?? null,
     body: messageRow.body,
     createdAt: messageRow.createdAt.toISOString(),
   } satisfies SupportMessageRecord;

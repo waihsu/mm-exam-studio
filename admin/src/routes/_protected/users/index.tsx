@@ -31,6 +31,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PagePanel } from "@/components/page-container";
+import { AdminPageHeader, AdminStatPill } from "@/components/page-shell";
 import {
   Table,
   TableBody,
@@ -40,6 +41,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/sonner";
+import { useAuthFlow } from "@/features/auth/hooks/use-auth-flow";
 import { usersApi } from "@/features/users/api/users.api";
 import type {
   AccountStatus,
@@ -47,6 +49,10 @@ import type {
   AdminUserDeviceRow,
   AdminUserDirectoryRow,
 } from "@/features/users/types";
+import {
+  canManageAdminUserRole,
+  getNextAdminUserRole,
+} from "@/features/users/utils/user-role";
 
 export const Route = createFileRoute("/_protected/users/")({
   validateSearch: (search): AdminUserDirectoryFilters => ({
@@ -64,7 +70,7 @@ export const Route = createFileRoute("/_protected/users/")({
           : undefined,
     search: typeof search.search === "string" ? search.search : undefined,
     role:
-      search.role === "user" || search.role === "admin"
+      search.role === "user" || search.role === "admin" || search.role === "superadmin"
         ? search.role
         : undefined,
     accountStatus:
@@ -85,10 +91,15 @@ const formatDateTime = (value: string) => new Date(value).toLocaleString();
 const formatDate = (value: string | null) =>
   value ? new Date(value).toLocaleDateString() : "No end date";
 
-const roleTone = (role: "user" | "admin") =>
-  role === "admin"
-    ? "border-violet-200 bg-violet-50 text-violet-700"
-    : "border-slate-200 bg-slate-100 text-slate-700";
+const roleTone = (role: "user" | "admin" | "superadmin") => {
+  if (role === "superadmin") {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+  if (role === "admin") {
+    return "border-violet-200 bg-violet-50 text-violet-700";
+  }
+  return "border-slate-200 bg-slate-100 text-slate-700";
+};
 
 const accountTone = (status: AccountStatus) => {
   if (status === "active") return "border-emerald-200 bg-emerald-50 text-emerald-700";
@@ -143,6 +154,7 @@ const formatLastSeenAt = (value: string | null) =>
   value ? new Date(value).toLocaleString() : "Unknown activity";
 
 function UsersIndexPage() {
+  const { isSuperAdmin, user: authUser } = useAuthFlow();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const search = Route.useSearch();
@@ -227,6 +239,27 @@ function UsersIndexPage() {
     },
   });
 
+  const updateUserRoleMutation = useMutation({
+    mutationFn: async (params: { userId: string; role: "user" | "admin" }) => {
+      const response = await usersApi.updateUserRole(params.userId, params.role);
+      if (!response.ok) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
+    onSuccess: async (result) => {
+      toast.success(
+        result.changed
+          ? `Role updated to ${result.user.role}.`
+          : `Role is already ${result.user.role}.`,
+      );
+      await queryClient.invalidateQueries({ queryKey: ["admin-user-directory"] });
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Failed to update role.");
+    },
+  });
+
   if (directoryQuery.isLoading && !directoryQuery.data) {
     return <PagePanel className="bg-white/88">Loading user directory...</PagePanel>;
   }
@@ -256,7 +289,9 @@ function UsersIndexPage() {
           directory.total,
         );
   const totalPages = Math.max(1, Math.ceil(directory.total / directory.pageSize));
-  const adminCount = rows.filter((row) => row.user.role === "admin").length;
+  const adminCount = rows.filter(
+    (row) => row.user.role === "admin" || row.user.role === "superadmin",
+  ).length;
   const supportWaitingCount = rows.filter(
     (row) => (row.support?.unreadForAdminCount ?? 0) > 0,
   ).length;
@@ -266,46 +301,27 @@ function UsersIndexPage() {
 
   return (
     <div className="space-y-4">
-      <PagePanel className="space-y-5 bg-gradient-to-br from-white/95 via-slate-50/90 to-slate-100/70">
-        <div className="space-y-3 lg:flex lg:items-start lg:justify-between lg:space-y-0">
-          <div className="space-y-2">
-            <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white">
-              <UserCog className="h-5 w-5" />
-            </div>
-            <h2 className="text-2xl font-black text-slate-900">User overview</h2>
-            <p className="max-w-3xl text-sm leading-7 text-slate-600">
-              Search the full account directory, spot weak security posture, and catch support
-              threads that are waiting on admin without opening three separate tabs first.
-            </p>
-          </div>
+      <AdminPageHeader
+        eyebrow="People"
+        title="User overview"
+        description="Search the full account directory, spot weak security posture, and catch support threads that are waiting on admin without opening separate tools."
+        actions={
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <div className="rounded-2xl border border-slate-200 bg-white/90 px-3 py-2">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
-                Results
-              </p>
-              <p className="mt-1 text-lg font-black text-slate-900">{directory.total}</p>
-            </div>
-            <div className="rounded-2xl border border-violet-200 bg-violet-50/80 px-3 py-2">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-violet-700">
-                Admins
-              </p>
-              <p className="mt-1 text-lg font-black text-violet-900">{adminCount}</p>
-            </div>
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-3 py-2">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">
-                Support waiting
-              </p>
-              <p className="mt-1 text-lg font-black text-amber-900">{supportWaitingCount}</p>
-            </div>
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 px-3 py-2">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700">
-                Verified + 2FA
-              </p>
-              <p className="mt-1 text-lg font-black text-emerald-900">{protectedCount}</p>
-            </div>
+            <AdminStatPill label="Results" value={String(directory.total)} />
+            <AdminStatPill label="Admins" value={String(adminCount)} tone="violet" />
+            <AdminStatPill
+              label="Support waiting"
+              value={String(supportWaitingCount)}
+              tone="amber"
+            />
+            <AdminStatPill
+              label="Verified + 2FA"
+              value={String(protectedCount)}
+              tone="emerald"
+            />
           </div>
-        </div>
-      </PagePanel>
+        }
+      />
 
       <PagePanel className="space-y-4 bg-white/90">
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_220px_220px_auto] xl:items-end">
@@ -350,7 +366,11 @@ function UsersIndexPage() {
                     ...current,
                     page: undefined,
                     role:
-                      nextValue === "user" || nextValue === "admin" ? nextValue : undefined,
+                      nextValue === "user" ||
+                      nextValue === "admin" ||
+                      nextValue === "superadmin"
+                        ? nextValue
+                        : undefined,
                   }),
                 });
               }}
@@ -359,6 +379,7 @@ function UsersIndexPage() {
               <option value="all">All roles</option>
               <option value="user">Users</option>
               <option value="admin">Admins</option>
+              <option value="superadmin">Superadmins</option>
             </select>
           </div>
 
@@ -617,6 +638,48 @@ function UsersIndexPage() {
                         <span className="font-medium">Devices</span>
                         <span className="ml-auto text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
                           {row.subscription?.activeDeviceCount ?? 0}
+                        </span>
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-9 justify-start gap-2 rounded-xl border-slate-200 bg-white text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-65"
+                        disabled={
+                          !canManageAdminUserRole({
+                            isSuperAdmin,
+                            actorUserId: authUser?.id,
+                            targetUserId: row.user.id,
+                            targetRole: row.user.role,
+                          }) || updateUserRoleMutation.isPending
+                        }
+                        title={
+                          !isSuperAdmin
+                            ? "Only super admins can change roles."
+                            : row.user.role === "superadmin"
+                              ? "Seeded superadmin accounts are protected here."
+                            : authUser?.id === row.user.id
+                              ? "You cannot change your own role here."
+                              : undefined
+                        }
+                        onClick={() => {
+                          const nextRole = getNextAdminUserRole(row.user.role);
+                          updateUserRoleMutation.mutate({
+                            userId: row.user.id,
+                            role: nextRole,
+                          });
+                        }}
+                      >
+                        <UserCog className="h-4 w-4" />
+                        <span className="font-medium">
+                          {row.user.role === "superadmin"
+                            ? "Protected root role"
+                            : row.user.role === "admin"
+                              ? "Set as user"
+                              : "Set as admin"}
+                        </span>
+                        <span className="ml-auto text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                          {row.user.role}
                         </span>
                       </Button>
                     </div>

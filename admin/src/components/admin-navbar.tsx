@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   BookText,
-  ChevronsLeft,
-  ChevronsRight,
+  CreditCard,
   ExternalLink,
   Layers3,
+  LifeBuoy,
   LogOut,
   LayoutDashboard,
   Menu,
@@ -44,6 +44,24 @@ const isActivePath = (currentPath: string, path: string) => {
   if (path === ADMIN_ROUTES.dashboard) {
     return currentPath === ADMIN_ROUTES.dashboard;
   }
+  if (path === ADMIN_ROUTES.questions) {
+    return (
+      (currentPath === ADMIN_ROUTES.questions ||
+        currentPath.startsWith(`${ADMIN_ROUTES.questions}/`)) &&
+      !currentPath.startsWith(`${ADMIN_ROUTES.questionBlueprints}/`) &&
+      currentPath !== ADMIN_ROUTES.questionBlueprints
+    );
+  }
+  if (path === ADMIN_ROUTES.users) {
+    return (
+      (currentPath === ADMIN_ROUTES.users ||
+        currentPath.startsWith(`${ADMIN_ROUTES.users}/`)) &&
+      !currentPath.startsWith(`${ADMIN_ROUTES.userSubscriptions}/`) &&
+      !currentPath.startsWith(`${ADMIN_ROUTES.userSupport}/`) &&
+      currentPath !== ADMIN_ROUTES.userSubscriptions &&
+      currentPath !== ADMIN_ROUTES.userSupport
+    );
+  }
 
   return currentPath === path || currentPath.startsWith(`${path}/`);
 };
@@ -51,15 +69,17 @@ const isActivePath = (currentPath: string, path: string) => {
 const iconForRoute = (to: string) => {
   if (to === ADMIN_ROUTES.dashboard) return LayoutDashboard;
   if (to === ADMIN_ROUTES.questions) return BookText;
+  if (
+    to === ADMIN_ROUTES.questionBlueprints ||
+    to.startsWith(`${ADMIN_ROUTES.questionBlueprints}/`)
+  ) {
+    return Layers3;
+  }
   if (to === ADMIN_ROUTES.taxonomy || to.startsWith("/taxonomy"))
     return Layers3;
-  if (
-    to === ADMIN_ROUTES.users ||
-    to === ADMIN_ROUTES.students ||
-    to === ADMIN_ROUTES.userSubscriptions ||
-    to === ADMIN_ROUTES.userSupport
-  )
-    return UsersRound;
+  if (to === ADMIN_ROUTES.userSubscriptions) return CreditCard;
+  if (to === ADMIN_ROUTES.userSupport) return LifeBuoy;
+  if (to === ADMIN_ROUTES.users) return UsersRound;
   if (to === ADMIN_ROUTES.settings || to.startsWith("/settings"))
     return Settings;
   return ShieldCheck;
@@ -102,6 +122,8 @@ export function AdminNavbar({
   isSidebarCollapsed = false,
   onToggleSidebar,
 }: AdminNavbarProps) {
+  void isSidebarCollapsed;
+  void onToggleSidebar;
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocusedElementRef = useRef<HTMLElement | null>(null);
@@ -204,29 +226,10 @@ export function AdminNavbar({
         </div>
 
         <div className="hidden items-center gap-2 lg:flex">
-          {onToggleSidebar ? (
-            <Button
-              type="button"
-              variant="outline"
-              className="h-9 rounded-xl border-slate-300/80 bg-white/90 text-slate-800"
-              onClick={onToggleSidebar}
-              title={
-                isSidebarCollapsed
-                  ? `${tr({ en: "Expand sidebar", my: "Sidebar ချဲ့မည်" })} (key: ])`
-                  : `${tr({ en: "Collapse sidebar", my: "Sidebar ချုံ့မည်" })} (key: [)`
-              }
-            >
-              {isSidebarCollapsed ? (
-                <ChevronsRight className="h-4 w-4" />
-              ) : (
-                <ChevronsLeft className="h-4 w-4" />
-              )}
-            </Button>
-          ) : null}
           <Button
             type="button"
             variant="outline"
-            className="h-9 rounded-xl border-slate-300/80 bg-white/90 text-slate-800"
+            className="h-9 rounded-xl border-slate-300/80 bg-white/88 px-3 text-slate-700"
             onClick={toggleLanguage}
           >
             {language === "en" ? "MM" : "EN"}
@@ -235,7 +238,7 @@ export function AdminNavbar({
             href={studyAppUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-9 items-center gap-1 rounded-xl border border-slate-300/75 bg-white/90 px-3 text-sm font-semibold text-slate-700 transition hover:bg-white"
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-300/75 bg-white/88 px-3 text-sm font-semibold text-slate-700 transition hover:bg-white"
           >
             {tr({ en: "Study App", my: "လေ့လာရေး App" })}
             <ExternalLink className="h-3.5 w-3.5" />

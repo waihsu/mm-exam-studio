@@ -5,6 +5,7 @@ import {
   parseJsonBodyWithSchema,
   readPositiveNumberParam,
 } from "@/lib/route-utils";
+import { createEndpointRateLimitMiddleware } from "@/middlewares/endpoint-rate-limit";
 import { ensureAuthContext } from "@/middlewares/rbac";
 import { notifySupportRealtimeTargets } from "../realtime/support-realtime";
 import {
@@ -20,6 +21,14 @@ import {
 import { toSupportHttpError } from "../route-utils";
 
 export const supportAdminRoute = new Hono<AppBindings>();
+
+const readPositiveInt = (value: string | undefined, fallback: number) => {
+  const parsed = Number.parseInt(String(value ?? ""), 10);
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return fallback;
+  }
+  return parsed;
+};
 
 supportAdminRoute.get("/admin/conversations", async (c) => {
   const status = c.req.query("status");
@@ -42,40 +51,58 @@ supportAdminRoute.get("/admin/conversations/:conversationId", async (c) => {
   }
 });
 
-supportAdminRoute.post("/admin/conversations/:conversationId/messages", async (c) => {
-  try {
-    const { user } = await ensureAuthContext(c);
-    const payload = await parseJsonBodyWithSchema(c.req.raw, createSupportMessageSchema);
-    const result = await createAdminSupportMessage(
-      c.req.param("conversationId"),
-      user.id,
-      payload,
-    );
-    await notifySupportRealtimeTargets(c, [
-      { channel: "my-conversation", userId: result.conversation.userId },
-      { channel: "admin-conversations" },
-      { channel: "admin-conversation", conversationId: result.conversation.id },
-    ]);
-    await sendExpoPushToUsers({
-      userIds: [result.conversation.userId],
-      title: "Support reply",
-      body: payload.body,
-      data: {
-        kind: "support-reply",
-        conversationId: result.conversation.id,
+supportAdminRoute.post(
+  "/admin/conversations/:conversationId/messages",
+  createEndpointRateLimitMiddleware({
+    namespace: "support",
+    keyId: "admin-messages",
+    windows: [
+      {
+        windowMs: 60_000,
+        max: readPositiveInt(process.env.SUPPORT_ADMIN_REPLY_RATE_LIMIT_PER_MINUTE, 20),
       },
-    }).catch((error) => {
-      console.warn(
-        `[push] support reply push failed: ${
-          error instanceof Error ? error.message : "unknown error"
-        }`,
+      {
+        windowMs: 3_600_000,
+        max: readPositiveInt(process.env.SUPPORT_ADMIN_REPLY_RATE_LIMIT_PER_HOUR, 240),
+      },
+    ],
+    message: "Too many admin support replies. Please wait before sending another message.",
+  }),
+  async (c) => {
+    try {
+      const { user } = await ensureAuthContext(c);
+      const payload = await parseJsonBodyWithSchema(c.req.raw, createSupportMessageSchema);
+      const result = await createAdminSupportMessage(
+        c.req.param("conversationId"),
+        user.id,
+        payload,
       );
-    });
-    return c.json(result, 201);
-  } catch (error) {
-    toSupportHttpError(error, "Failed to send support reply.");
-  }
-});
+      await notifySupportRealtimeTargets(c, [
+        { channel: "my-conversation", userId: result.conversation.userId },
+        { channel: "admin-conversations" },
+        { channel: "admin-conversation", conversationId: result.conversation.id },
+      ]);
+      await sendExpoPushToUsers({
+        userIds: [result.conversation.userId],
+        title: "Support reply",
+        body: payload.body,
+        data: {
+          kind: "support-reply",
+          conversationId: result.conversation.id,
+        },
+      }).catch((error) => {
+        console.warn(
+          `[push] support reply push failed: ${
+            error instanceof Error ? error.message : "unknown error"
+          }`,
+        );
+      });
+      return c.json(result, 201);
+    } catch (error) {
+      toSupportHttpError(error, "Failed to send support reply.");
+    }
+  },
+);
 
 supportAdminRoute.post("/admin/conversations/:conversationId/status", async (c) => {
   try {

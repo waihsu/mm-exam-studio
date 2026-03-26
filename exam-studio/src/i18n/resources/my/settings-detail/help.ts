@@ -4,26 +4,26 @@ const help = {
   quickHelp: "အမြန်လမ်းညွှန်",
   heroTitle: "လုပ်ချင်တဲ့အလုပ်ကနေ စတင်ပါ။",
   heroBody:
-    "Practice, Papers, သို့မဟုတ် Subscription ကို တန်းဝင်နိုင်ပါတယ်။ လိုတဲ့အချိန် ပြန်ကြည့်ဖို့ ဒီစာမျက်နှာကိုထားပါတယ်။",
+    "အခု version မှာ flow က ပိုရှင်းသွားပါပြီ။ Practice က mini blueprint သုံးတယ်၊ Papers က quick generate သို့မဟုတ် templates သုံးတယ်၊ Subscription က plan access ကိုစီမံတယ်။",
   startHere: "ဒီကနေစပါ",
   startHereBody: "နောက်လုပ်ချင်တာနဲ့ကိုက်တဲ့ section ကိုရွေးပါ။",
   sections: [
     {
       title: "Practice",
-      description: "Search, filter, question ရွေးပြီး session ထဲတန်းဝင်ပါ။",
+      description: "Syllabus scope ကိုတစ်ခါရွေးပြီး mini blueprint mix သတ်မှတ်ကာ raw question bank မမြင်ဘဲ session စတင်ပါ။",
       steps: [
-        "အရင်ဆုံး quick filters သို့မဟုတ် search နဲ့ catalog ကိုကျဉ်းပါ။",
-        "Custom session အတွက် questions ရွေးပါ၊ သို့မဟုတ် Quick Start နဲ့ချက်ချင်းလေ့ကျင့်ပါ။",
-        "မပြီးသေးတဲ့အလုပ်တွေကို Recent Sessions ကနေပြန်ဆက်လုပ်နိုင်ပါတယ်။",
+        "Grade, subject, chapter, lesson ကို scope picker ကနေရွေးပါ။",
+        "Mini blueprint ထဲမှာ question type အလိုက် counts သတ်မှတ်ပါ၊ သို့မဟုတ် 0 ထားပြီး default quick mix ကိုသုံးပါ။",
+        "Session စပြီးသွားရင် မပြီးသေးတဲ့အလုပ်ကို Recent Sessions ကနေပြန်ဆက်လုပ်နိုင်ပါတယ်။",
       ],
     },
     {
       title: "Papers",
-      description: "Exam papers တည်ဆောက်၊ review လုပ်၊ finalize လုပ်ပြီး PDF export/share လုပ်ပါ။",
+      description: "Quick Generate သို့မဟုတ် published templates နဲ့ paper draft တည်ဆောက်ပြီး finalize လုပ်ကာ export မတိုင်ခင် preview ကြည့်ပါ။",
       steps: [
-        "Filters ကစပြီး သင့်တော်တဲ့ questions တွေကို paper draft ထဲထည့်ပါ။",
-        "Finalize မလုပ်ခင် metadata စစ်၊ order ပြန်စီ၊ weak questions တွေပြောင်းပါ။",
-        "Draft အဆင်သင့်ဖြစ်မှ export လုပ်ပြီး unnecessary repeats မဖြစ်အောင်လုပ်ပါ။",
+        "စနစ်က scope + mini blueprint နဲ့ paper ဆောက်ပေးစေချင်ရင် Quick Generate သုံးပါ။",
+        "Admin က plan အလိုက် publish လုပ်ထားတဲ့ fixed structure ကိုသုံးချင်ရင် Templates ကိုဖွင့်ပါ။",
+        "Draft ကို review လုပ်၊ finalize လုပ်ပြီးမှ PDF preview သို့မဟုတ် print ကိုဆက်လုပ်ပါ။",
       ],
     },
     {
@@ -39,11 +39,11 @@ const help = {
   quickActions: [
     {
       title: "Practice ဖွင့်ရန်",
-      hint: "မေးခွန်းတွေကိုချက်ချင်းဖြေချင်တဲ့အချိန်အတွက်ကောင်းပါတယ်။",
+      hint: "Mini blueprint scope နဲ့ mix ကိုသုံးပြီး မြန်မြန် practice session စချင်ရင်ကောင်းပါတယ်။",
     },
     {
       title: "Papers ဖွင့်ရန်",
-      hint: "ကျောင်းသားများအတွက် exam sheets ပြင်ဆင်ချင်တဲ့အချိန်အတွက်ကောင်းပါတယ်။",
+      hint: "Quick generate သို့မဟုတ် admin template နဲ့ paper draft ပြင်ချင်တဲ့အချိန်အတွက်ကောင်းပါတယ်။",
     },
     {
       title: "Subscription ဖွင့်ရန်",

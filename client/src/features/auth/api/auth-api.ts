@@ -1,4 +1,8 @@
 import { requestServerJson } from "@/lib/server-http";
+import {
+  clearAuthToken,
+  setAuthToken,
+} from "../utils/auth-token-store";
 import type {
   AuthSessionsOverview,
   AuthSession,
@@ -179,6 +183,9 @@ export const authApi = {
         };
       }
 
+      if (typeof response.data.token === "string" && response.data.token.trim()) {
+        setAuthToken(response.data.token);
+      }
       authApi.clearMeCache();
       return { ok: true as const };
     }
@@ -212,6 +219,9 @@ export const authApi = {
         message: response.message || "Two-factor verification failed",
       };
     }
+    if (typeof response.data.token === "string" && response.data.token.trim()) {
+      setAuthToken(response.data.token);
+    }
     authApi.clearMeCache();
     return { ok: true as const };
   },
@@ -238,6 +248,7 @@ export const authApi = {
       };
     }
 
+    clearAuthToken();
     authApi.clearMeCache();
     return { ok: true as const };
   },
@@ -245,6 +256,8 @@ export const authApi = {
     const response = await requestServerJson("/api/auth/sign-out", {
       method: "POST",
     });
+
+    clearAuthToken();
 
     if (!response.ok) {
       return {

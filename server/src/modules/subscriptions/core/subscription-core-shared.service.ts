@@ -46,7 +46,7 @@ export const FALLBACK_FREE_PLAN = {
   name: "Free",
   description:
     "Preview free lessons with modest practice, paper, and export limits.",
-  deviceLimit: 1,
+  deviceLimit: 2,
   maxQuestionsPerPractice: 12,
   maxQuestionsPerPaper: 12,
   monthlyPdfExportLimit: 5,
@@ -61,7 +61,7 @@ export const FALLBACK_FREE_PLAN = {
 } as const satisfies PlanEntitlements;
 
 export const FALLBACK_PREMIUM_LIMITS = {
-  deviceLimit: 3,
+  deviceLimit: 5,
   maxQuestionsPerPractice: 120,
   maxQuestionsPerPaper: 120,
   monthlyPdfExportLimit: 240,

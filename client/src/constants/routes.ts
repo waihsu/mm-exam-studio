@@ -2,6 +2,7 @@ import {
   BookOpenCheck,
   FileText,
   House,
+  MessageSquareMore,
   Settings,
   ShieldCheck,
   User2,
@@ -13,6 +14,7 @@ export const userAppRoutes = {
   questionPapers: "/question-papers",
   subscription: "/subscription",
   profile: "/profile",
+  support: "/support",
   settings: "/settings",
 } as const;
 
@@ -48,6 +50,12 @@ export const accountNavItems = [
     to: userAppRoutes.profile,
     label: "Profile",
     icon: User2,
+    status: "live" as const,
+  },
+  {
+    to: userAppRoutes.support,
+    label: "Support",
+    icon: MessageSquareMore,
     status: "live" as const,
   },
   {

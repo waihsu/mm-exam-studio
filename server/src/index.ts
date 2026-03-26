@@ -44,6 +44,8 @@ const server = Bun.serve<{
 
       const session = new SupportRealtimeSocketSession(authContext, (event) => {
         ws.send(JSON.stringify(event));
+      }, (code, reason) => {
+        ws.close(code, reason);
       });
       ws.data.session = session;
       session.onOpen();

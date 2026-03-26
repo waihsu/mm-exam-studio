@@ -32,6 +32,15 @@ type AuthFieldProps = TextInputProps & {
   secureToggle?: boolean;
 };
 
+type AuthConsentProps = {
+  checked: boolean;
+  helperText?: string | null;
+  labelPrefix: string;
+  linkLabel: string;
+  onPressLink: () => void;
+  onToggle: () => void;
+};
+
 export const AuthBanner = ({ message, tone = "info" }: AuthBannerProps) => {
   if (!message?.trim()) {
     return null;
@@ -131,6 +140,30 @@ export const AuthField = ({
     </View>
   );
 };
+
+export const AuthConsent = ({
+  checked,
+  helperText,
+  labelPrefix,
+  linkLabel,
+  onPressLink,
+  onToggle,
+}: AuthConsentProps) => (
+  <View style={styles.consentGroup}>
+    <Pressable onPress={onToggle} style={({ pressed }) => [styles.consentRow, pressed && styles.consentRowPressed]}>
+      <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
+        {checked ? <Text style={styles.checkboxIcon}>✓</Text> : null}
+      </View>
+      <Text style={styles.consentText}>
+        {labelPrefix}{" "}
+        <Text onPress={onPressLink} style={styles.consentLink}>
+          {linkLabel}
+        </Text>
+      </Text>
+    </Pressable>
+    {helperText?.trim() ? <Text style={styles.consentHelper}>{helperText}</Text> : null}
+  </View>
+);
 
 export const authUiStyles = StyleSheet.create({
   sectionKicker: {
@@ -277,5 +310,61 @@ const styles = StyleSheet.create({
     color: "#64748B",
     fontSize: 12,
     lineHeight: 18,
+  },
+  consentGroup: {
+    gap: 8,
+  },
+  consentRow: {
+    alignItems: "flex-start",
+    backgroundColor: "#F8FAFC",
+    borderColor: "#E2E8F0",
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  consentRowPressed: {
+    opacity: 0.92,
+  },
+  checkbox: {
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#CBD5E1",
+    borderRadius: 7,
+    borderWidth: 1.5,
+    height: 22,
+    justifyContent: "center",
+    marginTop: 1,
+    width: 22,
+  },
+  checkboxChecked: {
+    backgroundColor: "#0F172A",
+    borderColor: "#0F172A",
+  },
+  checkboxIcon: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  consentText: {
+    color: "#334155",
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "600",
+    lineHeight: 20,
+  },
+  consentLink: {
+    color: "#1D4ED8",
+    fontWeight: "800",
+    textDecorationLine: "underline",
+  },
+  consentHelper: {
+    color: "#B91C1C",
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 18,
+    paddingHorizontal: 4,
   },
 });

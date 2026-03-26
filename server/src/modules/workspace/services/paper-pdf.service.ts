@@ -1,14 +1,19 @@
 import { HTTPException } from "hono/http-exception";
 import type { AppBindings } from "@/core/types/app";
 import { generateQuestionPaperPdf } from "../pdf/question-paper-pdf-generator.service";
+import type { QuestionPaperPdfVariant } from "../pdf/question-paper-pdf-renderer.service";
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const generateQuestionPaperPdfResponse = async (params: {
   bindings?: AppBindings["Bindings"] | null;
   userId: string;
   paperId: string;
+  variant?: QuestionPaperPdfVariant;
 }) => {
   const bindings = params.bindings ?? {};
   const renderer = bindings.PDF_RENDERER;
+  const variant = params.variant ?? "combined";
 
   if (renderer) {
     const rendererToken =
@@ -25,17 +30,45 @@ export const generateQuestionPaperPdfResponse = async (params: {
       rendererHeaders["x-pdf-renderer-token"] = rendererToken;
     }
 
-    const rendererResponse = await renderer.fetch(
-      "https://pdf-renderer.internal/render",
-      {
-        method: "POST",
-        headers: rendererHeaders,
-        body: JSON.stringify({
-          userId: params.userId,
-          paperId: params.paperId,
-        }),
-      },
-    );
+    let rendererResponse: Response | null = null;
+    let lastRendererError: unknown = null;
+
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        rendererResponse = await renderer.fetch(
+          "https://pdf-renderer.internal/render",
+          {
+            method: "POST",
+            headers: rendererHeaders,
+            body: JSON.stringify({
+              userId: params.userId,
+              paperId: params.paperId,
+              variant,
+            }),
+          },
+        );
+
+        if (rendererResponse.ok || rendererResponse.status < 500 || attempt === 1) {
+          break;
+        }
+      } catch (error) {
+        lastRendererError = error;
+        if (attempt === 1) {
+          break;
+        }
+      }
+
+      await wait(250);
+    }
+
+    if (!rendererResponse) {
+      throw new HTTPException(502, {
+        message:
+          lastRendererError instanceof Error && lastRendererError.message.trim().length > 0
+            ? `PDF renderer request failed: ${lastRendererError.message}`
+            : "PDF renderer request failed.",
+      });
+    }
 
     if (!rendererResponse.ok) {
       const contentType = rendererResponse.headers.get("content-type") ?? "";
@@ -79,7 +112,7 @@ export const generateQuestionPaperPdfResponse = async (params: {
     });
   }
 
-  const result = await generateQuestionPaperPdf(params.userId, params.paperId);
+  const result = await generateQuestionPaperPdf(params.userId, params.paperId, variant);
 
   const responseHeaders = new Headers();
   responseHeaders.set("content-type", "application/pdf");

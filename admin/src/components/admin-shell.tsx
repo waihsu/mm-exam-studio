@@ -25,25 +25,31 @@ export function AdminShell() {
   }, []);
 
   return (
-    <div className="relative isolate min-h-screen">
+    <div className="relative isolate h-[100dvh] overflow-hidden">
       <AdminNavbar
         isSidebarCollapsed={isSidebarCollapsed}
         onToggleSidebar={() =>
           setIsSidebarCollapsed((current) => !current)
         }
       />
-      <div className="mx-auto flex min-h-[calc(100vh-var(--admin-header-height,4rem))] w-full max-w-none lg:h-[calc(100vh-var(--admin-header-height,4rem))] lg:overflow-hidden">
+      <div className="mx-auto flex h-[calc(100dvh-var(--admin-header-height,4rem))] w-full max-w-none lg:overflow-hidden">
         <div
           className={cn(
             "hidden shrink-0 border-r border-white/70 bg-white/50 transition-[width] duration-200 lg:block",
             isSidebarCollapsed ? "w-[88px]" : "w-[288px]",
           )}
         >
-          <div className="h-[calc(100vh-var(--admin-header-height,4rem))]">
-            <AdminSidebar collapsed={isSidebarCollapsed} className="h-full" />
+          <div className="h-[calc(100dvh-var(--admin-header-height,4rem))]">
+            <AdminSidebar
+              collapsed={isSidebarCollapsed}
+              onToggleCollapsed={() =>
+                setIsSidebarCollapsed((current) => !current)
+              }
+              className="h-full"
+            />
           </div>
         </div>
-        <main className="relative z-0 min-w-0 flex-1 pb-10 lg:h-[calc(100vh-var(--admin-header-height,4rem))] lg:overflow-y-auto">
+        <main className="relative z-0 min-w-0 flex-1 overflow-y-auto pb-10 lg:h-[calc(100dvh-var(--admin-header-height,4rem))]">
           <AdminBreadcrumbs />
           <Outlet />
         </main>

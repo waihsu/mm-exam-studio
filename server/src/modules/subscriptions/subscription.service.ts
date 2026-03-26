@@ -1,5 +1,6 @@
 export {
   assertUsageAvailable,
+  consumeUsageOrThrow,
   ensureCurrentSubscription,
   getCurrentSubscriptionRequest,
   getPlanCatalog,

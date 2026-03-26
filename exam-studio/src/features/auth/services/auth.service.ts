@@ -69,7 +69,7 @@ export type AuthSessionDevice = {
   createdAt: string;
   expiresAt: string;
   device: string;
-  bucket: string;
+  bucket: "mobile" | "desktop";
   allowed: boolean;
 };
 
@@ -95,7 +95,8 @@ export type SignInEmailResult =
     };
 
 export type SignUpEmailResult = {
-  session: SessionData;
+  email: string;
+  verificationRequired: true;
 };
 
 export type RequestPasswordResetResult = {
@@ -105,6 +106,15 @@ export type RequestPasswordResetResult = {
 export type SendVerificationEmailResult = {
   message: string;
 };
+
+const MOBILE_AUTH_ORIGIN = "examstudio://";
+
+const authMutationOptions = () => ({
+  credentials: "omit" as const,
+  headers: {
+    origin: MOBILE_AUTH_ORIGIN,
+  },
+});
 
 const toErrorMessage = (error: unknown, fallback: string) =>
   error instanceof Error && error.message.trim().length > 0
@@ -133,13 +143,31 @@ export const getSession = async () => {
 export const signInWithEmail = (input: SignInEmailInput) =>
   (async (): Promise<SignInEmailResult> => {
     const deviceContext = await getSignInDeviceContext().catch(() => null);
-    const payload = await apiRequest<AuthSignInResponse>("/api/auth/sign-in/email", {
-      method: "POST",
-      body: {
-        ...input,
-        ...(deviceContext ?? {}),
-      },
-    });
+    let payload: AuthSignInResponse;
+
+    try {
+      payload = await apiRequest<AuthSignInResponse>("/api/auth/sign-in/email", {
+        method: "POST",
+        ...authMutationOptions(),
+        body: {
+          ...input,
+          callbackURL: Linking.createURL("/email-verified"),
+          ...(deviceContext ?? {}),
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof ApiClientError &&
+        error.statusCode === 403 &&
+        error.message.toLowerCase().includes("email") &&
+        error.message.toLowerCase().includes("verified")
+      ) {
+        throw new Error(
+          "Please verify your email first. Use the resend verification action if you need a new link.",
+        );
+      }
+      throw error;
+    }
 
     if (payload.requiresTwoFactor) {
       return {
@@ -178,40 +206,22 @@ export const signUpWithEmail = async (
 
   const payload = await apiRequest<AuthSignInResponse>("/api/auth/sign-up/email", {
     method: "POST",
+    ...authMutationOptions(),
     body: {
       name: input.name.trim(),
       email: normalizedEmail,
       password: input.password,
+      callbackURL: Linking.createURL("/email-verified"),
     },
   });
 
   if (typeof payload.token === "string" && payload.token.trim().length > 0) {
-    await setAuthToken(payload.token);
-  }
-
-  let sessionData: SessionData | null = null;
-
-  try {
-    sessionData = await getSession();
-  } catch {
-    sessionData = null;
-  }
-
-  if (!sessionData) {
-    const signInResult = await signInWithEmail({
-      email: normalizedEmail,
-      password: input.password,
-    });
-
-    if (signInResult.requiresTwoFactor) {
-      throw new Error("Account created, but two-factor verification is required before continuing.");
-    }
-
-    sessionData = signInResult.session;
+    await clearAuthToken().catch(() => undefined);
   }
 
   return {
-    session: sessionData,
+    email: normalizedEmail,
+    verificationRequired: true,
   };
 };
 
@@ -223,6 +233,7 @@ export const signOut = async () => {
   try {
     await apiRequest("/api/auth/sign-out", {
       method: "POST",
+      ...authMutationOptions(),
       body: {},
     });
   } catch (error) {
@@ -260,7 +271,7 @@ export const requestPasswordReset = async (
 
   const payload = await apiRequest<{ message?: string }>("/api/auth/request-password-reset", {
     method: "POST",
-    credentials: "omit",
+    ...authMutationOptions(),
     body: {
       email,
       redirectTo,
@@ -278,7 +289,7 @@ export const requestPasswordReset = async (
 export const resetPassword = async (input: ResetPasswordInput) => {
   await apiRequest<{ status?: boolean }>("/api/auth/reset-password", {
     method: "POST",
-    credentials: "omit",
+    ...authMutationOptions(),
     body: {
       token: input.token.trim(),
       newPassword: input.newPassword,
@@ -295,7 +306,7 @@ export const sendVerificationEmail = async (
 ): Promise<SendVerificationEmailResult> => {
   await apiRequest<{ status?: boolean }>("/api/auth/send-verification-email", {
     method: "POST",
-    credentials: "omit",
+    ...authMutationOptions(),
     body: {
       email: input.email.trim().toLowerCase(),
       callbackURL: Linking.createURL("/email-verified"),
@@ -315,6 +326,7 @@ export const verifyTwoFactor = async (input: VerifyTwoFactorInput) => {
 
   const payload = await apiRequest<{ token?: string }>(endpoint, {
     method: "POST",
+    ...authMutationOptions(),
     body: {
       code: input.code.trim(),
       trustDevice: input.trustDevice ?? false,
@@ -335,8 +347,56 @@ export const verifyTwoFactor = async (input: VerifyTwoFactorInput) => {
   };
 };
 
-export const listOwnSessions = () =>
-  apiRequest<AuthSessionListResponse>("/api/auth/sessions");
+const toLocalSessionLabel = async () => {
+  const deviceContext = await getSignInDeviceContext().catch(() => null);
+  if (!deviceContext) {
+    return null;
+  }
+
+  const platform = deviceContext.devicePlatform;
+  const label =
+    deviceContext.deviceLabel?.trim() ||
+    deviceContext.deviceModel?.trim() ||
+    (platform === "android"
+      ? "Android phone"
+      : platform === "ios"
+        ? "iPhone"
+        : null);
+
+  if (!label) {
+    return null;
+  }
+
+  return {
+    device: label,
+    bucket:
+      platform === "android" || platform === "ios"
+        ? ("mobile" as const)
+        : ("desktop" as const),
+  };
+};
+
+export const listOwnSessions = async () => {
+  const payload = await apiRequest<AuthSessionListResponse>("/api/auth/sessions");
+  const localSessionLabel = await toLocalSessionLabel();
+
+  if (!localSessionLabel) {
+    return payload;
+  }
+
+  return {
+    ...payload,
+    sessions: payload.sessions.map((session) =>
+      session.id === payload.currentSessionId
+        ? {
+            ...session,
+            device: localSessionLabel.device,
+            bucket: localSessionLabel.bucket,
+          }
+        : session,
+    ),
+  };
+};
 
 export const revokeOtherSessions = () =>
   apiRequest<{ revokedCount: number }>("/api/auth/sessions/revoke-others", {

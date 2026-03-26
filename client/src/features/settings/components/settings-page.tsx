@@ -5,14 +5,15 @@ import {
   FolderOpen,
   ImagePlus,
   ShieldCheck,
-  Sparkles,
   Trash2,
   UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
+import { PageHeader, SectionCard, StatGrid } from "@/components/ui/page-shell";
 import { userAppRoutes } from "@/constants/routes";
+import { getPlanCatalogItem } from "@/features/subscription/subscription-catalog";
 import { useSettingsPageData } from "../hooks/use-settings-page-data";
 import { ChecklistRow, InfoCard } from "./settings-shared";
 
@@ -38,45 +39,40 @@ export function SettingsPage() {
     deleteMutation,
     onLogoFileChange,
   } = useSettingsPageData();
+  const planCatalog = getPlanCatalogItem(summary?.subscription.code ?? "free");
 
   return (
     <div className="space-y-4">
-      <section className="app-hero">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-          Workspace settings
-        </p>
-        <h2 className="mt-1 text-2xl font-bold text-slate-900">Account and branding</h2>
-        <p className="mt-1 max-w-2xl text-sm text-slate-600">
-          Manage account status and paper logos.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <span className="app-chip">
-            Plan {summary?.subscription.name ?? "Free"}
-          </span>
-          <span className="app-chip">
-            {summary?.brandingCount ?? 0}/{brandingLimit || 0} saved
-          </span>
-          <span className="app-chip">
-            {accountStatus}
-          </span>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button asChild variant="outline" className="bg-white">
-            <Link to={userAppRoutes.profile}>
-              <UserRound className="h-4 w-4" />
-              Open profile
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="bg-white">
-            <Link to={userAppRoutes.subscription}>
-              <ShieldCheck className="h-4 w-4" />
-              Manage plan
-            </Link>
-          </Button>
-        </div>
-      </section>
+      <PageHeader
+        eyebrow="Workspace settings"
+        title="Account and branding"
+        description="Manage account status and paper logos."
+        chips={
+          <>
+            <span className="app-chip">Plan {summary?.subscription.name ?? "Free"}</span>
+            <span className="app-chip">{summary?.brandingCount ?? 0}/{brandingLimit || 0} saved</span>
+            <span className="app-chip">{accountStatus}</span>
+          </>
+        }
+        actions={
+          <>
+            <Button asChild variant="outline" className="bg-white">
+              <Link to={userAppRoutes.profile}>
+                <UserRound className="h-4 w-4" />
+                Open profile
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="bg-white">
+              <Link to={userAppRoutes.subscription}>
+                <ShieldCheck className="h-4 w-4" />
+                Compare plans
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
-      <section className="stagger-children grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <StatGrid>
         <InfoCard
           label="Email verification"
           value={isEmailVerified ? "Verified" : "Not verified"}
@@ -113,15 +109,49 @@ export function SettingsPage() {
               : "Upgrade required for saved logo branding"
           }
         />
-      </section>
+      </StatGrid>
+
+      <SectionCard
+        title={`${summary?.subscription.name ?? "Free"} plan`}
+        description={planCatalog.tagline}
+        actions={
+          <Button asChild variant="outline" className="bg-white">
+            <Link to={userAppRoutes.subscription}>
+              Compare plans
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        }
+      >
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <InfoCard
+            label="Practice limit"
+            value={planCatalog.limitSummary.practice}
+            note="Per practice session"
+          />
+          <InfoCard
+            label="Paper limit"
+            value={planCatalog.limitSummary.paper}
+            note="Per generated paper"
+          />
+          <InfoCard
+            label="Exports"
+            value={planCatalog.limitSummary.exports}
+            note="Monthly PDF export allowance"
+          />
+          <InfoCard
+            label="Devices"
+            value={planCatalog.limitSummary.devices}
+            note="Concurrent device allowance"
+          />
+        </div>
+      </SectionCard>
 
       <section className="stagger-children grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-slate-700" />
-            <h3 className="text-base font-semibold text-slate-900">Quick actions</h3>
-          </div>
-          <p className="mt-2 text-sm text-slate-500">Go to common tasks.</p>
+        <SectionCard
+          title="Quick actions"
+          description="Go to common tasks."
+        >
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <Button asChild variant="outline" className="justify-between bg-white">
               <Link to={userAppRoutes.profile}>
@@ -130,8 +160,8 @@ export function SettingsPage() {
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between bg-white">
-              <Link to={userAppRoutes.subscription}>
-                Subscription requests
+              <Link to={userAppRoutes.support}>
+                Support chat
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -148,11 +178,10 @@ export function SettingsPage() {
               </Link>
             </Button>
           </div>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        </SectionCard>
+        <SectionCard title="Checklist">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-emerald-700" />
-            <h3 className="text-base font-semibold text-slate-900">Checklist</h3>
           </div>
           <div className="mt-4 space-y-2">
             <ChecklistRow
@@ -164,7 +193,7 @@ export function SettingsPage() {
             <ChecklistRow label="At least one logo saved" ok={brandAssets.length > 0} />
           </div>
           <p className="mt-3 text-xs text-slate-500">Keep these ready before printing papers.</p>
-        </div>
+        </SectionCard>
       </section>
 
       <section className="stagger-children grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">

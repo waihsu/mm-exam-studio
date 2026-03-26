@@ -1,0 +1,3 @@
+ALTER TABLE "question_paper_item" ADD COLUMN "swapCount" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "question_paper_item" ADD COLUMN "swapLimit" integer DEFAULT 3 NOT NULL;--> statement-breakpoint
+ALTER TABLE "question_paper_item" ADD CONSTRAINT "question_paper_item_swap_count_allowed_ck" CHECK ("question_paper_item"."swapCount" >= 0 and "question_paper_item"."swapCount" <= "question_paper_item"."swapLimit");

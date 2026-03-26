@@ -44,10 +44,7 @@ export const SettingsSupportScreen = () => {
     draft: string;
   }>;
   const supportRefresh = useRefreshAction(async () => {
-    await Promise.allSettled([
-      paymentConfigQuery.refetch(),
-      supportConversationQuery.refetch(),
-    ]);
+    await supportConversationQuery.refetch();
   });
 
   const conversation = supportConversationQuery.data?.conversation ?? null;

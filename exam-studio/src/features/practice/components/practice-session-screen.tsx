@@ -2,6 +2,8 @@ import { useRouter, type RelativePathString } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,6 +14,8 @@ import {
 import { useTranslation } from "react-i18next";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { MathRichText } from "@/components/ui/math-rich-text";
+import { QuestionMediaGallery } from "@/components/ui/question-media-gallery";
+import { InlineErrorState, PageStateCard } from "@/components/ui/state-blocks";
 import { AppShell } from "@/features/app-shell/components/app-shell";
 import {
   clearPracticeDraft,
@@ -54,6 +58,113 @@ const formatElapsed = (startedAt: string, nowTs: number) => {
   const seconds = deltaSeconds % 60;
   return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
 };
+
+const formatMarksLabel = (marks: number) => `${marks} ${marks === 1 ? "mark" : "marks"}`;
+
+const PracticeSkeletonBlock = ({
+  animatedValue,
+  style,
+}: {
+  animatedValue: Animated.Value;
+  style?: object;
+}) => <Animated.View style={[styles.loadingSkeletonBlock, style, { opacity: animatedValue }]} />;
+
+const PracticeSessionLoadingState = ({ title }: { title: string }) => {
+  const pulse = React.useRef(new Animated.Value(0.42)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          duration: 900,
+          easing: Easing.inOut(Easing.ease),
+          toValue: 1,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          duration: 900,
+          easing: Easing.inOut(Easing.ease),
+          toValue: 0.42,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+
+    loop.start();
+
+    return () => {
+      loop.stop();
+    };
+  }, [pulse]);
+
+  return (
+    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <View style={styles.headerCard}>
+        <PracticeSkeletonBlock animatedValue={pulse} style={styles.loadingBackLink} />
+        <Text style={styles.loadingTitleLabel}>{title}</Text>
+        <PracticeSkeletonBlock animatedValue={pulse} style={styles.loadingHeading} />
+        <PracticeSkeletonBlock animatedValue={pulse} style={styles.loadingMetaLine} />
+        <View style={styles.headerStatsRow}>
+          {[0, 1, 2, 3].map((index) => (
+            <PracticeSkeletonBlock
+              key={`header-pill-${index}`}
+              animatedValue={pulse}
+              style={styles.loadingStatPill}
+            />
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.navigatorCard}>
+        <View style={styles.loadingNavigatorHeader}>
+          <PracticeSkeletonBlock animatedValue={pulse} style={styles.loadingNavigatorTitle} />
+          <PracticeSkeletonBlock animatedValue={pulse} style={styles.loadingNavigatorMeta} />
+        </View>
+        <View style={styles.loadingNavigatorRow}>
+          {Array.from({ length: 8 }).map((_, index) => (
+            <PracticeSkeletonBlock
+              key={`navigator-${index}`}
+              animatedValue={pulse}
+              style={styles.loadingNavigatorChip}
+            />
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.card}>
+        <View style={styles.itemHeaderRow}>
+          <PracticeSkeletonBlock animatedValue={pulse} style={styles.loadingQuestionLabel} />
+          <View style={styles.loadingQuestionMetaRow}>
+            <PracticeSkeletonBlock animatedValue={pulse} style={styles.loadingMetaBadge} />
+            <PracticeSkeletonBlock animatedValue={pulse} style={styles.loadingMetaBadge} />
+          </View>
+        </View>
+        <PracticeSkeletonBlock animatedValue={pulse} style={styles.loadingLineStrong} />
+        <PracticeSkeletonBlock animatedValue={pulse} style={styles.loadingLineWide} />
+        <PracticeSkeletonBlock animatedValue={pulse} style={styles.loadingLineMedium} />
+        {[0, 1, 2, 3].map((index) => (
+          <PracticeSkeletonBlock
+            key={`option-${index}`}
+            animatedValue={pulse}
+            style={styles.loadingOption}
+          />
+        ))}
+      </View>
+
+      <View style={styles.footerCard}>
+        <PracticeSkeletonBlock animatedValue={pulse} style={styles.loadingButton} />
+      </View>
+    </ScrollView>
+  );
+};
+
+const usesChoiceOptions = (questionType: PracticeSessionItem["questionType"]) =>
+  questionType === "mcq" || questionType === "true_false";
+
+const usesTextAnswerInput = (questionType: PracticeSessionItem["questionType"]) =>
+  questionType === "short_answer" ||
+  questionType === "long_answer" ||
+  questionType === "fill_blank";
 
 const getMatchingLeftKeys = (item: PracticeSessionItem) => {
   if (item.questionType !== "matching") {
@@ -378,10 +489,7 @@ export const PracticeSessionScreen = ({ sessionId }: PracticeSessionScreenProps)
   if (sessionQuery.isLoading) {
     return (
       <AppShell>
-        <View style={styles.centeredBlock}>
-          <ActivityIndicator color="#2563EB" />
-          <Text style={styles.metaText}>{t("session.loading")}</Text>
-        </View>
+        <PracticeSessionLoadingState title={t("session.loading")} />
       </AppShell>
     );
   }
@@ -389,19 +497,16 @@ export const PracticeSessionScreen = ({ sessionId }: PracticeSessionScreenProps)
   if (sessionQuery.isError || !sessionQuery.data) {
     return (
       <AppShell>
-        <View style={styles.centeredBlock}>
-          <Text style={styles.errorText}>
-            {sessionQuery.error instanceof Error
+        <PageStateCard
+          title={t("session.failed")}
+          hint={
+            sessionQuery.error instanceof Error
               ? sessionQuery.error.message
-              : t("session.failed")}
-          </Text>
-          <Pressable
-            style={({ pressed }) => [styles.primaryButton, pressed && styles.buttonPressed]}
-            onPress={goToSessions}
-          >
-            <Text style={styles.primaryButtonLabel}>{t("session.backToSessions")}</Text>
-          </Pressable>
-        </View>
+              : t("session.failed")
+          }
+          actionLabel={t("session.backToSessions")}
+          onAction={goToSessions}
+        />
       </AppShell>
     );
   }
@@ -412,47 +517,55 @@ export const PracticeSessionScreen = ({ sessionId }: PracticeSessionScreenProps)
     <AppShell>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.headerCard}>
+          <Pressable
+            style={({ pressed }) => [styles.headerBackLink, pressed && styles.buttonPressed]}
+            onPress={goToSessions}
+          >
+            <Text style={styles.headerBackLinkLabel}>{t("session.backToSessions")}</Text>
+          </Pressable>
           <Text style={styles.heading}>{sessionQuery.data.title}</Text>
-          <Text style={styles.metaText}>
+          <Text style={styles.headerMetaLine}>
             {t("session.startedMeta", {
               date: formatDateTime(sessionQuery.data.startedAt),
               count: sessionQuery.data.totalQuestions,
             })}
           </Text>
-          <Text style={styles.metaText}>
-            {t("session.statusMeta", { status: sessionQuery.data.status })}
-            {isCompleted
-              ? t("session.completedScoreMeta", {
-                  correct: sessionQuery.data.correctAnswers ?? 0,
-                  total: sessionQuery.data.totalQuestions,
-                  percent: sessionQuery.data.scorePercent ?? 0,
-                })
-              : t("session.elapsedMeta", {
-                  elapsed: formatElapsed(sessionQuery.data.startedAt, nowTs),
-                })}
-          </Text>
+          <View style={styles.headerStatsRow}>
+            <View style={styles.headerStatPill}>
+              <Text style={styles.headerStatLabel}>
+                {t("session.statusMeta", { status: sessionQuery.data.status })}
+              </Text>
+            </View>
+            <View style={styles.headerStatPill}>
+              <Text style={styles.headerStatLabel}>
+                {isCompleted
+                  ? `${sessionQuery.data.correctAnswers ?? 0}/${sessionQuery.data.totalQuestions}`
+                  : t("session.elapsedMeta", {
+                      elapsed: formatElapsed(sessionQuery.data.startedAt, nowTs),
+                    }).replace(" • ", "")}
+              </Text>
+            </View>
+            <View style={styles.headerStatPill}>
+              <Text style={styles.headerStatLabel}>
+                {t("session.answered")}: {answeredCount}/{totalQuestions}
+              </Text>
+            </View>
+            <View style={styles.headerStatPill}>
+              <Text style={styles.headerStatLabel}>
+                {t("session.unanswered")}: {unansweredCount}
+              </Text>
+            </View>
+          </View>
           {isCompleted ? (
             <Text style={styles.metaText}>
               {t("session.completedAt", { date: formatDateTime(sessionQuery.data.completedAt) })}
-            </Text>
-          ) : (
-            <Text style={styles.metaText}>
-              {t("session.progressMeta", {
-                answered: answeredCount,
-                total: totalQuestions,
-                percent: progressPercent,
-                unanswered: unansweredCount,
+              {t("session.completedScoreMeta", {
+                correct: sessionQuery.data.correctAnswers ?? 0,
+                total: sessionQuery.data.totalQuestions,
+                percent: sessionQuery.data.scorePercent ?? 0,
               })}
             </Text>
-          )}
-          <View style={styles.headerActionRow}>
-            <Pressable
-              style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
-              onPress={goToSessions}
-            >
-              <Text style={styles.secondaryButtonLabel}>{t("session.backToSessions")}</Text>
-            </Pressable>
-          </View>
+          ) : null}
         </View>
 
         {isCompleted && showSubmitSuccess ? (
@@ -481,7 +594,12 @@ export const PracticeSessionScreen = ({ sessionId }: PracticeSessionScreenProps)
 
         {totalQuestions > 0 ? (
           <View style={styles.navigatorCard}>
-            <Text style={styles.navigatorTitle}>{t("session.questionNavigator")}</Text>
+            <View style={styles.navigatorHeaderRow}>
+              <Text style={styles.navigatorTitle}>{t("session.questionNavigator")}</Text>
+              <Text style={styles.navigatorMeta}>
+                {t("session.questionProgress", { current: boundedIndex + 1, total: totalQuestions })}
+              </Text>
+            </View>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -545,7 +663,7 @@ export const PracticeSessionScreen = ({ sessionId }: PracticeSessionScreenProps)
               >
                 <Text style={styles.secondaryButtonLabel}>{t("session.previous")}</Text>
               </Pressable>
-              <Text style={styles.metaText}>
+              <Text style={styles.footerProgressText}>
                 {t("session.questionProgress", { current: boundedIndex + 1, total: totalQuestions })}
               </Text>
               <Pressable
@@ -565,7 +683,7 @@ export const PracticeSessionScreen = ({ sessionId }: PracticeSessionScreenProps)
 
         {!isCompleted ? (
           <View style={styles.footerCard}>
-            {submitError ? <Text style={styles.errorText}>{submitError}</Text> : null}
+            {submitError ? <InlineErrorState message={submitError} /> : null}
             <Pressable
               disabled={submitMutation.isPending}
               style={({ pressed }) => [
@@ -699,21 +817,26 @@ const PracticeItemCard = ({ item, isCompleted, answerValue, onAnswerChange }: Pr
   return (
     <View style={styles.card}>
       <View style={styles.itemHeaderRow}>
-        <Text style={styles.itemCode}>
-          Q{item.position} • {item.questionCode}
-        </Text>
-        <Text style={styles.itemType}>
-          {toQuestionTypeLabel(item.questionType, t)} • {item.marks} marks
-        </Text>
+        <Text style={styles.itemQuestionLabel}>Q{item.position}</Text>
+        <View style={styles.itemMetaCluster}>
+          <View style={styles.itemMetaBadge}>
+            <Text style={styles.itemMetaBadgeLabel}>{toQuestionTypeLabel(item.questionType, t)}</Text>
+          </View>
+          <View style={styles.itemMetaBadge}>
+            <Text style={styles.itemMetaBadgeLabel}>{formatMarksLabel(item.marks)}</Text>
+          </View>
+        </View>
       </View>
 
       <MathRichText content={item.body} textStyle={styles.itemBody} />
+      <QuestionMediaGallery imageUrls={item.questionImageUrls} />
 
-      {item.options.length > 0 && item.questionType !== "matching" ? (
+      {item.options.length > 0 && usesChoiceOptions(item.questionType) ? (
         <View style={styles.optionsWrap}>
           {item.options.map((option, index) => {
             const optionValue = option.label?.trim() || option.text;
             const selected = optionValue.trim() === answerValue.trim();
+            const optionLabel = option.label?.trim();
             return (
               <Pressable
                 key={`${item.id}-option-${index + 1}`}
@@ -726,11 +849,17 @@ const PracticeItemCard = ({ item, isCompleted, answerValue, onAnswerChange }: Pr
                 ]}
                 onPress={() => onAnswerChange(optionValue)}
               >
-                <MathRichText
-                  content={`${option.label ? `${option.label}. ` : ""}${option.text}`}
-                  renderMode="native"
-                  textStyle={styles.optionChipLabel}
-                />
+                <View style={styles.optionChipRow}>
+                  {optionLabel ? <Text style={styles.optionChipPrefix}>{optionLabel}.</Text> : null}
+                  <View style={styles.optionChipContent}>
+                    <MathRichText
+                      content={option.text}
+                      renderMode="auto"
+                      touchThrough
+                      textStyle={styles.optionChipLabel}
+                    />
+                  </View>
+                </View>
               </Pressable>
             );
           })}
@@ -745,7 +874,7 @@ const PracticeItemCard = ({ item, isCompleted, answerValue, onAnswerChange }: Pr
           readOnly={isCompleted}
           onChange={updateMatchingPairs}
         />
-      ) : (
+      ) : usesTextAnswerInput(item.questionType) ? (
         <TextInput
           editable={!isCompleted}
           multiline
@@ -755,7 +884,7 @@ const PracticeItemCard = ({ item, isCompleted, answerValue, onAnswerChange }: Pr
           value={answerValue}
           onChangeText={onAnswerChange}
         />
-      )}
+      ) : null}
 
       {isCompleted ? (
         <View style={styles.resultBlock}>
@@ -766,7 +895,6 @@ const PracticeItemCard = ({ item, isCompleted, answerValue, onAnswerChange }: Pr
             <Text style={styles.resultLabel}>{t("session.yourAnswer")}</Text>
             <MathRichText
               content={submittedAnswerDisplay}
-              renderMode="native"
               textStyle={styles.resultText}
             />
           </View>
@@ -777,6 +905,7 @@ const PracticeItemCard = ({ item, isCompleted, answerValue, onAnswerChange }: Pr
           {item.explanation ? (
             <MathRichText content={item.explanation} textStyle={styles.explanationText} />
           ) : null}
+          <QuestionMediaGallery imageUrls={item.solutionImageUrls} />
         </View>
       ) : null}
     </View>
@@ -933,7 +1062,8 @@ const MatchingAnswerEditor = ({
                   <MathRichText
                     content={left}
                     inline
-                    renderMode="native"
+                    renderMode="auto"
+                    touchThrough
                     textStyle={styles.matchingLeft}
                   />
                   <View style={styles.matchingAssignedBox}>
@@ -941,7 +1071,8 @@ const MatchingAnswerEditor = ({
                     <MathRichText
                       content={assignedRight || t("session.chooseFromBank")}
                       inline
-                      renderMode="native"
+                      renderMode="auto"
+                      touchThrough
                       textStyle={[
                         styles.matchingAssignedValue,
                         !assignedRight && styles.matchingAssignedPlaceholder,
@@ -961,7 +1092,6 @@ const MatchingAnswerEditor = ({
               <MathRichText
                 content={selectedLeft}
                 inline
-                renderMode="native"
                 textStyle={styles.matchingSelectedPrompt}
               />
             ) : null}
@@ -989,7 +1119,8 @@ const MatchingAnswerEditor = ({
                     <MathRichText
                       content={right}
                       inline
-                      renderMode="native"
+                      renderMode="auto"
+                      touchThrough
                       textStyle={[
                         styles.matchingChoiceLabel,
                         selectedRight && styles.matchingChoiceLabelActive,
@@ -1012,27 +1143,130 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingBottom: 20,
   },
-  centeredBlock: {
+  loadingSkeletonBlock: {
+    backgroundColor: "#DBEAFE",
+    borderRadius: 999,
+  },
+  loadingTitleLabel: {
+    color: "#2563EB",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  loadingBackLink: {
+    height: 14,
+    width: 118,
+  },
+  loadingHeading: {
+    height: 24,
+    width: "62%",
+  },
+  loadingMetaLine: {
+    height: 12,
+    width: "48%",
+  },
+  loadingStatPill: {
+    height: 30,
+    width: 94,
+  },
+  loadingNavigatorHeader: {
     alignItems: "center",
-    flex: 1,
-    gap: 10,
-    justifyContent: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  loadingNavigatorTitle: {
+    height: 13,
+    width: 132,
+  },
+  loadingNavigatorMeta: {
+    height: 12,
+    width: 86,
+  },
+  loadingNavigatorRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  loadingNavigatorChip: {
+    borderRadius: 999,
+    height: 34,
+    width: 34,
+  },
+  loadingQuestionLabel: {
+    height: 16,
+    width: 44,
+  },
+  loadingQuestionMetaRow: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  loadingMetaBadge: {
+    height: 24,
+    width: 84,
+  },
+  loadingLineStrong: {
+    height: 14,
+    width: "74%",
+  },
+  loadingLineWide: {
+    height: 14,
+    width: "92%",
+  },
+  loadingLineMedium: {
+    height: 14,
+    width: "66%",
+  },
+  loadingOption: {
+    borderRadius: 12,
+    height: 54,
+    width: "100%",
+  },
+  loadingButton: {
+    borderRadius: 12,
+    height: 46,
+    width: "100%",
   },
   headerCard: {
     backgroundColor: "#FFFFFF",
     borderColor: "#D8DEE9",
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    gap: 4,
+    gap: 10,
     padding: 14,
   },
-  headerActionRow: {
-    marginTop: 8,
+  headerBackLink: {
+    alignSelf: "flex-start",
+  },
+  headerBackLinkLabel: {
+    color: "#2563EB",
+    fontSize: 13,
+    fontWeight: "700",
   },
   heading: {
     color: "#0F172A",
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "800",
+  },
+  headerMetaLine: {
+    color: "#475569",
+    fontSize: 12,
+  },
+  headerStatsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  headerStatPill: {
+    backgroundColor: "#F8FAFC",
+    borderColor: "#E2E8F0",
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  headerStatLabel: {
+    color: "#334155",
+    fontSize: 12,
+    fontWeight: "700",
   },
   metaText: {
     color: "#475569",
@@ -1086,15 +1320,25 @@ const styles = StyleSheet.create({
   navigatorCard: {
     backgroundColor: "#FFFFFF",
     borderColor: "#D8DEE9",
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     gap: 8,
-    padding: 14,
+    padding: 12,
+  },
+  navigatorHeaderRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   navigatorTitle: {
     color: "#334155",
     fontSize: 13,
     fontWeight: "700",
+  },
+  navigatorMeta: {
+    color: "#64748B",
+    fontSize: 12,
+    fontWeight: "600",
   },
   navigatorChipRow: {
     gap: 8,
@@ -1135,7 +1379,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
     borderColor: "#D8DEE9",
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     gap: 10,
     padding: 14,
@@ -1145,31 +1389,62 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  itemCode: {
+  itemQuestionLabel: {
     color: "#0F172A",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 14,
+    fontWeight: "800",
   },
-  itemType: {
+  itemMetaCluster: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    justifyContent: "flex-end",
+  },
+  itemMetaBadge: {
+    backgroundColor: "#F8FAFC",
+    borderColor: "#E2E8F0",
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  itemMetaBadgeLabel: {
     color: "#475569",
     fontSize: 11,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   itemBody: {
     color: "#1E293B",
-    fontSize: 15,
-    lineHeight: 21,
+    fontSize: 17,
+    lineHeight: 28,
   },
   optionsWrap: {
-    gap: 8,
+    gap: 10,
   },
   optionChip: {
+    alignItems: "flex-start",
     backgroundColor: "#F8FAFC",
     borderColor: "#CBD5E1",
-    borderRadius: 9,
+    borderRadius: 12,
     borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  optionChipRow: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: 10,
+    width: "100%",
+  },
+  optionChipPrefix: {
+    color: "#334155",
+    fontSize: 14,
+    fontWeight: "700",
+    lineHeight: 20,
+    minWidth: 22,
+  },
+  optionChipContent: {
+    flex: 1,
   },
   optionChipSelected: {
     backgroundColor: "#E0EAFF",
@@ -1181,8 +1456,8 @@ const styles = StyleSheet.create({
   },
   optionChipLabel: {
     color: "#1E293B",
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 21,
   },
   answerInput: {
     backgroundColor: "#F8FAFC",
@@ -1358,15 +1633,20 @@ const styles = StyleSheet.create({
   footerCard: {
     backgroundColor: "#FFFFFF",
     borderColor: "#D8DEE9",
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     gap: 10,
-    padding: 14,
+    padding: 12,
   },
   paginationRow: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  footerProgressText: {
+    color: "#475569",
+    fontSize: 13,
+    fontWeight: "600",
   },
   sheetButtonRow: {
     flexDirection: "row",

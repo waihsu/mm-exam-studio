@@ -3,10 +3,11 @@ import type {
   CatalogQueryParams,
   CreatePracticeSessionInput,
   CreatePracticeSessionResponse,
+  DeletePracticeSessionResponse,
   PracticeSessionDetail,
   PracticeSessionListResponse,
   SubmitPracticeSessionInput,
-  WorkspaceCatalogResponse,
+  WorkspaceCatalogQuickCountsResponse,
 } from "../types/practice.types";
 
 const buildQueryString = (params: CatalogQueryParams) => {
@@ -41,8 +42,12 @@ const buildQueryString = (params: CatalogQueryParams) => {
   return queryString.length > 0 ? `?${queryString}` : "";
 };
 
-export const getWorkspaceCatalog = (params: CatalogQueryParams) =>
-  apiRequest<WorkspaceCatalogResponse>(`/api/v1/workspace/catalog${buildQueryString(params)}`);
+export const getWorkspaceCatalogQuickCounts = (
+  params: Omit<CatalogQueryParams, "questionType" | "page" | "pageSize">,
+) =>
+  apiRequest<WorkspaceCatalogQuickCountsResponse>(
+    `/api/v1/workspace/catalog/counts${buildQueryString(params)}`,
+  );
 
 export const listPracticeSessions = () =>
   apiRequest<PracticeSessionListResponse>("/api/v1/workspace/practice/sessions");
@@ -63,4 +68,9 @@ export const submitPracticeSession = (
   apiRequest<PracticeSessionDetail>(`/api/v1/workspace/practice/sessions/${sessionId}/submit`, {
     method: "POST",
     body: payload,
+  });
+
+export const deletePracticeSession = (sessionId: string) =>
+  apiRequest<DeletePracticeSessionResponse>(`/api/v1/workspace/practice/sessions/${sessionId}`, {
+    method: "DELETE",
   });

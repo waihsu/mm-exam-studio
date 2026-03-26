@@ -14,6 +14,27 @@ import { formatDateTimeWithSettings } from "../utils/date-time-format";
 import { SettingsCard, SettingsLoadingRow, SettingsPage } from "./settings-ui";
 import { settingsUiStyles } from "./settings-ui.styles";
 
+const formatSessionDeviceLabel = (
+  rawDevice: string,
+  bucket: "mobile" | "desktop",
+  t: (key: string) => string,
+) => {
+  const normalized = rawDevice.trim();
+  if (!normalized) {
+    return bucket === "mobile" ? t("security.mobileApp") : t("security.desktopBrowser");
+  }
+
+  if (/okhttp/i.test(normalized)) {
+    return t("security.mobileApp");
+  }
+
+  if (/cfnetwork|darwin/i.test(normalized)) {
+    return t("security.iosApp");
+  }
+
+  return normalized;
+};
+
 export const SettingsSecurityScreen = () => {
   const { t } = useTranslation("settingsDetail");
   const authSessionQuery = useAuthSessionQuery();
@@ -33,11 +54,7 @@ export const SettingsSecurityScreen = () => {
     | null
   >(null);
   const securityRefresh = useRefreshAction(async () => {
-    await Promise.allSettled([
-      authSessionQuery.refetch(),
-      deviceSessionsQuery.refetch(),
-      appSettingsQuery.refetch(),
-    ]);
+    await deviceSessionsQuery.refetch();
   });
 
   const formatDateTime = (value: string | null) => formatDateTimeWithSettings(value, settings);
@@ -236,13 +253,22 @@ export const SettingsSecurityScreen = () => {
 
         {deviceSessionsQuery.data?.sessions.map((session) => {
           const isCurrent = session.id === deviceSessionsQuery.data?.currentSessionId;
+          const deviceLabel = formatSessionDeviceLabel(
+            session.device,
+            session.bucket,
+            t as (key: string) => string,
+          );
           return (
             <View key={session.id} style={settingsUiStyles.sessionCard}>
               <View style={settingsUiStyles.sessionCardHeader}>
                 <Text style={settingsUiStyles.sessionDeviceLabel}>
-                  {session.device} {isCurrent ? t("security.currentTag") : ""}
+                  {deviceLabel} {isCurrent ? t("security.currentTag") : ""}
                 </Text>
-                <Text style={settingsUiStyles.sessionBucket}>{session.bucket}</Text>
+                <Text style={settingsUiStyles.sessionBucket}>
+                  {session.bucket === "mobile"
+                    ? t("security.mobileBucket")
+                    : t("security.desktopBucket")}
+                </Text>
               </View>
               <Text style={settingsUiStyles.sessionMeta}>
                 {t("security.started", { date: formatDateTime(session.createdAt) })}

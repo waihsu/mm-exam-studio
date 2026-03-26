@@ -1,4 +1,4 @@
-import { and, eq, gt, isNull, sql } from "drizzle-orm";
+import { and, eq, gt, isNull, lt, sql } from "drizzle-orm";
 import {
   db,
   question as questionTable,
@@ -6,9 +6,8 @@ import {
   questionPaperItem,
 } from "@/db";
 import {
-  assertUsageAvailable,
+  consumeUsageOrThrow,
   getUserWorkspaceAccess,
-  incrementUsage,
 } from "../../subscriptions/subscription.core";
 import {
   buildQuestionPaperItemPayload,
@@ -24,6 +23,11 @@ import type {
 } from "../workspace.schema";
 import { getQuestionPaperDetail } from "./paper-detail.service";
 
+const isUnsupportedTransactionError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return /transactions?\s+are\s+not\s+supported/i.test(message);
+};
+
 const getOwnedDraftQuestionPaper = async (userId: string, paperId: string) => {
   const paper = await db.query.questionPaper.findFirst({
     where: and(eq(questionPaper.id, paperId), eq(questionPaper.userId, userId)),
@@ -31,6 +35,26 @@ const getOwnedDraftQuestionPaper = async (userId: string, paperId: string) => {
       items: {
         orderBy: (table, { asc }) => [asc(table.position)],
         with: {
+          blueprintSection: {
+            columns: {
+              id: true,
+              code: true,
+              title: true,
+              questionType: true,
+              marksPerQuestion: true,
+            },
+          },
+          blueprintSlot: {
+            columns: {
+              id: true,
+              questionType: true,
+              marks: true,
+              difficultyTarget: true,
+              chapterId: true,
+              subChapterId: true,
+              lockedQuestionId: true,
+            },
+          },
           question: {
             with: {
               options: {
@@ -72,6 +96,21 @@ const getOwnedDraftQuestionPaper = async (userId: string, paperId: string) => {
   return paper;
 };
 
+const toQuestionDifficulty = (value: "easy" | "normal" | "hard" | "advance" | null) => {
+  if (value === "easy") return "easy";
+  if (value === "normal") return "medium";
+  if (value === "hard" || value === "advance") return "hard";
+  return undefined;
+};
+
+const assertBlueprintSwapAllowed = (params: {
+  currentItem: Awaited<ReturnType<typeof getOwnedDraftQuestionPaper>>["items"][number];
+}) => {
+  if (params.currentItem.blueprintSlot?.lockedQuestionId) {
+    throw new Error("This question is locked by its blueprint slot and cannot be swapped.");
+  }
+};
+
 const buildSwapBaseWhere = (params: {
   currentItem: Awaited<ReturnType<typeof getOwnedDraftQuestionPaper>>["items"][number];
 }) => [
@@ -83,17 +122,37 @@ const buildSwapBaseWhere = (params: {
   eq(questionTable.subjectId, params.currentItem.question.subjectId),
 ];
 
-const findSwapCandidates = async (params: {
+const buildSwapSearchQueries = (params: {
   currentItem: Awaited<ReturnType<typeof getOwnedDraftQuestionPaper>>["items"][number];
-  access: WorkspaceAccessPolicy;
-  excludedQuestionIds: string[];
-  take: number;
 }) => {
   const currentQuestion = params.currentItem.question;
   const baseConditions = buildSwapBaseWhere({
     currentItem: params.currentItem,
   });
-  const queries = [
+  const blueprintSlot = params.currentItem.blueprintSlot;
+  const blueprintDifficulty = toQuestionDifficulty(blueprintSlot?.difficultyTarget ?? null);
+
+  if (blueprintSlot) {
+    return [[
+      ...baseConditions,
+      blueprintSlot.chapterId
+        ? eq(questionTable.chapterId, blueprintSlot.chapterId)
+        : undefined,
+      blueprintSlot.subChapterId
+        ? eq(questionTable.subChapterId, blueprintSlot.subChapterId)
+        : undefined,
+      blueprintDifficulty ? eq(questionTable.difficulty, blueprintDifficulty) : undefined,
+      currentQuestion.swapGroupId
+        ? eq(questionTable.swapGroupId, currentQuestion.swapGroupId)
+        : undefined,
+    ].filter(Boolean)];
+  }
+
+  if (currentQuestion.swapGroupId) {
+    return [[...baseConditions, eq(questionTable.swapGroupId, currentQuestion.swapGroupId)]];
+  }
+
+  return [
     [
       ...baseConditions,
       currentQuestion.chapterId
@@ -108,6 +167,18 @@ const findSwapCandidates = async (params: {
       : baseConditions,
     baseConditions,
   ];
+};
+
+const findSwapCandidates = async (params: {
+  currentItem: Awaited<ReturnType<typeof getOwnedDraftQuestionPaper>>["items"][number];
+  access: WorkspaceAccessPolicy;
+  excludedQuestionIds: string[];
+  take: number;
+}) => {
+  const currentQuestion = params.currentItem.question;
+  const queries = buildSwapSearchQueries({
+    currentItem: params.currentItem,
+  });
 
   const results: PublishedQuestionRecord[] = [];
   const seenIds = new Set(params.excludedQuestionIds);
@@ -185,17 +256,22 @@ export const swapQuestionPaperItem = async (
   paperItemId: string,
   input: SwapQuestionPaperItemInput,
 ) => {
-  await assertUsageAvailable({
-    userId,
-    field: "paperSwapsUsed",
-  });
-
   const access = await getUserWorkspaceAccess(userId);
   const paper = await getOwnedDraftQuestionPaper(userId, paperId);
   const currentItem = paper.items.find((item) => item.id === paperItemId);
 
   if (!currentItem) {
     throw new Error("Question paper item not found.");
+  }
+
+  assertBlueprintSwapAllowed({
+    currentItem,
+  });
+
+  if (currentItem.swapCount >= currentItem.swapLimit) {
+    throw new Error(
+      `This question has already used all ${currentItem.swapLimit} swap attempts.`,
+    );
   }
 
   const usedQuestionIds = paper.items
@@ -207,19 +283,29 @@ export const swapQuestionPaperItem = async (
     throw new Error("Choose a different replacement question to swap.");
   }
 
-  const baseWhere = buildSwapBaseWhere({
-    currentItem,
-  });
-
   let nextQuestion: PublishedQuestionRecord | null = null;
 
   if (input.candidateQuestionId) {
-    const [candidateId] = await findPublishedQuestionIds({
-      access,
-      extraConditions: [...baseWhere, eq(questionTable.id, input.candidateQuestionId)],
-      excludeIds: usedQuestionIds,
-      limit: 1,
-    });
+    const candidateQuestionId = input.candidateQuestionId;
+    const explicitCandidateQueries = buildSwapSearchQueries({
+      currentItem,
+    }).map((conditions) => [...conditions, eq(questionTable.id, candidateQuestionId)]);
+
+    let candidateId: string | undefined;
+    for (const extraConditions of explicitCandidateQueries) {
+      const [matchedId] = await findPublishedQuestionIds({
+        access,
+        extraConditions,
+        excludeIds: usedQuestionIds,
+        limit: 1,
+      });
+
+      if (matchedId) {
+        candidateId = matchedId;
+        break;
+      }
+    }
+
     const rows = candidateId ? await loadPublishedQuestionsByIds([candidateId]) : [];
     nextQuestion = rows[0] ?? null;
 
@@ -241,24 +327,86 @@ export const swapQuestionPaperItem = async (
   }
 
   const nextPayload = await buildQuestionPaperItemPayload(nextQuestion, currentItem.position);
+  const nextItemValues = {
+    questionId: nextPayload.questionId,
+    questionCode: nextPayload.questionCode,
+    questionType: nextPayload.questionType,
+    marks: nextPayload.marks,
+    swapCount: sql`${questionPaperItem.swapCount} + 1`,
+    renderedBody: nextPayload.renderedBody,
+    renderedAnswerText: nextPayload.renderedAnswerText,
+    renderedOptions: nextPayload.renderedOptions,
+  };
 
-  await db
-    .update(questionPaperItem)
-    .set({
-      questionId: nextPayload.questionId,
-      questionCode: nextPayload.questionCode,
-      questionType: nextPayload.questionType,
-      marks: nextPayload.marks,
-      renderedBody: nextPayload.renderedBody,
-      renderedAnswerText: nextPayload.renderedAnswerText,
-      renderedOptions: nextPayload.renderedOptions,
-    })
-    .where(eq(questionPaperItem.id, currentItem.id));
+  try {
+    await db.transaction(async (tx) => {
+      await consumeUsageOrThrow({
+        userId,
+        field: "paperSwapsUsed",
+        executor: tx,
+      });
 
-  await incrementUsage({
-    userId,
-    field: "paperSwapsUsed",
-  });
+      const [updatedItem] = await tx
+        .update(questionPaperItem)
+        .set(nextItemValues)
+        .where(
+          and(
+            eq(questionPaperItem.id, currentItem.id),
+            lt(questionPaperItem.swapCount, currentItem.swapLimit),
+          ),
+        )
+        .returning();
+
+      if (!updatedItem) {
+        throw new Error(
+          `This question has already used all ${currentItem.swapLimit} swap attempts.`,
+        );
+      }
+    });
+  } catch (error) {
+    if (!isUnsupportedTransactionError(error)) {
+      throw error;
+    }
+
+    const [updatedItem] = await db
+      .update(questionPaperItem)
+      .set(nextItemValues)
+      .where(
+        and(
+          eq(questionPaperItem.id, currentItem.id),
+          lt(questionPaperItem.swapCount, currentItem.swapLimit),
+        ),
+      )
+      .returning();
+
+    if (!updatedItem) {
+      throw new Error(
+        `This question has already used all ${currentItem.swapLimit} swap attempts.`,
+      );
+    }
+
+    try {
+      await consumeUsageOrThrow({
+        userId,
+        field: "paperSwapsUsed",
+      });
+    } catch (usageError) {
+      await db
+        .update(questionPaperItem)
+        .set({
+          questionId: currentItem.questionId,
+          questionCode: currentItem.questionCode,
+          questionType: currentItem.questionType,
+          marks: currentItem.marks,
+          swapCount: currentItem.swapCount,
+          renderedBody: currentItem.renderedBody,
+          renderedAnswerText: currentItem.renderedAnswerText,
+          renderedOptions: currentItem.renderedOptions,
+        })
+        .where(eq(questionPaperItem.id, currentItem.id));
+      throw usageError;
+    }
+  }
 
   return getQuestionPaperDetail(userId, paperId);
 };
@@ -274,6 +422,18 @@ export const listQuestionPaperSwapCandidates = async (
 
   if (!currentItem) {
     throw new Error("Question paper item not found.");
+  }
+
+  if (currentItem.blueprintSlot?.lockedQuestionId) {
+    return {
+      rows: [],
+    };
+  }
+
+  if (currentItem.swapCount >= currentItem.swapLimit) {
+    return {
+      rows: [],
+    };
   }
 
   const usedQuestionIds = paper.items
@@ -329,4 +489,3 @@ export const removeQuestionPaperItem = async (
 
   return getQuestionPaperDetail(userId, paperId);
 };
-

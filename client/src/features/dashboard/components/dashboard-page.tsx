@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, CheckCircle2, FileOutput, FileText, LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
+import { PageHeader, SectionCard, StatGrid } from "@/components/ui/page-shell";
+import { getPlanCatalogItem } from "@/features/subscription/subscription-catalog";
 import { useDashboardSummary } from "../hooks/use-dashboard-summary";
 import { BadgePill, MetricCard, QuickPill, StatusRow } from "./dashboard-shared";
 
@@ -23,37 +25,32 @@ const DASHBOARD_ACTIONS = [
   },
   {
     to: "/subscription",
-    label: "Usage",
-    description: "Review current workspace counts",
+    label: "Plans",
+    description: "Compare tiers and request upgrades",
   },
 ] as const;
 
 export function DashboardPage() {
   const { auth, user, roles, status, summary, latestRequest, summaryError } = useDashboardSummary();
+  const planCatalog = getPlanCatalogItem(summary?.subscription.code ?? "free");
 
   return (
     <div className="space-y-4">
-      <section className="app-hero">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-              Dashboard
-            </p>
-            <h2 className="mt-2 max-w-3xl text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-              Welcome back{user?.name ? `, ${user.name}` : ""}.
-            </h2>
-            <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              Practice, generate papers, and track usage.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <BadgePill label="Plan" value={summary?.subscription.name ?? "Free"} />
-              <BadgePill label="Status" value={status} />
-              {latestRequest ? (
-                <BadgePill label="Request" value={latestRequest.status.replace("_", " ")} />
-              ) : null}
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
+      <PageHeader
+        eyebrow="Dashboard"
+        title={`Welcome back${user?.name ? `, ${user.name}` : ""}.`}
+        description="Practice, generate papers, and track usage."
+        chips={
+          <>
+            <BadgePill label="Plan" value={summary?.subscription.name ?? "Free"} />
+            <BadgePill label="Status" value={status} />
+            {latestRequest ? (
+              <BadgePill label="Request" value={latestRequest.status.replace("_", " ")} />
+            ) : null}
+          </>
+        }
+        actions={
+          <>
             <Button asChild>
               <Link to="/practice">
                 Start practice
@@ -63,9 +60,9 @@ export function DashboardPage() {
             <Button asChild variant="outline" className="bg-white">
               <Link to="/question-papers/new">New paper</Link>
             </Button>
-          </div>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       {summaryError ? (
         <Notice tone="error">
@@ -73,7 +70,7 @@ export function DashboardPage() {
         </Notice>
       ) : null}
 
-      <div className="stagger-children grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <StatGrid>
         <MetricCard
           icon={CheckCircle2}
           label="Questions"
@@ -94,14 +91,13 @@ export function DashboardPage() {
           label="Exports"
           value={String(summary?.exportedPapersCount ?? 0)}
         />
-      </div>
+      </StatGrid>
 
       <div className="stagger-children grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-base font-semibold text-slate-900">Quick actions</h3>
-            <QuickPill label="Completed" value={String(summary?.completedPracticeCount ?? 0)} />
-          </div>
+        <SectionCard
+          title="Quick actions"
+          actions={<QuickPill label="Completed" value={String(summary?.completedPracticeCount ?? 0)} />}
+        >
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {DASHBOARD_ACTIONS.map((item) => (
               <Link
@@ -119,13 +115,22 @@ export function DashboardPage() {
               </Link>
             ))}
           </div>
-        </div>
+        </SectionCard>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <h3 className="text-base font-semibold text-slate-900">Workspace status</h3>
+        <SectionCard
+          title="Plan snapshot"
+          description={planCatalog.tagline}
+          actions={
+            <Button asChild variant="outline" className="bg-white">
+              <Link to="/subscription">Compare plans</Link>
+            </Button>
+          }
+        >
           <div className="mt-4 space-y-3">
             <StatusRow label="Signed in" value={user?.email || "Unknown"} />
             <StatusRow label="Plan" value={summary?.subscription.name ?? "Free"} />
+            <StatusRow label="Practice limit" value={planCatalog.limitSummary.practice} />
+            <StatusRow label="Paper limit" value={planCatalog.limitSummary.paper} />
             <StatusRow
               label="PDF remaining"
               value={
@@ -141,7 +146,7 @@ export function DashboardPage() {
             <StatusRow label="Session" value={auth?.session?.expiresAt ? "Active" : "Unknown"} />
             {roles.length > 0 ? <StatusRow label="Roles" value={roles.join(", ")} /> : null}
           </div>
-        </div>
+        </SectionCard>
       </div>
     </div>
   );
