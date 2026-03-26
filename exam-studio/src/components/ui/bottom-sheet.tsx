@@ -9,6 +9,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type BottomSheetProps = {
   visible: boolean;
@@ -32,6 +33,7 @@ export const BottomSheet = ({
   footer,
 }: BottomSheetProps) => {
   const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(height)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -153,7 +155,11 @@ export const BottomSheet = ({
           </View>
 
           <View style={styles.body}>{children}</View>
-          {footer ? <View style={styles.footer}>{footer}</View> : null}
+          {footer ? (
+            <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+              {footer}
+            </View>
+          ) : null}
         </Animated.View>
       </View>
     </Modal>

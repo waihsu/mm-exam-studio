@@ -413,6 +413,8 @@ export function prepareQuestionImport(
         subjectId: subject.id,
         chapterId,
         subChapterId,
+        questionImageUrls: [],
+        solutionImageUrls: [],
         explanation: normalizeText(row.explanation) || null,
         answerText: normalizeText(row.answerText) || null,
         answerFormula: normalizeText(row.answerFormula) || null,

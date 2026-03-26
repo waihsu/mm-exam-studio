@@ -26,30 +26,33 @@ export const Colors = {
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
+const nativeFonts = {
+  sans: 'NotoSans-Regular',
+  sansMedium: 'NotoSans-Medium',
+  sansSemiBold: 'NotoSans-SemiBold',
+  sansBold: 'NotoSans-Bold',
+  display: 'PlusJakartaSans-ExtraBold',
+  displaySemiBold: 'PlusJakartaSans-SemiBold',
+  displayBold: 'PlusJakartaSans-Bold',
+  serif: 'NotoSans-Regular',
+  rounded: 'PlusJakartaSans-SemiBold',
+  mono: 'monospace',
+} as const;
+
+const webFonts = {
+  sans: 'var(--font-display)',
+  sansMedium: 'var(--font-display)',
+  sansSemiBold: 'var(--font-display)',
+  sansBold: 'var(--font-display)',
+  display: 'var(--font-display)',
+  displaySemiBold: 'var(--font-display)',
+  displayBold: 'var(--font-display)',
+  serif: 'var(--font-serif)',
+  rounded: 'var(--font-rounded)',
+  mono: 'var(--font-mono)',
+} as const;
+
+export const Fonts = Platform.OS === 'web' ? webFonts : nativeFonts;
 
 export const Spacing = {
   half: 2,

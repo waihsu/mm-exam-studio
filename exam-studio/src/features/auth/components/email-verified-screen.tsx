@@ -4,12 +4,10 @@ import { Text, View } from "react-native";
 import { useTranslation } from "@/i18n";
 import { AuthScreenShell } from "./auth-screen-shell";
 import { AuthButton, authUiStyles } from "./auth-ui";
-import { useAuthSessionQuery } from "../hooks/use-auth-session-query";
 
 export const EmailVerifiedScreen = () => {
   const router = useRouter();
   const { t } = useTranslation("auth");
-  const sessionQuery = useAuthSessionQuery();
 
   return (
     <AuthScreenShell
@@ -28,14 +26,8 @@ export const EmailVerifiedScreen = () => {
 
       <View style={authUiStyles.actionStack}>
         <AuthButton
-          label={sessionQuery.data ? t("emailVerified.goHome") : t("emailVerified.goSignIn")}
-          onPress={() =>
-            router.replace(
-              sessionQuery.data
-                ? ("/home" as RelativePathString)
-                : ("/sign-in" as RelativePathString),
-            )
-          }
+          label={t("emailVerified.goSignIn")}
+          onPress={() => router.replace("/sign-in" as RelativePathString)}
         />
       </View>
     </AuthScreenShell>

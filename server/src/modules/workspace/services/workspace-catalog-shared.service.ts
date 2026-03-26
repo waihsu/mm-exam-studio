@@ -96,6 +96,7 @@ export type PublishedQuestionRecord = {
   answerText: string | null;
   answerFormula: string | null;
   variablesSchema: unknown;
+  parametricValueSets: unknown;
   isPublished: boolean;
   isActive: boolean;
   marks: number;
@@ -297,44 +298,6 @@ export const toCatalogLockedQuestion = (
 export const resolveCatalogSecurityPolicy = (access: WorkspaceAccessPolicy): CatalogSecurityPolicy =>
   CATALOG_SECURITY_BY_PLAN[access.planCode];
 
-export const assertCatalogWindowAllowed = (params: {
-  access: WorkspaceAccessPolicy;
-  page: number;
-  pageSize: number;
-}) => {
-  const policy = resolveCatalogSecurityPolicy(params.access);
-  if (params.page > policy.maxPage) {
-    throw new Error(
-      "Catalog rate limit exceeded for your current plan. Narrow filters or try later.",
-    );
-  }
-
-  const offset = (params.page - 1) * params.pageSize;
-  if (typeof policy.maxReachableRows === "number" && offset >= policy.maxReachableRows) {
-    throw new Error(
-      "Catalog rate limit exceeded for your current plan. Narrow filters or try later.",
-    );
-  }
-};
-
-export const resolveEffectiveCatalogPageSize = (params: {
-  access: WorkspaceAccessPolicy;
-  requestedPageSize: number;
-  page: number;
-}) => {
-  const policy = resolveCatalogSecurityPolicy(params.access);
-  const clamped = Math.max(10, Math.min(policy.maxPageSize, params.requestedPageSize));
-  if (typeof policy.maxReachableRows !== "number") {
-    return clamped;
-  }
-
-  const remaining = policy.maxReachableRows - (params.page - 1) * clamped;
-  if (remaining <= 0) {
-    return 0;
-  }
-  return Math.min(clamped, remaining);
-};
-
 export const findPublishedQuestionIds = async (params: {
   filters?: CatalogFilters;
   access?: WorkspaceAccessPolicy;
@@ -380,6 +343,40 @@ export const countPublishedQuestions = async (
     .where(and(...conditions));
 
   return rows[0]?.total ?? 0;
+};
+
+export const countPublishedQuestionsByType = async (
+  filters: CatalogFilters = {},
+  access?: WorkspaceAccessPolicy,
+) => {
+  const conditions = buildCatalogConditions(filters, access);
+  const rows = await db
+    .select({
+      questionType: questionTable.type,
+      total: dbCount(),
+    })
+    .from(questionTable)
+    .leftJoin(chapter, eq(questionTable.chapterId, chapter.id))
+    .leftJoin(subChapter, eq(questionTable.subChapterId, subChapter.id))
+    .where(and(...conditions))
+    .groupBy(questionTable.type);
+
+  return rows.reduce<
+    Partial<
+      Record<
+        | "mcq"
+        | "true_false"
+        | "short_answer"
+        | "long_answer"
+        | "fill_blank"
+        | "matching",
+        number
+      >
+    >
+  >((result, row) => {
+    result[row.questionType] = row.total;
+    return result;
+  }, {});
 };
 
 export const findLockedQuestionIds = async (params: {

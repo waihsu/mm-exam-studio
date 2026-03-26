@@ -1,9 +1,8 @@
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { db, questionPaper, questionPaperItem } from "@/db";
 import {
-  assertUsageAvailable,
+  consumeUsageOrThrow,
   getUserWorkspaceAccess,
-  incrementUsage,
 } from "../../subscriptions/subscription.core";
 import { resolveBrandAssetForUser } from "./branding.service";
 import { getQuestionPaperDetail } from "./paper-detail.service";
@@ -24,6 +23,11 @@ import type {
   UpdateQuestionPaperStatusInput,
 } from "../workspace.schema";
 
+const isUnsupportedTransactionError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return /transactions?\s+are\s+not\s+supported/i.test(message);
+};
+
 export {
   getQuestionPaperDetail,
   listQuestionPaperSwapCandidates,
@@ -34,17 +38,22 @@ export {
 
 export const createQuestionPaper = async (
   userId: string,
-  input: CreateQuestionPaperInput,
+  input: CreateQuestionPaperInput & {
+    blueprintId?: string | null;
+    itemSourcesByQuestionId?: Record<
+      string,
+      {
+        blueprintSectionId?: string | null;
+        blueprintSlotId?: string | null;
+      }
+    >;
+  },
 ) => {
-  await assertUsageAvailable({
-    userId,
-    field: "paperGenerationsUsed",
-  });
-
   const access = await getUserWorkspaceAccess(userId);
   const questions = await resolveSelectionQuestions({
     questionIds: input.questionIds,
     count: input.count,
+    questionMix: input.questionMix,
     access,
     generatorMode: input.generatorMode,
     filters: {
@@ -65,58 +74,99 @@ export const createQuestionPaper = async (
 
   const itemPayloads = await Promise.all(
     questions.map((question, index) =>
-      buildQuestionPaperItemPayload(question, index + 1),
+      buildQuestionPaperItemPayload(
+        question,
+        index + 1,
+        input.itemSourcesByQuestionId?.[question.id],
+      ),
     ),
   );
 
   const totalMarks = itemPayloads.reduce((sum, item) => sum + item.marks, 0);
   const brandAssetId = await resolveBrandAssetForUser(userId, input.brandAssetId);
-
-  const [paperRow] = await db
-    .insert(questionPaper)
-    .values({
-      userId,
-      brandAssetId,
-      title: input.title.trim(),
-      instructions: input.instructions?.trim() || null,
-      schoolName: input.schoolName?.trim() || null,
-      academicYear: input.academicYear?.trim() || null,
-      includeAnswerKey: input.includeAnswerKey ?? false,
-      gradeId: input.gradeId || null,
-      subjectId: input.subjectId || null,
-      chapterId: input.chapterId || null,
-      subChapterId: input.subChapterId || null,
-      totalQuestions: itemPayloads.length,
-      totalMarks,
-    })
-    .returning();
-  const paper = {
-    id: paperRow.id,
-    title: paperRow.title,
+  const paperValues = {
+    userId,
+    blueprintId: input.blueprintId ?? null,
+    brandAssetId,
+    title: input.title.trim(),
+    instructions: input.instructions?.trim() || null,
+    schoolName: input.schoolName?.trim() || null,
+    academicYear: input.academicYear?.trim() || null,
+    pdfTemplateKey: input.pdfTemplateKey ?? "default",
+    examYearLabel: input.examYearLabel?.trim() || null,
+    timeAllowedLabel: input.timeAllowedLabel?.trim() || null,
+    departmentLine: input.departmentLine?.trim() || null,
+    answerInstructionLine: input.answerInstructionLine?.trim() || null,
+    includeAnswerKey: input.includeAnswerKey ?? false,
+    gradeId: input.gradeId || null,
+    subjectId: input.subjectId || null,
+    chapterId: input.chapterId || null,
+    subChapterId: input.subChapterId || null,
+    totalQuestions: itemPayloads.length,
+    totalMarks,
   };
+  const itemValues = (paperId: string) =>
+    itemPayloads.map((item) => ({
+      paperId,
+      position: item.position,
+      questionId: item.questionId,
+      blueprintSectionId: item.blueprintSectionId,
+      blueprintSlotId: item.blueprintSlotId,
+      questionCode: item.questionCode,
+      questionType: item.questionType,
+      marks: item.marks,
+      swapCount: 0,
+      swapLimit: 3,
+      renderedBody: item.renderedBody,
+      renderedAnswerText: item.renderedAnswerText ?? null,
+      renderedOptions: item.renderedOptions,
+    }));
 
-  if (itemPayloads.length > 0) {
-    for (const item of itemPayloads) {
-      await db.insert(questionPaperItem).values({
-        paperId: paper.id,
-        position: item.position,
-        questionId: item.questionId,
-        questionCode: item.questionCode,
-        questionType: item.questionType,
-        marks: item.marks,
-        renderedBody: item.renderedBody,
-        renderedAnswerText: item.renderedAnswerText ?? null,
-        renderedOptions: item.renderedOptions,
+  try {
+    return await db.transaction(async (tx) => {
+      await consumeUsageOrThrow({
+        userId,
+        field: "paperGenerationsUsed",
+        executor: tx,
       });
+
+      const [paperRow] = await tx.insert(questionPaper).values(paperValues).returning();
+
+      if (itemPayloads.length > 0) {
+        await tx.insert(questionPaperItem).values(itemValues(paperRow.id));
+      }
+
+      return {
+        id: paperRow.id,
+        title: paperRow.title,
+      };
+    });
+  } catch (error) {
+    if (!isUnsupportedTransactionError(error)) {
+      throw error;
     }
   }
 
-  await incrementUsage({
-    userId,
-    field: "paperGenerationsUsed",
-  });
+  const [paperRow] = await db.insert(questionPaper).values(paperValues).returning();
 
-  return paper;
+  try {
+    if (itemPayloads.length > 0) {
+      await db.insert(questionPaperItem).values(itemValues(paperRow.id));
+    }
+
+    await consumeUsageOrThrow({
+      userId,
+      field: "paperGenerationsUsed",
+    });
+  } catch (error) {
+    await db.delete(questionPaper).where(eq(questionPaper.id, paperRow.id));
+    throw error;
+  }
+
+  return {
+    id: paperRow.id,
+    title: paperRow.title,
+  };
 };
 
 export const listQuestionPapers = async (userId: string) => {
@@ -124,6 +174,9 @@ export const listQuestionPapers = async (userId: string) => {
     where: eq(questionPaper.userId, userId),
     orderBy: (table, { desc }) => [desc(table.updatedAt)],
     with: {
+      blueprint: {
+        columns: { id: true, title: true, mode: true, status: true },
+      },
       grade: {
         columns: { id: true, name: true, code: true },
       },
@@ -139,10 +192,16 @@ export const listQuestionPapers = async (userId: string) => {
       title: paper.title,
       status: paper.status,
       includeAnswerKey: paper.includeAnswerKey,
+      pdfTemplateKey: paper.pdfTemplateKey,
+      examYearLabel: paper.examYearLabel,
+      timeAllowedLabel: paper.timeAllowedLabel,
+      departmentLine: paper.departmentLine,
+      answerInstructionLine: paper.answerInstructionLine,
       totalQuestions: paper.totalQuestions,
       totalMarks: paper.totalMarks,
       schoolName: paper.schoolName,
       academicYear: paper.academicYear,
+      blueprint: paper.blueprint,
       exportedAt: paper.exportedAt,
       createdAt: paper.createdAt,
       updatedAt: paper.updatedAt,
@@ -183,6 +242,11 @@ export const updateQuestionPaper = async (
       schoolName: input.schoolName?.trim() || null,
       brandAssetId,
       academicYear: input.academicYear?.trim() || null,
+      pdfTemplateKey: input.pdfTemplateKey ?? "default",
+      examYearLabel: input.examYearLabel?.trim() || null,
+      timeAllowedLabel: input.timeAllowedLabel?.trim() || null,
+      departmentLine: input.departmentLine?.trim() || null,
+      answerInstructionLine: input.answerInstructionLine?.trim() || null,
       includeAnswerKey: input.includeAnswerKey ?? false,
       updatedAt: new Date(),
     })
@@ -232,16 +296,12 @@ export const updateQuestionPaperStatus = async (
 };
 
 export const markQuestionPaperExported = async (userId: string, paperId: string) => {
-  await assertUsageAvailable({
-    userId,
-    field: "pdfExportsUsed",
-  });
-
   const paper = await db.query.questionPaper.findFirst({
     where: and(eq(questionPaper.id, paperId), eq(questionPaper.userId, userId)),
     columns: {
       id: true,
       status: true,
+      exportedAt: true,
     },
   });
 
@@ -253,21 +313,101 @@ export const markQuestionPaperExported = async (userId: string, paperId: string)
     throw new Error("Finalize this paper before downloading the PDF.");
   }
 
-  const [updated] = await db
-    .update(questionPaper)
-    .set({
-      exportedAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(eq(questionPaper.id, paper.id))
-    .returning();
+  if (paper.exportedAt) {
+    return paper;
+  }
 
-  await incrementUsage({
-    userId,
-    field: "pdfExportsUsed",
+  let updated: {
+    id: string;
+    status: "draft" | "finalized";
+    exportedAt: Date | null;
+  } | null = null;
+
+  try {
+    updated = await db.transaction(async (tx) => {
+      const [draftExport] = await tx
+        .update(questionPaper)
+        .set({
+          exportedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(questionPaper.id, paper.id),
+            eq(questionPaper.userId, userId),
+            isNull(questionPaper.exportedAt),
+          ),
+        )
+        .returning();
+
+      if (!draftExport) {
+        return null;
+      }
+
+      await consumeUsageOrThrow({
+        userId,
+        field: "pdfExportsUsed",
+        executor: tx,
+      });
+
+      return draftExport;
+    });
+  } catch (error) {
+    if (!isUnsupportedTransactionError(error)) {
+      throw error;
+    }
+  }
+
+  if (updated === null) {
+    const [draftExport] = await db
+      .update(questionPaper)
+      .set({
+        exportedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(questionPaper.id, paper.id),
+          eq(questionPaper.userId, userId),
+          isNull(questionPaper.exportedAt),
+        ),
+      )
+      .returning();
+
+    if (draftExport) {
+      try {
+        await consumeUsageOrThrow({
+          userId,
+          field: "pdfExportsUsed",
+        });
+        updated = draftExport;
+      } catch (error) {
+        await db
+          .update(questionPaper)
+          .set({
+            exportedAt: null,
+            updatedAt: new Date(),
+          })
+          .where(eq(questionPaper.id, paper.id));
+        throw error;
+      }
+    }
+  }
+
+  if (updated) {
+    return updated;
+  }
+
+  const latest = await db.query.questionPaper.findFirst({
+    where: and(eq(questionPaper.id, paper.id), eq(questionPaper.userId, userId)),
+    columns: {
+      id: true,
+      status: true,
+      exportedAt: true,
+    },
   });
 
-  return updated;
+  return latest ?? paper;
 };
 
 export const deleteQuestionPaper = async (userId: string, paperId: string) => {

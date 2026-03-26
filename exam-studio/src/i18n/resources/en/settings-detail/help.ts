@@ -4,26 +4,26 @@ const help = {
   quickHelp: "Quick Help",
   heroTitle: "Start with the task you want to finish.",
   heroBody:
-    "You can jump into Practice, Papers, or Subscription directly. This page is here when you need a quick reminder.",
+    "The app now follows a simpler flow: Practice uses a mini blueprint, Papers uses quick-generate or templates, and Subscription handles plan access.",
   startHere: "Start Here",
   startHereBody: "Choose the section that matches what you want to do next.",
   sections: [
     {
       title: "Practice",
-      description: "Search, filter, pick questions, and jump straight into a session.",
+      description: "Choose the syllabus scope once, set the mini blueprint mix, and start a session without exposing the raw question bank.",
       steps: [
-        "Use quick filters or search to narrow the catalog first.",
-        "Select questions for a custom session, or use Quick Start for instant practice.",
-        "Continue unfinished work from Recent Sessions whenever you come back.",
+        "Pick grade, subject, chapter, and lesson from the scope picker.",
+        "Set exact counts by question type in the mini blueprint, or leave rows at 0 to use the quick default mix.",
+        "Start the session and continue unfinished work later from Recent Sessions.",
       ],
     },
     {
       title: "Papers",
-      description: "Build exam papers, review items, finalize, then export or share PDF.",
+      description: "Create draft papers with Quick Generate or published templates, then finalize and preview for export.",
       steps: [
-        "Start with filters, then add suitable questions into a paper draft.",
-        "Review metadata, reorder items, and replace weak questions before finalizing.",
-        "Generate the export only when the draft is ready to avoid unnecessary repeats.",
+        "Use Quick Generate when you want the app to build from scope plus mini blueprint.",
+        "Use Templates when admin has already published a fixed paper structure for your plan.",
+        "Review the draft, finalize it, then preview or print the PDF only when it is ready.",
       ],
     },
     {
@@ -39,11 +39,11 @@ const help = {
   quickActions: [
     {
       title: "Open Practice",
-      hint: "Best when you want to answer questions right away.",
+      hint: "Best when you want a fast practice session from mini blueprint scope and mix.",
     },
     {
       title: "Open Papers",
-      hint: "Best when you are preparing exam sheets for students.",
+      hint: "Best when you want to quick-generate or use an admin template for a paper draft.",
     },
     {
       title: "Open Subscription",

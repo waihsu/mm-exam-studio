@@ -1,22 +1,25 @@
 import { Hono } from "hono";
 import type { AppBindings } from "@/core/types/app";
 import { ensureAuthContext } from "@/middlewares/rbac";
-import { readPositiveNumberParam, toHttpError } from "../route-utils";
-import { getPublishedQuestionCatalog } from "../services/catalog.service";
+import { toHttpError } from "../route-utils";
+import { getPublishedQuestionCatalogCounts } from "../services/catalog.service";
 
 export const workspaceCatalogRoute = new Hono<AppBindings>();
 
-workspaceCatalogRoute.get("/catalog", async (c) => {
-  const { user } = await ensureAuthContext(c);
-  const excludeQuestionTypes = (c.req.queries("excludeQuestionType") ?? [])
+const readExcludeQuestionTypes = (c: Parameters<typeof ensureAuthContext>[0]) =>
+  (c.req.queries("excludeQuestionType") ?? [])
     .map((value) => value.trim())
     .filter(Boolean) as Array<
     "mcq" | "true_false" | "short_answer" | "long_answer" | "fill_blank" | "matching"
   >;
 
+workspaceCatalogRoute.get("/catalog/counts", async (c) => {
+  const { user } = await ensureAuthContext(c);
+  const excludeQuestionTypes = readExcludeQuestionTypes(c);
+
   try {
     return c.json(
-      await getPublishedQuestionCatalog({
+      await getPublishedQuestionCatalogCounts({
         userId: user.id,
         search: c.req.query("search"),
         gradeId: c.req.query("gradeId"),
@@ -32,11 +35,9 @@ workspaceCatalogRoute.get("/catalog", async (c) => {
           | "matching"
           | undefined,
         excludeQuestionTypes: excludeQuestionTypes.length > 0 ? excludeQuestionTypes : undefined,
-        page: readPositiveNumberParam(c.req.query("page"), 1),
-        pageSize: readPositiveNumberParam(c.req.query("pageSize"), 20),
       }),
     );
   } catch (error) {
-    toHttpError(error, "Failed to load workspace catalog.");
+    toHttpError(error, "Failed to load workspace catalog counts.");
   }
 });

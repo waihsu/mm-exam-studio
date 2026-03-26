@@ -1,10 +1,19 @@
 import { useRouter, type RelativePathString } from "expo-router";
 import React from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppShell } from "@/features/app-shell/components/app-shell";
 import { MiniHelpHint } from "@/components/ui/mini-help-hint";
 import { useAppDateTimeFormatter } from "@/features/settings/hooks/use-app-date-time-formatter";
+import { useDeletePracticeSessionMutation } from "../hooks/use-delete-practice-session-mutation";
 import { usePracticeSessionsQuery } from "../hooks/use-practice-sessions-query";
 
 const formatScore = (value: number | null, unavailableLabel: string) => {
@@ -13,12 +22,39 @@ const formatScore = (value: number | null, unavailableLabel: string) => {
 };
 
 export const PracticeSessionsScreen = () => {
-  const { t } = useTranslation("practice");
+  const { t } = useTranslation(["practice", "common"]);
   const router = useRouter();
   const { formatDateTime } = useAppDateTimeFormatter();
   const sessionsQuery = usePracticeSessionsQuery();
+  const deleteSessionMutation = useDeletePracticeSessionMutation();
   const goBackToPractice = () => {
     router.replace("/practice" as RelativePathString);
+  };
+  const confirmDeleteSession = (sessionId: string) => {
+    Alert.alert(
+      t("practice:sessions.deleteTitle"),
+      t("practice:sessions.deleteBody"),
+      [
+        {
+          text: t("common:actions.cancel"),
+          style: "cancel",
+        },
+        {
+          text: t("practice:sessions.deleteAction"),
+          style: "destructive",
+          onPress: () => {
+            deleteSessionMutation.mutate(sessionId, {
+              onError: (error) => {
+                Alert.alert(
+                  t("practice:sessions.deleteFailedTitle"),
+                  error instanceof Error ? error.message : t("practice:sessions.deleteFailed"),
+                );
+              },
+            });
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -72,14 +108,46 @@ export const PracticeSessionsScreen = () => {
             >
               <View style={styles.sessionHeadingRow}>
                 <Text style={styles.sessionTitle}>{session.title}</Text>
-                <Text
-                  style={[
-                    styles.sessionStatus,
-                    session.status === "completed" ? styles.sessionStatusDone : styles.sessionStatusLive,
-                  ]}
-                >
-                  {session.status}
-                </Text>
+                <View style={styles.sessionHeaderActions}>
+                  <Text
+                    style={[
+                      styles.sessionStatus,
+                      session.status === "completed"
+                        ? styles.sessionStatusDone
+                        : styles.sessionStatusLive,
+                    ]}
+                  >
+                    {session.status === "completed"
+                      ? t("practice:sessions.completed")
+                      : t("practice:sessions.started")}
+                  </Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    disabled={
+                      deleteSessionMutation.isPending &&
+                      deleteSessionMutation.variables === session.id
+                    }
+                    hitSlop={8}
+                    style={({ pressed }) => [
+                      styles.deleteButton,
+                      pressed && styles.buttonPressed,
+                      deleteSessionMutation.isPending &&
+                        deleteSessionMutation.variables === session.id &&
+                        styles.deleteButtonDisabled,
+                    ]}
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      confirmDeleteSession(session.id);
+                    }}
+                  >
+                    <Text style={styles.deleteButtonLabel}>
+                      {deleteSessionMutation.isPending &&
+                      deleteSessionMutation.variables === session.id
+                        ? t("practice:sessions.deleting")
+                        : t("practice:sessions.deleteAction")}
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
               <Text style={styles.sessionMeta}>
                 {t("sessions.scoreMeta", {
@@ -183,11 +251,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
+  sessionHeaderActions: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
   sessionTitle: {
     color: "#0F172A",
+    flex: 1,
     fontSize: 14,
     fontWeight: "700",
-    maxWidth: "75%",
+    paddingRight: 8,
   },
   sessionStatus: {
     borderRadius: 999,
@@ -205,6 +279,24 @@ const styles = StyleSheet.create({
   sessionStatusDone: {
     backgroundColor: "#DCFCE7",
     color: "#166534",
+  },
+  deleteButton: {
+    alignItems: "center",
+    backgroundColor: "#FFF1F2",
+    borderColor: "#FECDD3",
+    borderRadius: 999,
+    borderWidth: 1,
+    justifyContent: "center",
+    minHeight: 28,
+    paddingHorizontal: 10,
+  },
+  deleteButtonDisabled: {
+    opacity: 0.65,
+  },
+  deleteButtonLabel: {
+    color: "#BE123C",
+    fontSize: 11,
+    fontWeight: "700",
   },
   sessionMeta: {
     color: "#64748B",

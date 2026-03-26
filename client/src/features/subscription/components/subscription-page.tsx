@@ -6,14 +6,25 @@ import {
   FileText,
   History,
   ImagePlus,
+  Layers3,
   Loader2,
+  Rocket,
   ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
+import { PageHeader, SectionCard, StatGrid } from "@/components/ui/page-shell";
 import { useSubscriptionPageData } from "../hooks/use-subscription-page-data";
-import { InfoRow, RequestStatusPill, UsageCard, UsagePill } from "./subscription-shared";
+import { getPlanCatalogItem, PLAN_CATALOG } from "../subscription-catalog";
+import {
+  InfoRow,
+  PlanCatalogCard,
+  RequestHistoryCard,
+  RequestStatusPill,
+  UsageCard,
+  UsagePill,
+} from "./subscription-shared";
 
 const PAYMENT_INSTRUCTIONS = {
   heading: "Manual payment",
@@ -36,6 +47,8 @@ export function SubscriptionPage() {
     setTransactionId,
     selectedProofName,
     paymentProofImageDataUrl,
+    selectedPlanCode,
+    setSelectedPlanCode,
     summaryQuery,
     summary,
     plan,
@@ -47,48 +60,46 @@ export function SubscriptionPage() {
     cancelMutation,
     onPaymentProofFileChange,
   } = useSubscriptionPageData();
+  const selectedPlan = getPlanCatalogItem(selectedPlanCode);
+  const isHighestPlan = plan?.code === "premium";
+  const canRequestSelectedPlan = !isHighestPlan && plan?.code !== selectedPlanCode;
 
   return (
     <div className="space-y-4">
-      <section className="app-hero">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-              Subscription
-            </p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
-              {plan ? `${plan.name} plan` : "Usage overview"}
-            </h2>
-            <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              Limits, requests, and history in one page.
-            </p>
-            {latestRequest ? (
-              <p className="mt-3 text-sm text-slate-600">
-                Latest request: {latestRequest.requestedPlanCode === "premium" ? "Premium" : latestRequest.requestedPlanCode === "pro" ? "Pro" : "Free"} •{" "}
-                {latestRequest.status.replace("_", " ")}
-              </p>
-            ) : null}
-            <div className="mt-3 flex flex-wrap gap-2">
-              <span className="app-chip">
-                Cycle {plan?.billingCycle ?? "monthly"}
-              </span>
-              <span className="app-chip">
-                {pendingCount} pending
-              </span>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button asChild>
-              <Link to="/question-papers">
-                Open papers
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      <PageHeader
+        eyebrow="Subscription"
+        title={plan ? `${plan.name} plan` : "Usage overview"}
+        description="Limits, requests, and history in one page."
+        chips={
+          <>
+            <span className="app-chip">Cycle {plan?.billingCycle ?? "monthly"}</span>
+            <span className="app-chip">{pendingCount} pending</span>
+            <span className="app-chip">{plan?.status ?? "active"}</span>
+          </>
+        }
+        actions={
+          <Button asChild>
+            <Link to="/question-papers">
+              Open papers
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        }
+      />
 
-      <div className="stagger-children grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {latestRequest ? (
+        <Notice>
+          Latest request:{" "}
+          {latestRequest.requestedPlanCode === "premium"
+            ? "Premium"
+            : latestRequest.requestedPlanCode === "pro"
+              ? "Pro"
+              : "Free"}{" "}
+          • {latestRequest.status.replace("_", " ")}
+        </Notice>
+      ) : null}
+
+      <StatGrid>
         <UsageCard
           icon={BookOpenCheck}
           label="Practice sessions"
@@ -121,36 +132,62 @@ export function SubscriptionPage() {
           note="Allowed devices for this account"
           tone="slate"
         />
-      </div>
+      </StatGrid>
+
+      <SectionCard
+        title="Choose the workflow that fits your teaching load."
+        description="We keep the request flow manual, but the plan comparison below now matches the current app limits."
+        actions={<UsagePill label="Current plan" value={plan?.name ?? "Free"} />}
+        className="rounded-2xl sm:p-5"
+      >
+        <div className="mt-4 grid gap-4 xl:grid-cols-3">
+          {PLAN_CATALOG.map((item) => (
+            <PlanCatalogCard
+              key={item.code}
+              item={item}
+              isCurrent={plan?.code === item.code}
+              isSelected={selectedPlanCode === item.code}
+              isSelectable={item.code !== "free" && plan?.code !== item.code}
+              onSelect={() => {
+                if (item.code !== "free") {
+                  setSelectedPlanCode(item.code);
+                }
+              }}
+            />
+          ))}
+        </div>
+      </SectionCard>
 
       <section className="stagger-children grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <h3 className="text-base font-semibold text-slate-900">{PAYMENT_INSTRUCTIONS.heading}</h3>
+        <SectionCard
+          title="Current state"
+          actions={
+            <UsagePill
+              label="Source"
+              value={summaryQuery.isLoading ? "Loading" : summary ? "Live data" : "Awaiting"}
+            />
+          }
+        >
+          <div className="mt-3 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <InfoRow label="Plan code" value={plan?.code ?? "free"} />
+            <InfoRow label="Billing cycle" value={plan?.billingCycle ?? "monthly"} />
+            <InfoRow label="Plan status" value={plan?.status ?? "active"} />
+          </div>
+        </SectionCard>
+
+        <SectionCard
+          title={PAYMENT_INSTRUCTIONS.heading}
+          actions={<UsagePill label="Review flow" value="Manual approval" />}
+        >
           <div className="mt-3 space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
             <InfoRow label="Accepted method" value={PAYMENT_INSTRUCTIONS.provider} />
             <InfoRow label="Pay to" value={PAYMENT_INSTRUCTIONS.accountName} />
             <InfoRow label="Reference" value={PAYMENT_INSTRUCTIONS.accountRef} />
             <p className="text-sm text-slate-600">{PAYMENT_INSTRUCTIONS.note}</p>
           </div>
-        </div>
+        </SectionCard>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-base font-semibold text-slate-900">Current state</h3>
-            <UsagePill
-              label="Source"
-              value={summaryQuery.isLoading ? "Loading" : summary ? "Live data" : "Awaiting"}
-            />
-          </div>
-          <div className="mt-3 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <InfoRow label="Plan code" value={plan?.code ?? "free"} />
-            <InfoRow label="Billing cycle" value={plan?.billingCycle ?? "monthly"} />
-            <InfoRow label="Plan status" value={plan?.status ?? "active"} />
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <h3 className="text-base font-semibold text-slate-900">Limits</h3>
+        <SectionCard title="Limits" className="xl:col-span-2">
           <div className="mt-3 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
             <InfoRow
               label="Questions per practice"
@@ -189,15 +226,24 @@ export function SubscriptionPage() {
               }
             />
           </div>
-        </div>
+        </SectionCard>
       </section>
 
       <section className="stagger-children grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-base font-semibold text-slate-900">Upgrade request</h3>
-              <p className="mt-1 text-sm text-slate-500">Submit a request for admin approval.</p>
+              <div className="flex items-center gap-2">
+                <span className="app-icon-chip">
+                  <Rocket className="h-4 w-4 text-slate-700" />
+                </span>
+                <h3 className="text-base font-semibold text-slate-900">Upgrade request</h3>
+              </div>
+              <p className="mt-1 text-sm text-slate-500">
+                {isHighestPlan
+                  ? "This account already uses the highest plan."
+                  : `Selected target: ${selectedPlan.name}. Submit payment proof, then send one request for admin approval.`}
+              </p>
             </div>
             {latestRequest ? (
               <UsagePill
@@ -208,6 +254,22 @@ export function SubscriptionPage() {
           </div>
 
           <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <div className="rounded-lg border border-slate-200 bg-white px-3 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+                    Selected plan
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">{selectedPlan.name}</p>
+                  <p className="mt-1 text-sm text-slate-600">{selectedPlan.tagline}</p>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <UsagePill label="Paper export" value={selectedPlan.limitSummary.exports} />
+                  <UsagePill label="Paper generation" value={selectedPlan.limitSummary.generations} />
+                </div>
+              </div>
+            </div>
+
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="space-y-2">
                 <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
@@ -262,21 +324,30 @@ export function SubscriptionPage() {
             <div className="mt-4 flex flex-wrap gap-2">
               <Button
                 className="w-full sm:w-auto"
-                onClick={() => requestMutation.mutate("pro")}
-                disabled={requestMutation.isPending || isPending || !transactionId.trim()}
+                onClick={() => requestMutation.mutate(selectedPlanCode)}
+                disabled={
+                  requestMutation.isPending ||
+                  isPending ||
+                  !transactionId.trim() ||
+                  !canRequestSelectedPlan
+                }
               >
                 {requestMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                Request Pro
+                {`Request ${selectedPlan.name}`}
               </Button>
-              <Button
-                variant="outline"
-                className="w-full bg-white sm:w-auto"
-                onClick={() => requestMutation.mutate("premium")}
-                disabled={requestMutation.isPending || isPending || !transactionId.trim()}
-              >
-                {requestMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                Request Premium
-              </Button>
+              {!isHighestPlan ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full bg-white sm:w-auto"
+                  onClick={() =>
+                    setSelectedPlanCode(selectedPlanCode === "pro" ? "premium" : "pro")
+                  }
+                >
+                  <Layers3 className="h-4 w-4" />
+                  {selectedPlanCode === "pro" ? "Switch to Premium" : "Switch to Pro"}
+                </Button>
+              ) : null}
               {latestRequest?.status === "pending" ? (
                 <Button
                   variant="ghost"
@@ -290,6 +361,17 @@ export function SubscriptionPage() {
                 </Button>
               ) : null}
             </div>
+            {!canRequestSelectedPlan && !isHighestPlan ? (
+              <Notice className="mt-3">
+                This account already uses {selectedPlan.name}. Choose the other upgrade tier if you
+                want to submit a new request.
+              </Notice>
+            ) : null}
+            {isHighestPlan ? (
+              <Notice className="mt-3">
+                Premium is already active on this account, so no higher request tier is available.
+              </Notice>
+            ) : null}
             <p className="mt-3 text-xs text-slate-500">Use a clear screenshot for faster review.</p>
             {requestMutation.error instanceof Error ? (
               <Notice tone="error" className="mt-3">
@@ -349,46 +431,19 @@ export function SubscriptionPage() {
         </div>
       </section>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <h3 className="text-base font-semibold text-slate-900">Request history</h3>
+      <section className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="text-base font-semibold text-slate-900">Request history</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Track approvals, review notes, and payment proof records in one place.
+            </p>
+          </div>
+          <UsagePill label="Total requests" value={String(requests.length)} />
+        </div>
         <div className="mt-4 space-y-3">
           {requests.length > 0 ? (
-            requests.map((request) => (
-              <div
-                key={request.id}
-                className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-semibold text-slate-900">
-                    {request.requestedPlanCode} plan
-                  </p>
-                  <RequestStatusPill status={request.status} />
-                </div>
-                <p className="mt-2 text-sm text-slate-500">
-                  Submitted {new Date(request.createdAt).toLocaleString()}
-                </p>
-                {request.transactionId ? (
-                  <p className="mt-2 text-sm text-slate-700">
-                    Transaction ID: {request.transactionId}
-                  </p>
-                ) : null}
-                {request.note ? (
-                  <p className="mt-2 text-sm text-slate-700">Your note: {request.note}</p>
-                ) : null}
-                {request.adminNote ? (
-                  <p className="mt-1 text-sm text-slate-700">Admin note: {request.adminNote}</p>
-                ) : null}
-                {request.paymentProofImageDataUrl ? (
-                  <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 bg-white">
-                    <img
-                      src={request.paymentProofImageDataUrl}
-                      alt="Payment proof"
-                      className="h-40 w-full object-contain"
-                    />
-                  </div>
-                ) : null}
-              </div>
-            ))
+            requests.map((request) => <RequestHistoryCard key={request.id} request={request} />)
           ) : (
             <EmptyState
               title="No subscription requests yet"
@@ -398,7 +453,7 @@ export function SubscriptionPage() {
             />
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

@@ -1,61 +1,34 @@
 import { getUserWorkspaceAccess } from "../../subscriptions/subscription.core";
 import {
-  assertCatalogWindowAllowed,
-  resolveEffectiveCatalogPageSize,
+  countPublishedQuestionsByType,
   type CatalogFilters,
 } from "./workspace-shared.service";
-import { buildCatalogPageResponse } from "./catalog-presenter.service";
-import { fetchCatalogPageData } from "./catalog-query.service";
 
-export const getPublishedQuestionCatalog = async (
+export const getPublishedQuestionCatalogCounts = async (
   params: CatalogFilters & {
     userId: string;
-    page?: number;
-    pageSize?: number;
   },
 ) => {
-  const page = Math.max(1, Math.trunc(params.page ?? 1));
-  const requestedPageSize = Math.max(10, Math.min(100, Math.trunc(params.pageSize ?? 20)));
   const access = await getUserWorkspaceAccess(params.userId);
-  const pageSize = resolveEffectiveCatalogPageSize({
-    access,
-    requestedPageSize,
-    page,
-  });
-  assertCatalogWindowAllowed({
-    access,
-    page,
-    pageSize: Math.max(1, pageSize || requestedPageSize),
-  });
+  const groupedCounts = await countPublishedQuestionsByType(params, access);
 
-  if (pageSize <= 0) {
-    return {
-      rows: [],
-      lockedRows: [],
-      lockedTotal: 0,
-      total: 0,
-      page,
-      pageSize: 0,
-      totalPages: 1,
-    };
-  }
+  const response = {
+    all: 0,
+    mcq: groupedCounts.mcq ?? 0,
+    true_false: groupedCounts.true_false ?? 0,
+    short_answer: groupedCounts.short_answer ?? 0,
+    long_answer: groupedCounts.long_answer ?? 0,
+    fill_blank: groupedCounts.fill_blank ?? 0,
+    matching: groupedCounts.matching ?? 0,
+  };
 
-  const pageData = await fetchCatalogPageData({
-    filters: params,
-    access,
-    page,
-    pageSize,
-  });
+  response.all =
+    response.mcq +
+    response.true_false +
+    response.short_answer +
+    response.long_answer +
+    response.fill_blank +
+    response.matching;
 
-  return buildCatalogPageResponse({
-    access,
-    page,
-    pageSize,
-    ids: pageData.ids,
-    total: pageData.total,
-    lockedIds: pageData.lockedIds,
-    lockedTotal: pageData.lockedTotal,
-    lockReasonCode: pageData.lockReasonCode,
-    rowMap: pageData.rowMap,
-  });
+  return response;
 };

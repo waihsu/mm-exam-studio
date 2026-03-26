@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, LoaderCircle, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, FileText, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
+import { PageHeader, SectionCard } from "@/components/ui/page-shell";
 import { workspaceApi } from "@/features/workspace/api/workspace-api";
 import { BrandAssetPicker } from "@/features/workspace/components/brand-asset-picker";
-import { QuestionCatalogSelector } from "@/features/workspace/components/question-catalog-selector";
-import { QuestionFilterPanel } from "@/features/workspace/components/question-filter-panel";
+import { QuestionMixPanel } from "@/features/workspace/components/question-mix-panel";
+import { QuestionScopePanel } from "@/features/workspace/components/question-scope-panel";
 import type { WorkspaceFilters } from "@/features/workspace/types";
 
 const DEFAULT_FILTERS: WorkspaceFilters = {
@@ -19,11 +20,24 @@ const DEFAULT_FILTERS: WorkspaceFilters = {
   subChapterId: "",
 };
 
+const PAPER_MIX_TYPES = [
+  { type: "mcq", label: "MCQ", helperText: "Set 0 to leave this type out." },
+  { type: "true_false", label: "True/False", helperText: "Good for quick checks." },
+  { type: "fill_blank", label: "Fill Blank", helperText: "Good for short recall items." },
+  { type: "short_answer", label: "Short Answer", helperText: "Use this for brief written responses." },
+  { type: "matching", label: "Matching", helperText: "Useful for grouped concept checks." },
+  { type: "long_answer", label: "Long Answer", helperText: "Use this when the paper needs full written-response questions." },
+] as const;
+
+type PaperMixType = (typeof PAPER_MIX_TYPES)[number]["type"];
+
+const EMPTY_MIX = PAPER_MIX_TYPES.reduce<Record<PaperMixType, string>>((next, item) => {
+  next[item.type] = "0";
+  return next;
+}, {} as Record<PaperMixType, string>);
+
 export function NewQuestionPaperPage() {
   const navigate = useNavigate();
-  const [generatorMode, setGeneratorMode] = useState<"all_questions" | "mcq_only">(
-    "all_questions",
-  );
   const [title, setTitle] = useState("");
   const [schoolName, setSchoolName] = useState("MM Exam Studio");
   const [academicYear, setAcademicYear] = useState("");
@@ -32,23 +46,16 @@ export function NewQuestionPaperPage() {
   const [hasBrandingSeeded, setHasBrandingSeeded] = useState(false);
   const [includeAnswerKey, setIncludeAnswerKey] = useState(false);
   const [filters, setFilters] = useState<WorkspaceFilters>(DEFAULT_FILTERS);
-  const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
-  const [page, setPage] = useState(1);
+  const [mixCounts, setMixCounts] = useState<Record<PaperMixType, string>>(EMPTY_MIX);
+  const [countValue, setCountValue] = useState("10");
 
   const metaQuery = useQuery({
     queryKey: ["workspace-meta"],
     queryFn: () => workspaceApi.getMeta(),
   });
-
-  const catalogQuery = useQuery({
-    queryKey: ["workspace-catalog-paper-builder", filters, generatorMode, page],
-    queryFn: () =>
-      workspaceApi.getCatalog({
-        ...filters,
-        questionType: generatorMode === "mcq_only" ? "mcq" : undefined,
-        page,
-        pageSize: 20,
-      }),
+  const countsQuery = useQuery({
+    queryKey: ["workspace-catalog-counts-paper-builder", filters],
+    queryFn: () => workspaceApi.getCatalogCounts(filters),
   });
   const summaryQuery = useQuery({
     queryKey: ["workspace-summary"],
@@ -58,20 +65,30 @@ export function NewQuestionPaperPage() {
     queryKey: ["workspace-branding"],
     queryFn: () => workspaceApi.listBrandAssets(),
   });
+  const papersQuery = useQuery({
+    queryKey: ["workspace-papers"],
+    queryFn: () => workspaceApi.listQuestionPapers(),
+  });
 
   const createPaperMutation = useMutation({
-    mutationFn: () =>
-      workspaceApi.createQuestionPaper({
+    mutationFn: () => {
+      const questionMix = PAPER_MIX_TYPES.map((item) => ({
+        questionType: item.type,
+        count: Number.parseInt(mixCounts[item.type] || "0", 10) || 0,
+      })).filter((entry) => entry.count > 0);
+
+      return workspaceApi.createQuestionPaper({
         title,
         schoolName,
         academicYear,
         instructions,
         brandAssetId: brandAssetId || undefined,
         includeAnswerKey,
-        generatorMode,
         ...filters,
-        questionIds: selectedQuestionIds,
-      }),
+        count: questionMix.length > 0 ? undefined : Math.max(1, Number.parseInt(countValue || "10", 10) || 10),
+        questionMix: questionMix.length > 0 ? questionMix : undefined,
+      });
+    },
     onSuccess: async (response) => {
       if (!response.ok) return;
       await navigate({
@@ -82,20 +99,12 @@ export function NewQuestionPaperPage() {
   });
 
   const meta = metaQuery.data?.ok ? metaQuery.data.data : undefined;
-  const catalog = catalogQuery.data?.ok ? catalogQuery.data.data : undefined;
-  const lockedRows = catalog?.lockedRows ?? [];
-  const lockedTotal = catalog?.lockedTotal ?? 0;
+  const counts = countsQuery.data?.ok ? countsQuery.data.data : undefined;
   const summary = summaryQuery.data?.ok ? summaryQuery.data.data : undefined;
   const brandAssets = brandingQuery.data?.ok ? brandingQuery.data.data.rows : [];
+  const papers = papersQuery.data?.ok ? papersQuery.data.data.rows : [];
   const planCode = summary?.subscription.code;
   const questionLimit = summary?.subscription.limits.maxQuestionsPerPaper ?? null;
-  const exceedsLimit =
-    typeof questionLimit === "number" ? selectedQuestionIds.length > questionLimit : false;
-  const canCreate =
-    !!title.trim() &&
-    selectedQuestionIds.length > 0 &&
-    !exceedsLimit &&
-    !createPaperMutation.isPending;
 
   useEffect(() => {
     if (hasBrandingSeeded) return;
@@ -107,77 +116,71 @@ export function NewQuestionPaperPage() {
     }
   }, [brandAssets, hasBrandingSeeded]);
 
+  const configuredMixCount = useMemo(
+    () =>
+      PAPER_MIX_TYPES.reduce(
+        (sum, item) => sum + (Number.parseInt(mixCounts[item.type] || "0", 10) || 0),
+        0,
+      ),
+    [mixCounts],
+  );
+
+  const activeMixTypes = useMemo(
+    () =>
+      PAPER_MIX_TYPES.filter((item) => (Number.parseInt(mixCounts[item.type] || "0", 10) || 0) > 0)
+        .length,
+    [mixCounts],
+  );
+
+  const exceedsAvailableMix = useMemo(() => {
+    if (!counts) return false;
+    return PAPER_MIX_TYPES.some((item) => {
+      const requested = Number.parseInt(mixCounts[item.type] || "0", 10) || 0;
+      return requested > (counts[item.type] ?? 0);
+    });
+  }, [counts, mixCounts]);
+
+  const fallbackCount = Math.max(1, Number.parseInt(countValue || "10", 10) || 10);
+  const totalPlanned = configuredMixCount > 0 ? configuredMixCount : fallbackCount;
+  const exceedsLimit = typeof questionLimit === "number" ? totalPlanned > questionLimit : false;
+  const canCreate =
+    !!title.trim() &&
+    totalPlanned > 0 &&
+    totalPlanned <= 50 &&
+    !exceedsLimit &&
+    !exceedsAvailableMix &&
+    !createPaperMutation.isPending;
+
   return (
     <div className="space-y-4">
-      <section className="app-hero">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-              Question Papers
-            </p>
-            <h2 className="mt-1 text-2xl font-semibold text-slate-900">
-              New paper
-            </h2>
-            <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              Build, review, and export a polished paper.
-            </p>
+      <PageHeader
+        eyebrow="Question Papers"
+        title="Paper Builder"
+        description="Use the same scope plus mini blueprint flow as mobile, then create a draft paper."
+        actions={
+          <div className="grid min-w-[220px] gap-3 sm:grid-cols-3">
+            <MiniStat label="Planned" value={String(totalPlanned)} />
+            <MiniStat label="Types" value={String(activeMixTypes)} />
+            <MiniStat label="Saved" value={String(papers.length)} />
           </div>
-          <div className="grid min-w-[220px] gap-3 sm:grid-cols-2">
-            <MiniStat label="Selected" value={String(selectedQuestionIds.length)} />
-            <MiniStat label="Catalog" value={String(catalog?.total ?? 0)} />
-          </div>
-        </div>
-      </section>
+        }
+      />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-5">
-          <section className="rounded-xl border border-slate-200 bg-white p-4">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-slate-900">Paper setup</p>
+          <SectionCard
+            title="Setup"
+            description="Title, paper details, and answer key preference."
+            actions={
               <Button asChild variant="outline" className="bg-white">
                 <Link to="/question-papers">
                   <ArrowLeft className="h-4 w-4" />
                   Back
                 </Link>
               </Button>
-            </div>
-
+            }
+          >
             <div className="grid gap-4 lg:grid-cols-2">
-              <label className="space-y-2 lg:col-span-2">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-                  Generator mode
-                </span>
-              <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPage(1);
-                      setSelectedQuestionIds([]);
-                      setGeneratorMode("all_questions");
-                    }}
-                    className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                      generatorMode === "all_questions"
-                        ? "bg-slate-900 text-white"
-                        : "text-slate-600"
-                    }`}
-                  >
-                    All Questions
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPage(1);
-                      setSelectedQuestionIds([]);
-                      setGeneratorMode("mcq_only");
-                    }}
-                    className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                      generatorMode === "mcq_only" ? "bg-slate-900 text-white" : "text-slate-600"
-                    }`}
-                  >
-                    MCQ Only
-                  </button>
-                </div>
-              </label>
               <label className="space-y-2">
                 <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                   Title
@@ -207,7 +210,7 @@ export function NewQuestionPaperPage() {
                 <input
                   value={academicYear}
                   onChange={(event) => setAcademicYear(event.target.value)}
-                  placeholder="Academic year"
+                  placeholder="2025-2026"
                   className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-900"
                 />
               </label>
@@ -239,12 +242,6 @@ export function NewQuestionPaperPage() {
                 </Link>
               </div>
               <BrandAssetPicker assets={brandAssets} value={brandAssetId} onChange={setBrandAssetId} />
-              {summary ? (
-                <p className="text-xs text-slate-500">
-                  {summary.brandingCount}/{summary.subscription.limits.brandingLogoLimit} saved
-                  logos on the {summary.subscription.name} plan.
-                </p>
-              ) : null}
             </div>
 
             <label className="mt-4 block space-y-2">
@@ -258,207 +255,151 @@ export function NewQuestionPaperPage() {
                 className="min-h-28 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-slate-900"
               />
             </label>
+          </SectionCard>
 
-            <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-600">
-              Draft workflow:{" "}
-              <span className="font-semibold text-slate-900">
-                create draft {"->"} manage questions {"->"} finalize {"->"} download PDF
-              </span>
-            </div>
-          </section>
+          <QuestionScopePanel
+            meta={meta}
+            planCode={planCode}
+            value={filters}
+            onChange={setFilters}
+            title="Paper Scope"
+            hint="Choose the syllabus scope once, then set the exact paper mix below."
+          />
 
-          <section className="rounded-xl border border-slate-200 bg-white p-4">
-            <QuestionFilterPanel
-              meta={meta}
-              planCode={planCode}
-              value={filters}
-              onChange={(next) => {
-                setPage(1);
-                setSelectedQuestionIds([]);
-                setFilters(next);
-              }}
-            />
-          </section>
+          <QuestionMixPanel
+            title="Mini Blueprint"
+            hint="Set exact counts by question type. Leave every row at 0 to use the fallback paper count below."
+            items={PAPER_MIX_TYPES.map((item) => ({ ...item }))}
+            values={mixCounts}
+            onChange={(type, value) =>
+              setMixCounts((current) => ({
+                ...current,
+                [type]: value,
+              }))
+            }
+            totalPlanned={configuredMixCount}
+            availableCounts={counts}
+            unavailableMessage={
+              exceedsAvailableMix
+                ? "One or more requested question types exceed the available questions in this scope."
+                : null
+            }
+          />
 
-          <section className="rounded-xl border border-slate-200 bg-white p-4">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">
-                  {selectedQuestionIds.length} selected
-                </p>
-                <p className="mt-1 text-sm text-slate-500">Build paper from selected questions.</p>
-                <p className="mt-2 text-xs font-medium text-slate-600">
-                  Mode: {generatorMode === "mcq_only" ? "MCQ Only" : "All Questions"}
-                </p>
-                {planCode === "free" ? (
-                  <p className="mt-2 text-xs font-medium text-amber-700">
-                    Free plan can generate papers from free preview chapters and lessons only, up
-                    to {questionLimit ?? 0} questions in one paper.
-                  </p>
-                ) : null}
-                {exceedsLimit ? (
-                  <p className="mt-2 text-xs font-medium text-red-700">
-                    Reduce the selection to {questionLimit} questions or fewer to create this
-                    paper.
-                  </p>
-                ) : null}
-                {lockedTotal > 0 ? (
-                  <p className="mt-2 text-xs font-medium text-amber-700">
-                    {lockedTotal} question{lockedTotal > 1 ? "s are" : " is"} locked for your{" "}
-                    {summary?.subscription.name ?? "current"} plan.
-                  </p>
-                ) : null}
-              </div>
-              <div className="hidden items-center gap-2 sm:flex">
-                {selectedQuestionIds.length > 0 ? (
-                  <Button
-                    variant="outline"
-                    className="bg-white"
-                    onClick={() => setSelectedQuestionIds([])}
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                    Clear
-                  </Button>
-                ) : null}
-                <Button
-                  disabled={!canCreate}
-                  onClick={() => {
-                    void createPaperMutation.mutateAsync();
-                  }}
-                >
-                  {createPaperMutation.isPending ? "Creating..." : "Create paper"}
-                </Button>
-              </div>
-            </div>
+          <SectionCard
+            title="Generate Draft"
+            description="Use the fallback count only when every mini blueprint row stays at 0."
+            actions={
+              <button
+                type="button"
+                onClick={() => setMixCounts(EMPTY_MIX)}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+              >
+                Clear mix
+              </button>
+            }
+          >
+            {configuredMixCount === 0 ? (
+              <label className="block space-y-2">
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+                  Question count
+                </span>
+                <input
+                  value={countValue}
+                  onChange={(event) =>
+                    setCountValue(event.target.value.replace(/[^\d]/g, "").slice(0, 2))
+                  }
+                  inputMode="numeric"
+                  className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-900 sm:max-w-[180px]"
+                />
+              </label>
+            ) : (
+              <Notice tone="info">
+                The exact mix above will be used for this paper draft.
+              </Notice>
+            )}
 
-            {catalogQuery.data && !catalogQuery.data.ok ? (
-              <Notice tone="error" className="mt-4 px-4 py-3">
-                {catalogQuery.data.message}
+            {countsQuery.data && !countsQuery.data.ok ? (
+              <Notice tone="error">
+                {countsQuery.data.message}
               </Notice>
             ) : null}
             {createPaperMutation.data && !createPaperMutation.data.ok ? (
-              <Notice tone="error" className="mt-4 px-4 py-3">
+              <Notice tone="error">
                 {createPaperMutation.data.message}
               </Notice>
             ) : null}
+            {planCode === "free" ? (
+              <Notice tone="warning">
+                Free plan can generate papers from free preview chapters and lessons only, up to {questionLimit ?? 0} questions in one paper.
+              </Notice>
+            ) : null}
+            {exceedsLimit ? (
+              <Notice tone="error">
+                Reduce this draft to {questionLimit} questions or fewer for your current plan.
+              </Notice>
+            ) : null}
 
-            <div className="mt-4">
-              {catalogQuery.isLoading ? (
-                <EmptyState
-                  title="Loading questions..."
-                  description="Preparing paper catalog with your filters."
-                  icon={LoaderCircle}
-                />
-              ) : (
-                <QuestionCatalogSelector
-                  rows={catalog?.rows ?? []}
-                  lockedRows={lockedRows}
-                  lockedTotal={lockedTotal}
-                  selectedIds={selectedQuestionIds}
-                  onToggle={(questionId) =>
-                    setSelectedQuestionIds((current) =>
-                      current.includes(questionId)
-                        ? current.filter((id) => id !== questionId)
-                        : [...current, questionId],
-                    )
-                  }
-                />
-              )}
-            </div>
-
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-slate-500">
-                Page {catalog?.page ?? 1} of {catalog?.totalPages ?? 1}
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="bg-white"
-                  disabled={(catalog?.page ?? 1) <= 1}
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  className="bg-white"
-                  disabled={(catalog?.page ?? 1) >= (catalog?.totalPages ?? 1)}
-                  onClick={() => setPage((current) => current + 1)}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
-          <section className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-              Draft
-            </p>
-            <h3 className="mt-2 text-base font-semibold text-slate-900">
-              {title.trim() || "Untitled paper"}
-            </h3>
-            <div className="mt-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-              <MiniStat label="Selected" value={String(selectedQuestionIds.length)} />
-              <MiniStat label="Catalog" value={String(catalog?.total ?? 0)} />
-              <MiniStat label="Answer key" value={includeAnswerKey ? "On" : "Off"} />
-            </div>
-            <div className="mt-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <SummaryRow label="School" value={schoolName || "MM Exam Studio"} />
-              <SummaryRow label="Academic year" value={academicYear || "Not set"} />
-              <SummaryRow
-                label="Instructions"
-                value={instructions.trim() ? "Custom" : "Default print instructions"}
-              />
-              {summary ? <SummaryRow label="Plan" value={summary.subscription.name} /> : null}
-            </div>
-            <div className="mt-4 flex flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-3">
               <Button
                 disabled={!canCreate}
                 onClick={() => {
                   void createPaperMutation.mutateAsync();
                 }}
               >
-                {createPaperMutation.isPending ? "Creating..." : "Create paper"}
+                {createPaperMutation.isPending ? "Creating..." : "Create draft"}
+                <ArrowRight className="h-4 w-4" />
               </Button>
-              {selectedQuestionIds.length > 0 ? (
-                <Button
-                  variant="outline"
-                  className="bg-white"
-                  onClick={() => setSelectedQuestionIds([])}
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Clear selection
-                </Button>
-              ) : null}
-            </div>
-          </section>
-        </aside>
-      </div>
-
-      <div className="sticky bottom-3 z-10 sm:hidden">
-        <div className="rounded-lg border border-slate-200 bg-white p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-                Paper draft
-              </p>
-              <p className="text-sm font-semibold text-slate-900">
-                {selectedQuestionIds.length} selected
+              <p className="text-sm text-slate-500">
+                Planned paper: {totalPlanned} question{totalPlanned === 1 ? "" : "s"}
               </p>
             </div>
-            <Button
-              disabled={!canCreate}
-              onClick={() => {
-                void createPaperMutation.mutateAsync();
-              }}
-            >
-              {createPaperMutation.isPending ? "Creating..." : "Create"}
-            </Button>
-          </div>
+          </SectionCard>
         </div>
+
+        <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
+          <SectionCard title="Builder Summary" description="Draft plan and current limits.">
+            {summary ? (
+              <p className="text-xs font-medium text-slate-600">
+                Plan: {summary.subscription.name}
+              </p>
+            ) : null}
+            <div className="space-y-2">
+              <SummaryRow label="Planned" value={String(totalPlanned)} />
+              <SummaryRow label="Types" value={String(activeMixTypes)} />
+              <SummaryRow label="Saved" value={String(papers.length)} />
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Recent Papers">
+            <div className="space-y-3">
+              {papersQuery.isLoading ? (
+                <EmptyState title="Loading papers..." icon={LoaderCircle} className="py-6" />
+              ) : papers.length > 0 ? (
+                papers.slice(0, 5).map((paper) => (
+                  <Link
+                    key={paper.id}
+                    to="/question-papers/$paperId"
+                    params={{ paperId: paper.id }}
+                    className="hover-lift block rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 transition hover:border-slate-900"
+                  >
+                    <p className="font-semibold text-slate-900">{paper.title}</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {paper.totalQuestions} questions • {paper.totalMarks} marks
+                    </p>
+                  </Link>
+                ))
+              ) : (
+                <EmptyState
+                  title="No papers yet"
+                  description="Create your first draft to start building exports."
+                  icon={FileText}
+                  className="py-6"
+                />
+              )}
+            </div>
+          </SectionCard>
+        </aside>
       </div>
     </div>
   );
@@ -466,22 +407,22 @@ export function NewQuestionPaperPage() {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+    <div className="rounded-lg border border-slate-200 bg-white/95 px-3 py-2">
       <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
         {label}
       </p>
-      <p className="mt-1 text-sm font-semibold text-slate-900">{value}</p>
+      <p className="mt-1 text-base font-semibold text-slate-900">{value}</p>
     </div>
   );
 }
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
+    <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
         {label}
       </p>
-      <p className="mt-1 text-sm font-semibold text-slate-900">{value}</p>
+      <p className="text-sm font-semibold text-slate-900">{value}</p>
     </div>
   );
 }

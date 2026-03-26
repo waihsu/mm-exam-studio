@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
 import { Route as AuthSigninRouteImport } from './routes/_auth/signin'
 import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
+import { Route as AppSupportRouteImport } from './routes/_app/support'
 import { Route as AppSubscriptionRouteImport } from './routes/_app/subscription'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppQuestionPapersRouteImport } from './routes/_app/question-papers'
@@ -55,6 +56,11 @@ const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
   getParentRoute: () => AuthRoute,
+} as any)
+const AppSupportRoute = AppSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSubscriptionRoute = AppSubscriptionRouteImport.update({
   id: '/subscription',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/question-papers': typeof AppQuestionPapersRouteWithChildren
   '/settings': typeof AppSettingsRoute
   '/subscription': typeof AppSubscriptionRoute
+  '/support': typeof AppSupportRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/signin': typeof AuthSigninRoute
   '/signup': typeof AuthSignupRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AppProfileRoute
   '/settings': typeof AppSettingsRoute
   '/subscription': typeof AppSubscriptionRoute
+  '/support': typeof AppSupportRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/signin': typeof AuthSigninRoute
   '/signup': typeof AuthSignupRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/_app/question-papers': typeof AppQuestionPapersRouteWithChildren
   '/_app/settings': typeof AppSettingsRoute
   '/_app/subscription': typeof AppSubscriptionRoute
+  '/_app/support': typeof AppSupportRoute
   '/_auth/forgot-password': typeof AuthForgotPasswordRoute
   '/_auth/signin': typeof AuthSigninRoute
   '/_auth/signup': typeof AuthSignupRoute
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
     | '/question-papers'
     | '/settings'
     | '/subscription'
+    | '/support'
     | '/forgot-password'
     | '/signin'
     | '/signup'
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/subscription'
+    | '/support'
     | '/forgot-password'
     | '/signin'
     | '/signup'
@@ -220,6 +231,7 @@ export interface FileRouteTypes {
     | '/_app/question-papers'
     | '/_app/settings'
     | '/_app/subscription'
+    | '/_app/support'
     | '/_auth/forgot-password'
     | '/_auth/signin'
     | '/_auth/signup'
@@ -280,6 +292,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/forgot-password'
       preLoaderRoute: typeof AuthForgotPasswordRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/_app/support': {
+      id: '/_app/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof AppSupportRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/subscription': {
       id: '/_app/subscription'
@@ -418,6 +437,7 @@ interface AppRouteChildren {
   AppQuestionPapersRoute: typeof AppQuestionPapersRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRoute
   AppSubscriptionRoute: typeof AppSubscriptionRoute
+  AppSupportRoute: typeof AppSupportRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -427,6 +447,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppQuestionPapersRoute: AppQuestionPapersRouteWithChildren,
   AppSettingsRoute: AppSettingsRoute,
   AppSubscriptionRoute: AppSubscriptionRoute,
+  AppSupportRoute: AppSupportRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

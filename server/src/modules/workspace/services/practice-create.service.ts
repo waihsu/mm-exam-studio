@@ -27,6 +27,7 @@ export const createPracticeSession = async (
   const questions = await resolveSelectionQuestions({
     questionIds: input.questionIds,
     count: input.count,
+    questionMix: input.questionMix,
     access,
     generatorMode: input.generatorMode,
     filters: {

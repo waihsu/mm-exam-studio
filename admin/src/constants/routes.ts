@@ -7,6 +7,8 @@ export const ADMIN_ROUTES = {
   forbidden: "/forbidden",
   dashboard: "/dashboard",
   questions: "/questions",
+  questionBlueprints: "/questions/blueprints",
+  questionBlueprintsNew: "/questions/blueprints/new",
   questionsNew: "/questions/new",
   questionsImport: "/questions/import",
   taxonomy: "/taxonomy",
@@ -15,7 +17,6 @@ export const ADMIN_ROUTES = {
   taxonomyChapters: "/taxonomy/chapters",
   taxonomySubChapters: "/taxonomy/sub-chapters",
   users: "/users",
-  students: "/users/students",
   userSubscriptions: "/users/subscriptions",
   userSupport: "/users/support",
   settings: "/settings",
@@ -29,6 +30,9 @@ export const buildAdminQuestionEditRoute = (questionId: string) =>
 
 export const buildAdminQuestionRoute = (questionId: string) =>
   `/questions/${questionId}` as const;
+
+export const buildAdminQuestionBlueprintEditRoute = (blueprintId: string) =>
+  `/questions/blueprints/${blueprintId}/edit` as const;
 
 export type AdminRoutePath = Exclude<
   (typeof ADMIN_ROUTES)[keyof typeof ADMIN_ROUTES],
@@ -51,15 +55,25 @@ export type AdminNavGroup = {
 export const ADMIN_SIDEBAR_NAV_GROUPS: AdminNavGroup[] = [
   {
     id: "overview",
-    label: { en: "Question Bank", my: "မေးခွန်းဘဏ်" },
+    label: { en: "Overview", my: "အနှစ်ချုပ်" },
     items: [
       {
         label: { en: "Dashboard", my: "ဒက်ရှ်ဘုတ်" },
         to: ADMIN_ROUTES.dashboard,
       },
+    ],
+  },
+  {
+    id: "content",
+    label: { en: "Content", my: "အကြောင်းအရာ" },
+    items: [
       {
         label: { en: "Question Bank", my: "မေးခွန်းဘဏ်" },
         to: ADMIN_ROUTES.questions,
+      },
+      {
+        label: { en: "Blueprints", my: "မေးခွန်းပုံစံများ" },
+        to: ADMIN_ROUTES.questionBlueprints,
       },
       {
         label: { en: "Taxonomy Control", my: "Taxonomy စီမံခန့်ခွဲမှု" },
@@ -74,6 +88,14 @@ export const ADMIN_SIDEBAR_NAV_GROUPS: AdminNavGroup[] = [
       {
         label: { en: "Users", my: "အသုံးပြုသူများ" },
         to: ADMIN_ROUTES.users,
+      },
+      {
+        label: { en: "Subscriptions", my: "စာရင်းသွင်းမှုများ" },
+        to: ADMIN_ROUTES.userSubscriptions,
+      },
+      {
+        label: { en: "Support Inbox", my: "အကူအညီစာများ" },
+        to: ADMIN_ROUTES.userSupport,
       },
     ],
   },

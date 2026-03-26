@@ -1,10 +1,13 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import {
   account as accountTable,
   chapter as chapterTable,
   db,
   grade as gradeTable,
   gradeSubject as gradeSubjectTable,
+  paperBlueprint as paperBlueprintTable,
+  paperBlueprintSection as paperBlueprintSectionTable,
+  paperBlueprintSlot as paperBlueprintSlotTable,
   plan as planTable,
   question as questionTable,
   questionOption as questionOptionTable,
@@ -43,11 +46,38 @@ const QuestionType = {
   matching: "matching",
 } as const;
 
-const seededAdminName = (process.env.SEED_ADMIN_NAME ?? "MM Exam Studio Admin").trim();
-const seededAdminEmail = (process.env.SEED_ADMIN_EMAIL ?? "admin@hsuwai.space")
+const seededAdminName = (
+  process.env.SEED_SUPERADMIN_NAME ??
+  process.env.SEED_ADMIN_NAME ??
+  "MM Exam Studio Admin"
+).trim();
+const seededAdminEmail = (
+  process.env.SEED_SUPERADMIN_EMAIL ??
+  process.env.SEED_ADMIN_EMAIL ??
+  "admin@hsuwai.space"
+)
   .trim()
   .toLowerCase();
-const seededAdminPassword = (process.env.SEED_ADMIN_PASSWORD ?? "Admin@123456").trim();
+const seededAdminPassword = (
+  process.env.SEED_SUPERADMIN_PASSWORD ??
+  process.env.SEED_ADMIN_PASSWORD ??
+  "Admin@123456"
+).trim();
+const ownerDeviceLimitOverride = 20;
+const ownerOverrideEmails = Array.from(
+  new Set(
+    [
+      process.env.SUPERADMIN_EMAIL,
+      process.env.SUPERADMIN_EMAILS,
+      process.env.ADMIN_EMAIL,
+      process.env.ADMIN_EMAILS,
+      seededAdminEmail,
+    ]
+      .flatMap((value) => String(value ?? "").split(","))
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean),
+  ),
+);
 
 const authBaseUrl = (process.env.BETTER_AUTH_URL ?? "http://localhost:3000")
   .trim()
@@ -73,7 +103,7 @@ const includeGeneratedQuestions = parseBooleanEnv(
   process.env.SEED_INCLUDE_GENERATED_QUESTIONS,
   seedProfile !== "production",
 );
-const defaultGeneratedQuestionsPerGradeSubject = seedProfile === "production" ? 0 : 60;
+const defaultGeneratedQuestionsPerGradeSubject = seedProfile === "production" ? 0 : 180;
 
 const generatedQuestionsPerGradeSubject = Math.max(
   0,
@@ -132,8 +162,10 @@ type QuestionSeed = {
   type: (typeof QuestionType)[keyof typeof QuestionType];
   difficulty: (typeof Difficulty)[keyof typeof Difficulty];
   body: string;
+  questionImageUrls?: readonly string[];
   answerText?: string | null;
   explanation?: string | null;
+  solutionImageUrls?: readonly string[];
   answerFormula?: string | null;
   variablesSchema?: readonly VariableSeed[] | null;
   marks: number;
@@ -141,6 +173,59 @@ type QuestionSeed = {
   isPublished: boolean;
   reviewStatus?: (typeof QuestionReviewStatus)[keyof typeof QuestionReviewStatus];
   options: readonly OptionSeed[];
+};
+
+type BlueprintDifficultySeed = "easy" | "normal" | "hard" | "advance";
+type BlueprintPlanCodeSeed = "free" | "pro" | "premium";
+type BlueprintSectionSeed = {
+  code: string;
+  title?: string;
+  questionType?: (typeof QuestionType)[keyof typeof QuestionType];
+  marksPerQuestion?: 1 | 2 | 3 | 5 | 10;
+  questionCount: number;
+  totalMarks: number;
+  sortOrder: number;
+};
+
+type BlueprintSlotSeed = {
+  sectionCode?: string;
+  slotNumber: number;
+  questionType: (typeof QuestionType)[keyof typeof QuestionType];
+  marks: 1 | 2 | 3 | 5 | 10;
+  difficultyTarget?: BlueprintDifficultySeed;
+  chapterCode?: string;
+  subChapterCode?: string;
+  swapLimit?: number;
+  slotConfig?: Record<string, unknown>;
+};
+
+type BlueprintSeed = {
+  title: string;
+  mode: "mcq_only" | "all_type" | "custom";
+  status: "draft" | "ready" | "archived";
+  gradeCode: string;
+  subjectCode: string;
+  totalMarks: number;
+  pdfTemplateKey?: "default" | "myanmar_matric";
+  examYearLabel?: string;
+  timeAllowedLabel?: string;
+  departmentLine?: string;
+  answerInstructionLine?: string;
+  includeAnswerPaper: boolean;
+  difficultyDistribution: {
+    easy: number;
+    normal: number;
+    hard: number;
+    advance: number;
+  };
+  presetChapterCodes?: readonly string[];
+  presetSubChapterCodes?: readonly string[];
+  templateConfig?: {
+    isPublished: boolean;
+    availablePlanCodes: readonly BlueprintPlanCodeSeed[];
+  };
+  sections: readonly BlueprintSectionSeed[];
+  slots: readonly BlueprintSlotSeed[];
 };
 
 const gradeSeeds = [
@@ -170,8 +255,8 @@ const subjectSeeds = [
 
 const subjectGradeMap = {
   MATH: ["G06", "G07", "G08", "G12"],
-  ENG: ["G06", "G07", "G08"],
-  SCI: ["G06", "G07", "G08"],
+  ENG: ["G06", "G07", "G08", "G12"],
+  SCI: ["G06", "G07", "G08", "G12"],
 } as const;
 
 const chapterSeeds: readonly ChapterSeed[] = [
@@ -507,6 +592,181 @@ const chapterSeeds: readonly ChapterSeed[] = [
       },
     ],
   },
+  {
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    code: "G12-MATH-03",
+    name: "Complex Numbers",
+    description: "Imaginary unit, arithmetic with complex numbers, and modulus.",
+    sortOrder: 3,
+    isFreePreview: false,
+    subChapters: [
+      {
+        code: "G12-MATH-03-A",
+        name: "Complex Arithmetic",
+        description: "Add, subtract, and multiply complex numbers.",
+        sortOrder: 1,
+        isFreePreview: false,
+      },
+      {
+        code: "G12-MATH-03-B",
+        name: "Modulus and Argand Diagram",
+        description: "Find modulus and interpret complex numbers on the plane.",
+        sortOrder: 2,
+        isFreePreview: false,
+      },
+    ],
+  },
+  {
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    code: "G12-MATH-04",
+    name: "Transformation of Trigonometric Functions",
+    description: "Amplitude, period, phase shift, and vertical translation of trig graphs.",
+    sortOrder: 4,
+    isFreePreview: false,
+    subChapters: [
+      {
+        code: "G12-MATH-04-A",
+        name: "Amplitude and Period",
+        description: "Read stretch and period changes from trig equations.",
+        sortOrder: 1,
+        isFreePreview: false,
+      },
+      {
+        code: "G12-MATH-04-B",
+        name: "Phase Shift and Translation",
+        description: "Interpret horizontal and vertical shifts in trig graphs.",
+        sortOrder: 2,
+        isFreePreview: false,
+      },
+    ],
+  },
+  {
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    code: "G12-MATH-05",
+    name: "Conic Sections",
+    description: "Recognize and analyze circles, parabolas, ellipses, and hyperbolas.",
+    sortOrder: 5,
+    isFreePreview: false,
+    subChapters: [
+      {
+        code: "G12-MATH-05-A",
+        name: "Parabolas and Circles",
+        description: "Work with standard equations of parabolas and circles.",
+        sortOrder: 1,
+        isFreePreview: false,
+      },
+      {
+        code: "G12-MATH-05-B",
+        name: "Ellipses and Hyperbolas",
+        description: "Identify major features of ellipses and hyperbolas.",
+        sortOrder: 2,
+        isFreePreview: false,
+      },
+    ],
+  },
+  {
+    gradeCode: "G12",
+    subjectCode: "ENG",
+    code: "G12-ENG-01",
+    name: "Reading and Interpretation",
+    description: "Read short passages, identify central ideas, and justify interpretations.",
+    sortOrder: 6,
+    isFreePreview: true,
+    subChapters: [
+      {
+        code: "G12-ENG-01-A",
+        name: "Main Idea and Support",
+        description: "Identify the main idea and the best supporting detail.",
+        sortOrder: 1,
+        isFreePreview: true,
+      },
+      {
+        code: "G12-ENG-01-B",
+        name: "Inference and Tone",
+        description: "Infer meaning and describe tone from short texts.",
+        sortOrder: 2,
+        isFreePreview: false,
+      },
+    ],
+  },
+  {
+    gradeCode: "G12",
+    subjectCode: "ENG",
+    code: "G12-ENG-02",
+    name: "Grammar and Writing",
+    description: "Strengthen sentence control, grammar accuracy, and short formal writing.",
+    sortOrder: 7,
+    isFreePreview: false,
+    subChapters: [
+      {
+        code: "G12-ENG-02-A",
+        name: "Sentence Revision",
+        description: "Correct and improve sentence structure and grammar.",
+        sortOrder: 1,
+        isFreePreview: false,
+      },
+      {
+        code: "G12-ENG-02-B",
+        name: "Directed Writing",
+        description: "Respond clearly to short prompts in a formal register.",
+        sortOrder: 2,
+        isFreePreview: false,
+      },
+    ],
+  },
+  {
+    gradeCode: "G12",
+    subjectCode: "SCI",
+    code: "G12-SCI-01",
+    name: "Motion and Forces",
+    description: "Explain motion, acceleration, and balanced or unbalanced forces.",
+    sortOrder: 8,
+    isFreePreview: true,
+    subChapters: [
+      {
+        code: "G12-SCI-01-A",
+        name: "Velocity and Acceleration",
+        description: "Interpret motion quantities from simple situations and calculations.",
+        sortOrder: 1,
+        isFreePreview: true,
+      },
+      {
+        code: "G12-SCI-01-B",
+        name: "Force Diagrams",
+        description: "Analyze balanced and unbalanced forces with basic force diagrams.",
+        sortOrder: 2,
+        isFreePreview: false,
+      },
+    ],
+  },
+  {
+    gradeCode: "G12",
+    subjectCode: "SCI",
+    code: "G12-SCI-02",
+    name: "Energy and Matter",
+    description: "Recognize energy transfer and explain density and simple properties of matter.",
+    sortOrder: 9,
+    isFreePreview: false,
+    subChapters: [
+      {
+        code: "G12-SCI-02-A",
+        name: "Energy Transfer",
+        description: "Describe how energy changes from one form to another.",
+        sortOrder: 1,
+        isFreePreview: false,
+      },
+      {
+        code: "G12-SCI-02-B",
+        name: "Density and Matter",
+        description: "Calculate density and explain physical properties of substances.",
+        sortOrder: 2,
+        isFreePreview: false,
+      },
+    ],
+  },
 ];
 
 const planSeeds = [
@@ -515,7 +775,7 @@ const planSeeds = [
     name: "Free",
     description:
       "Access published questions in free-preview chapters only, with modest practice, paper, and export limits.",
-    deviceLimit: 1,
+    deviceLimit: 2,
     maxQuestionsPerPractice: 12,
     maxQuestionsPerPaper: 12,
     monthlyPdfExportLimit: 5,
@@ -533,7 +793,7 @@ const planSeeds = [
     name: "Pro",
     description:
       "Teacher workflow with larger limits and full published static question access.",
-    deviceLimit: 2,
+    deviceLimit: 3,
     maxQuestionsPerPractice: 40,
     maxQuestionsPerPaper: 40,
     monthlyPdfExportLimit: 60,
@@ -551,7 +811,7 @@ const planSeeds = [
     name: "Premium",
     description:
       "High-volume teacher workflow with broader access, stronger protection, and generous monthly limits.",
-    deviceLimit: 3,
+    deviceLimit: 5,
     maxQuestionsPerPractice: 120,
     maxQuestionsPerPaper: 120,
     monthlyPdfExportLimit: 240,
@@ -566,8 +826,409 @@ const planSeeds = [
   },
 ] as const;
 
+const starterBlueprintSeeds: readonly BlueprintSeed[] = [
+  {
+    title: "Starter Template · G12 Math Free Preview",
+    mode: "all_type",
+    status: "ready",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    totalMarks: 2,
+    pdfTemplateKey: "default",
+    includeAnswerPaper: true,
+    difficultyDistribution: {
+      easy: 50,
+      normal: 30,
+      hard: 20,
+      advance: 0,
+    },
+    presetChapterCodes: ["G12-MATH-01"],
+    templateConfig: {
+      isPublished: true,
+      availablePlanCodes: ["free", "pro", "premium"],
+    },
+    sections: [
+      {
+        code: "A",
+        title: "MCQ",
+        questionType: QuestionType.mcq,
+        marksPerQuestion: 1,
+        questionCount: 1,
+        totalMarks: 1,
+        sortOrder: 0,
+      },
+      {
+        code: "B",
+        title: "Fill in the Blank",
+        questionType: QuestionType.fill_blank,
+        marksPerQuestion: 1,
+        questionCount: 1,
+        totalMarks: 1,
+        sortOrder: 1,
+      },
+    ],
+    slots: [],
+  },
+  {
+    title: "Starter Template · G12 Math Mixed Revision",
+    mode: "all_type",
+    status: "ready",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    totalMarks: 8,
+    pdfTemplateKey: "default",
+    includeAnswerPaper: true,
+    difficultyDistribution: {
+      easy: 20,
+      normal: 50,
+      hard: 20,
+      advance: 10,
+    },
+    presetChapterCodes: ["G12-MATH-03", "G12-MATH-04", "G12-MATH-05"],
+    templateConfig: {
+      isPublished: true,
+      availablePlanCodes: ["pro", "premium"],
+    },
+    sections: [
+      {
+        code: "A",
+        title: "MCQ Review",
+        questionType: QuestionType.mcq,
+        marksPerQuestion: 1,
+        questionCount: 2,
+        totalMarks: 2,
+        sortOrder: 0,
+      },
+      {
+        code: "B",
+        title: "Fill Blank",
+        questionType: QuestionType.fill_blank,
+        marksPerQuestion: 1,
+        questionCount: 1,
+        totalMarks: 1,
+        sortOrder: 1,
+      },
+      {
+        code: "C",
+        title: "Short Answer (2 marks)",
+        questionType: QuestionType.short_answer,
+        marksPerQuestion: 2,
+        questionCount: 1,
+        totalMarks: 2,
+        sortOrder: 2,
+      },
+      {
+        code: "D",
+        title: "Short Answer (3 marks)",
+        questionType: QuestionType.short_answer,
+        marksPerQuestion: 3,
+        questionCount: 1,
+        totalMarks: 3,
+        sortOrder: 3,
+      },
+    ],
+    slots: [],
+  },
+  {
+    title: "Starter Template · G12 Math Final Prep Custom",
+    mode: "custom",
+    status: "ready",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    totalMarks: 15,
+    pdfTemplateKey: "myanmar_matric",
+    examYearLabel: "2020",
+    timeAllowedLabel: "(3) Hours",
+    departmentLine: "DEPARTMENT OF MYANMAR EXAMINATION",
+    answerInstructionLine: "WRITE YOUR ANSWERS IN THE ANSWER BOOKLET.",
+    includeAnswerPaper: true,
+    difficultyDistribution: {
+      easy: 20,
+      normal: 40,
+      hard: 20,
+      advance: 20,
+    },
+    presetChapterCodes: ["G12-MATH-01", "G12-MATH-02", "G12-MATH-03", "G12-MATH-04", "G12-MATH-05"],
+    templateConfig: {
+      isPublished: true,
+      availablePlanCodes: ["premium"],
+    },
+    sections: [
+      {
+        code: "A",
+        title: "Answer ALL questions",
+        questionType: QuestionType.mcq,
+        marksPerQuestion: 1,
+        questionCount: 2,
+        totalMarks: 2,
+        sortOrder: 0,
+      },
+      {
+        code: "B",
+        title: "Answer the short-answer question",
+        questionType: QuestionType.short_answer,
+        marksPerQuestion: 3,
+        questionCount: 1,
+        totalMarks: 3,
+        sortOrder: 1,
+      },
+      {
+        code: "C",
+        title: "Answer the long-answer question",
+        questionType: QuestionType.long_answer,
+        marksPerQuestion: 10,
+        questionCount: 1,
+        totalMarks: 10,
+        sortOrder: 2,
+      },
+    ],
+    slots: [
+      {
+        sectionCode: "A",
+        slotNumber: 1,
+        questionType: QuestionType.mcq,
+        marks: 1,
+        difficultyTarget: "normal",
+        chapterCode: "G12-MATH-01",
+        subChapterCode: "G12-MATH-01-A",
+        swapLimit: 3,
+      },
+      {
+        sectionCode: "A",
+        slotNumber: 2,
+        questionType: QuestionType.mcq,
+        marks: 1,
+        difficultyTarget: "easy",
+        chapterCode: "G12-MATH-03",
+        subChapterCode: "G12-MATH-03-A",
+        swapLimit: 3,
+      },
+      {
+        sectionCode: "B",
+        slotNumber: 3,
+        questionType: QuestionType.short_answer,
+        marks: 3,
+        difficultyTarget: "hard",
+        chapterCode: "G12-MATH-04",
+        subChapterCode: "G12-MATH-04-B",
+        swapLimit: 2,
+      },
+      {
+        sectionCode: "C",
+        slotNumber: 4,
+        questionType: QuestionType.long_answer,
+        marks: 10,
+        difficultyTarget: "hard",
+        chapterCode: "G12-MATH-02",
+        subChapterCode: "G12-MATH-02-A",
+        swapLimit: 1,
+      },
+    ],
+  },
+  {
+    title: "Starter Template · G12 English Reading Drill",
+    mode: "all_type",
+    status: "ready",
+    gradeCode: "G12",
+    subjectCode: "ENG",
+    totalMarks: 6,
+    pdfTemplateKey: "default",
+    includeAnswerPaper: true,
+    difficultyDistribution: {
+      easy: 30,
+      normal: 50,
+      hard: 20,
+      advance: 0,
+    },
+    presetChapterCodes: ["G12-ENG-01", "G12-ENG-02"],
+    templateConfig: {
+      isPublished: true,
+      availablePlanCodes: ["pro", "premium"],
+    },
+    sections: [
+      {
+        code: "A",
+        title: "Reading MCQ",
+        questionType: QuestionType.mcq,
+        marksPerQuestion: 1,
+        questionCount: 2,
+        totalMarks: 2,
+        sortOrder: 0,
+      },
+      {
+        code: "B",
+        title: "Grammar Short Response",
+        questionType: QuestionType.short_answer,
+        marksPerQuestion: 2,
+        questionCount: 2,
+        totalMarks: 4,
+        sortOrder: 1,
+      },
+    ],
+    slots: [],
+  },
+  {
+    title: "Starter Template · G12 Science Concepts Check",
+    mode: "all_type",
+    status: "ready",
+    gradeCode: "G12",
+    subjectCode: "SCI",
+    totalMarks: 7,
+    pdfTemplateKey: "default",
+    includeAnswerPaper: true,
+    difficultyDistribution: {
+      easy: 30,
+      normal: 40,
+      hard: 20,
+      advance: 10,
+    },
+    presetChapterCodes: ["G12-SCI-01", "G12-SCI-02"],
+    templateConfig: {
+      isPublished: true,
+      availablePlanCodes: ["pro", "premium"],
+    },
+    sections: [
+      {
+        code: "A",
+        title: "Concept MCQ",
+        questionType: QuestionType.mcq,
+        marksPerQuestion: 1,
+        questionCount: 2,
+        totalMarks: 2,
+        sortOrder: 0,
+      },
+      {
+        code: "B",
+        title: "Short Explanation",
+        questionType: QuestionType.short_answer,
+        marksPerQuestion: 2,
+        questionCount: 1,
+        totalMarks: 2,
+        sortOrder: 1,
+      },
+      {
+        code: "C",
+        title: "Matching",
+        questionType: QuestionType.matching,
+        marksPerQuestion: 3,
+        questionCount: 1,
+        totalMarks: 3,
+        sortOrder: 2,
+      },
+    ],
+    slots: [],
+  },
+] as const;
+
 const reviewStatusFor = (isPublished: boolean) =>
   isPublished ? QuestionReviewStatus.approved : QuestionReviewStatus.draft;
+
+const toSvgDataUrl = (svg: string) =>
+  `data:image/svg+xml;base64,${Buffer.from(svg.trim()).toString("base64")}`;
+
+const buildMathSvgCard = (params: {
+  title: string;
+  subtitle?: string;
+  body: string;
+}) =>
+  toSvgDataUrl(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="900" height="480" viewBox="0 0 900 480">
+      <rect width="900" height="480" rx="28" fill="#f8fafc" />
+      <rect x="20" y="20" width="860" height="440" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="3" />
+      <text x="60" y="100" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#0f172a">${params.title}</text>
+      ${
+        params.subtitle
+          ? `<text x="60" y="146" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#475569">${params.subtitle}</text>`
+          : ""
+      }
+      <foreignObject x="56" y="180" width="788" height="220">
+        <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Arial, Helvetica, sans-serif; color: #1e293b; font-size: 28px; line-height: 1.45;">
+          ${params.body}
+        </div>
+      </foreignObject>
+    </svg>
+  `);
+
+const MATH_SVG_ASSETS = {
+  parabolaFocus: buildMathSvgCard({
+    title: "Parabola Diagram",
+    subtitle: "Standard form: y² = 8x",
+    body:
+      "<div>Vertex: (0, 0)<br/>Focus: (2, 0)<br/>Directrix: x = -2</div>",
+  }),
+  hyperbolaStandard: buildMathSvgCard({
+    title: "Hyperbola Reference",
+    subtitle: "x²/9 − y²/16 = 1",
+    body:
+      "<div>Center: (0, 0)<br/>a = 3, b = 4<br/>Opens left and right</div>",
+  }),
+  trigShift: buildMathSvgCard({
+    title: "Trig Transformation",
+    subtitle: "y = sin(x + 45°)",
+    body:
+      "<div>Amplitude: 1<br/>Period: 360°<br/>Phase shift: 45° left</div>",
+  }),
+  complexPlane: buildMathSvgCard({
+    title: "Argand Diagram",
+    subtitle: "Point P(-2, 3)",
+    body:
+      "<div>Real axis = x-axis<br/>Imaginary axis = y-axis<br/>Point P corresponds to -2 + 3i</div>",
+  }),
+  ellipseMajorAxis: buildMathSvgCard({
+    title: "Ellipse Reference",
+    subtitle: "x²/16 + y²/9 = 1",
+    body:
+      "<div>Center: (0, 0)<br/>Major axis along x-axis<br/>Vertices: (±4, 0)</div>",
+  }),
+  limitApproach: buildMathSvgCard({
+    title: "Limit from a Graph",
+    subtitle: "As x approaches 2",
+    body:
+      "<div>Left-hand and right-hand values both approach 5<br/>Open circle at (2, 5)</div>",
+  }),
+  shiftedParabola: buildMathSvgCard({
+    title: "Shifted Parabola",
+    subtitle: "y = (x - 2)² - 1",
+    body:
+      "<div>Vertex: (2, -1)<br/>Axis of symmetry: x = 2<br/>Opens upward</div>",
+  }),
+  trigComparison: buildMathSvgCard({
+    title: "Trig Comparison",
+    subtitle: "Compare sin x and 2sin x",
+    body:
+      "<div>Both have the same period<br/>2sin x has larger amplitude</div>",
+  }),
+  quadraticGraph: buildMathSvgCard({
+    title: "Quadratic Function",
+    subtitle: "y = (x - 1)(x - 5)",
+    body:
+      "<div>x-intercepts: 1 and 5<br/>Axis of symmetry: x = 3<br/>Vertex lies below the x-axis</div>",
+  }),
+  derivativeSlope: buildMathSvgCard({
+    title: "Derivative Snapshot",
+    subtitle: "y = x² at x = 2",
+    body:
+      "<div>Tangent slope = 4<br/>Gradient increases as x increases<br/>Use f'(x) = 2x</div>",
+  }),
+  logarithmSteps: buildMathSvgCard({
+    title: "Logarithm Rule",
+    subtitle: "logₐ(MN) = logₐ M + logₐ N",
+    body:
+      "<div>Useful for simplifying products<br/>Also recall logₐ(Mⁿ) = n logₐ M</div>",
+  }),
+  forceDiagram: buildMathSvgCard({
+    title: "Force Diagram",
+    subtitle: "Balanced forces on a box",
+    body:
+      "<div>10 N left and 10 N right<br/>Net force = 0 N<br/>The object stays in equilibrium</div>",
+  }),
+  energyTransfer: buildMathSvgCard({
+    title: "Energy Transfer",
+    subtitle: "Battery to lamp",
+    body:
+      "<div>Chemical energy → electrical energy → light and heat energy</div>",
+  }),
+} as const;
 
 const withCommonFields = <T extends Omit<QuestionSeed, "mode" | "type" | "reviewStatus" | "options">>(
   config: T,
@@ -645,6 +1306,939 @@ const variableShortAnswer = (
   reviewStatus: reviewStatusFor(config.isPublished),
 });
 
+const curatedMathQuestionSeeds: readonly QuestionSeed[] = [
+  mcq({
+    questionCode: "QB-G06-MATH-LTX-0001",
+    title: "Fraction addition with LaTeX",
+    gradeCode: "G06",
+    subjectCode: "MATH",
+    chapterCode: "G06-MATH-01",
+    subChapterCode: "G06-MATH-01-C",
+    difficulty: Difficulty.medium,
+    body: "Find $\\frac{1}{4} + \\frac{1}{2}$.",
+    explanation:
+      "Use a common denominator: $\\frac{1}{2} = \\frac{2}{4}$, so $\\frac{1}{4} + \\frac{2}{4} = \\frac{3}{4}$.",
+    marks: 1,
+    estimatedTimeSec: 50,
+    isPublished: true,
+    options: [
+      { label: "A", text: "$\\frac{1}{2}$", isCorrect: false, sortOrder: 0 },
+      { label: "B", text: "$\\frac{2}{3}$", isCorrect: false, sortOrder: 1 },
+      { label: "C", text: "$\\frac{3}{4}$", isCorrect: true, sortOrder: 2 },
+      { label: "D", text: "$1$", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  fillBlank({
+    questionCode: "QB-G06-MATH-LTX-0002",
+    title: "Square root fill blank",
+    gradeCode: "G06",
+    subjectCode: "MATH",
+    chapterCode: "G06-MATH-02",
+    subChapterCode: "G06-MATH-02-B",
+    difficulty: Difficulty.easy,
+    body: "Fill in the blank: $\\sqrt{81} =$ ____.",
+    answerText: "9",
+    explanation: "$9 \\times 9 = 81$, so $\\sqrt{81} = 9$.",
+    marks: 1,
+    estimatedTimeSec: 40,
+    isPublished: true,
+  }),
+  shortAnswer({
+    questionCode: "QB-G07-MATH-LTX-0003",
+    title: "Solve one-step equation",
+    gradeCode: "G07",
+    subjectCode: "MATH",
+    chapterCode: "G07-MATH-01",
+    subChapterCode: "G07-MATH-01-B",
+    difficulty: Difficulty.medium,
+    body: "Solve for $x$: $x + 7 = 19$.",
+    answerText: "$x = 12$",
+    explanation: "Subtract 7 from both sides: $x = 19 - 7 = 12$.",
+    marks: 2,
+    estimatedTimeSec: 55,
+    isPublished: true,
+  }),
+  trueFalse({
+    questionCode: "QB-G07-MATH-LTX-0004",
+    title: "Percentage equivalence",
+    gradeCode: "G07",
+    subjectCode: "MATH",
+    chapterCode: "G07-MATH-02",
+    subChapterCode: "G07-MATH-02-B",
+    difficulty: Difficulty.easy,
+    body: "True or False: $25\\% = \\frac{1}{4}$.",
+    answerText: "True",
+    explanation: "$25\\% = \\frac{25}{100} = \\frac{1}{4}$.",
+    marks: 1,
+    estimatedTimeSec: 35,
+    isPublished: true,
+  }),
+  matching({
+    questionCode: "QB-G08-MATH-LTX-0005",
+    title: "Match algebraic expressions",
+    gradeCode: "G08",
+    subjectCode: "MATH",
+    chapterCode: "G08-MATH-01",
+    subChapterCode: "G08-MATH-01-A",
+    difficulty: Difficulty.medium,
+    body: "Match each algebraic expression with its simplified value when $x = 2$.",
+    explanation: "Substitute $x = 2$ into each expression first, then simplify.",
+    marks: 5,
+    estimatedTimeSec: 90,
+    isPublished: true,
+    options: [
+      { label: "$x + 5$", text: "$7$", isCorrect: true, sortOrder: 0 },
+      { label: "$3x$", text: "$6$", isCorrect: true, sortOrder: 1 },
+      { label: "$x^2 + 1$", text: "$5$", isCorrect: true, sortOrder: 2 },
+    ],
+  }),
+  shortAnswer({
+    questionCode: "QB-G08-MATH-LTX-0006",
+    title: "Slope from two points",
+    gradeCode: "G08",
+    subjectCode: "MATH",
+    chapterCode: "G08-MATH-01",
+    subChapterCode: "G08-MATH-01-B",
+    difficulty: Difficulty.hard,
+    body: "Find the slope of the line through $(2, 5)$ and $(6, 13)$.",
+    answerText: "$2$",
+    explanation:
+      "Use $m = \\frac{y_2 - y_1}{x_2 - x_1} = \\frac{13 - 5}{6 - 2} = \\frac{8}{4} = 2$.",
+    marks: 3,
+    estimatedTimeSec: 85,
+    isPublished: true,
+  }),
+  mcq({
+    questionCode: "QB-G12-MATH-LTX-0007",
+    title: "Quadratic factorization",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-01",
+    subChapterCode: "G12-MATH-01-A",
+    difficulty: Difficulty.medium,
+    body: "Which expression is equivalent to $x^2 - 5x + 6$?",
+    explanation: "Look for two numbers whose product is 6 and sum is -5: -2 and -3.",
+    marks: 1,
+    estimatedTimeSec: 55,
+    isPublished: true,
+    options: [
+      { label: "A", text: "$(x-1)(x-6)$", isCorrect: false, sortOrder: 0 },
+      { label: "B", text: "$(x-2)(x-3)$", isCorrect: true, sortOrder: 1 },
+      { label: "C", text: "$(x+2)(x+3)$", isCorrect: false, sortOrder: 2 },
+      { label: "D", text: "$(x+1)(x+6)$", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  fillBlank({
+    questionCode: "QB-G12-MATH-LTX-0008",
+    title: "Logarithm value",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-01",
+    subChapterCode: "G12-MATH-01-B",
+    difficulty: Difficulty.hard,
+    body: "Fill in the blank: If $2^5 = 32$, then $\\log_2 32 =$ ____.",
+    answerText: "5",
+    explanation: "A logarithm asks for the power, so $\\log_2 32 = 5$.",
+    marks: 1,
+    estimatedTimeSec: 50,
+    isPublished: true,
+  }),
+  shortAnswer({
+    questionCode: "QB-G12-MATH-LTX-0009",
+    title: "Differentiate polynomial",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-02",
+    subChapterCode: "G12-MATH-02-B",
+    difficulty: Difficulty.hard,
+    body: "Differentiate $f(x) = 4x^3 - 3x^2 + 2x - 7$.",
+    answerText: "$f'(x) = 12x^2 - 6x + 2$",
+    explanation:
+      "Apply the power rule term by term: $\\frac{d}{dx}(4x^3)=12x^2$, $\\frac{d}{dx}(-3x^2)=-6x$, $\\frac{d}{dx}(2x)=2$.",
+    marks: 3,
+    estimatedTimeSec: 100,
+    isPublished: true,
+  }),
+  longAnswer({
+    questionCode: "QB-G12-MATH-LTX-0010",
+    title: "Limit explanation",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-02",
+    subChapterCode: "G12-MATH-02-A",
+    difficulty: Difficulty.hard,
+    body:
+      "Evaluate and explain: $$\\lim_{x \\to 3} (2x^2 - x + 4).$$ Show the substitution step clearly.",
+    explanation:
+      "A full-mark answer states that direct substitution works for polynomials and computes $2(3)^2 - 3 + 4 = 19$.",
+    marks: 10,
+    estimatedTimeSec: 220,
+    isPublished: true,
+  }),
+  mcq({
+    questionCode: "QB-G12-MATH-LTX-0011",
+    title: "Imaginary unit square",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-03",
+    subChapterCode: "G12-MATH-03-A",
+    difficulty: Difficulty.easy,
+    body: "What is the value of $i^2$?",
+    explanation: "By definition of the imaginary unit, $i^2 = -1$.",
+    marks: 1,
+    estimatedTimeSec: 35,
+    isPublished: true,
+    options: [
+      { label: "A", text: "$1$", isCorrect: false, sortOrder: 0 },
+      { label: "B", text: "$-1$", isCorrect: true, sortOrder: 1 },
+      { label: "C", text: "$i$", isCorrect: false, sortOrder: 2 },
+      { label: "D", text: "$-i$", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  shortAnswer({
+    questionCode: "QB-G12-MATH-LTX-0012",
+    title: "Add complex numbers",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-03",
+    subChapterCode: "G12-MATH-03-A",
+    difficulty: Difficulty.medium,
+    body: "Simplify $(3 + 2i) + (5 - 7i)$.",
+    answerText: "$8 - 5i$",
+    explanation: "Add real parts and imaginary parts separately: $(3+5) + (2i-7i) = 8 - 5i$.",
+    marks: 2,
+    estimatedTimeSec: 60,
+    isPublished: true,
+  }),
+  fillBlank({
+    questionCode: "QB-G12-MATH-LTX-0013",
+    title: "Modulus of a complex number",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-03",
+    subChapterCode: "G12-MATH-03-B",
+    difficulty: Difficulty.medium,
+    body: "Fill in the blank: The modulus of $3 + 4i$ is ____.",
+    answerText: "5",
+    explanation: "$|3 + 4i| = \\sqrt{3^2 + 4^2} = \\sqrt{25} = 5$.",
+    marks: 1,
+    estimatedTimeSec: 55,
+    isPublished: true,
+  }),
+  mcq({
+    questionCode: "QB-G12-MATH-LTX-0014",
+    title: "Amplitude of a trig function",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-04",
+    subChapterCode: "G12-MATH-04-A",
+    difficulty: Difficulty.medium,
+    body: "What is the amplitude of $y = 3\\sin x - 2$?",
+    explanation: "For $y = a\\sin x + k$, the amplitude is $|a|$, so the amplitude is $3$.",
+    marks: 1,
+    estimatedTimeSec: 45,
+    isPublished: true,
+    options: [
+      { label: "A", text: "$1$", isCorrect: false, sortOrder: 0 },
+      { label: "B", text: "$2$", isCorrect: false, sortOrder: 1 },
+      { label: "C", text: "$3$", isCorrect: true, sortOrder: 2 },
+      { label: "D", text: "$5$", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  fillBlank({
+    questionCode: "QB-G12-MATH-LTX-0015",
+    title: "Period of a transformed sine graph",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-04",
+    subChapterCode: "G12-MATH-04-A",
+    difficulty: Difficulty.medium,
+    body: "Fill in the blank: The period of $y = \\sin(2x)$ is ____.",
+    answerText: "$\\pi$",
+    explanation: "For $y = \\sin(bx)$, period $= \\frac{2\\pi}{b} = \\frac{2\\pi}{2} = \\pi$.",
+    marks: 1,
+    estimatedTimeSec: 60,
+    isPublished: true,
+  }),
+  shortAnswer({
+    questionCode: "QB-G12-MATH-LTX-0016",
+    title: "Describe a trig translation",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-04",
+    subChapterCode: "G12-MATH-04-B",
+    difficulty: Difficulty.hard,
+    body: "Describe the transformations from $y = \\sin x$ to $y = \\sin(x - 30^\\circ) + 2$.",
+    answerText: "Shift 30 degrees to the right and 2 units up",
+    explanation:
+      "$x - 30^\\circ$ gives a horizontal shift to the right by $30^\\circ$, and $+2$ shifts the graph upward by 2 units.",
+    marks: 3,
+    estimatedTimeSec: 95,
+    isPublished: true,
+  }),
+  mcq({
+    questionCode: "QB-G12-MATH-LTX-0017",
+    title: "Identify a conic",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-05",
+    subChapterCode: "G12-MATH-05-A",
+    difficulty: Difficulty.easy,
+    body: "The graph of $y = x^2$ is which conic section?",
+    explanation: "$y = x^2$ is the standard form of a parabola opening upward.",
+    marks: 1,
+    estimatedTimeSec: 35,
+    isPublished: true,
+    options: [
+      { label: "A", text: "Circle", isCorrect: false, sortOrder: 0 },
+      { label: "B", text: "Parabola", isCorrect: true, sortOrder: 1 },
+      { label: "C", text: "Ellipse", isCorrect: false, sortOrder: 2 },
+      { label: "D", text: "Hyperbola", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  shortAnswer({
+    questionCode: "QB-G12-MATH-LTX-0018",
+    title: "Circle center and radius",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-05",
+    subChapterCode: "G12-MATH-05-A",
+    difficulty: Difficulty.medium,
+    body: "Find the center and radius of $x^2 + y^2 = 25$.",
+    answerText: "Center (0,0), radius 5",
+    explanation: "Compare with $(x-h)^2 + (y-k)^2 = r^2$. Here $h=0$, $k=0$, and $r=5$.",
+    marks: 2,
+    estimatedTimeSec: 70,
+    isPublished: true,
+  }),
+  fillBlank({
+    questionCode: "QB-G12-MATH-LTX-0019",
+    title: "Focus of a parabola",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-05",
+    subChapterCode: "G12-MATH-05-A",
+    difficulty: Difficulty.hard,
+    body: "Fill in the blank: For the parabola $y^2 = 8x$, the focus is ____.",
+    answerText: "$(2,0)$",
+    explanation: "Compare with $y^2 = 4ax$. Then $4a = 8$, so $a=2$ and the focus is $(2,0)$.",
+    questionImageUrls: [MATH_SVG_ASSETS.parabolaFocus],
+    solutionImageUrls: [MATH_SVG_ASSETS.parabolaFocus],
+    marks: 1,
+    estimatedTimeSec: 75,
+    isPublished: true,
+  }),
+  mcq({
+    questionCode: "QB-G12-MATH-LTX-0020",
+    title: "Modulus of a complex number in surd form",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-03",
+    subChapterCode: "G12-MATH-03-B",
+    difficulty: Difficulty.hard,
+    body: "If $z = -1 + \\sqrt{3}i$, what is $|z|$?",
+    explanation:
+      "Use $|a+bi| = \\sqrt{a^2 + b^2} = \\sqrt{(-1)^2 + (\\sqrt{3})^2} = \\sqrt{4} = 2$.",
+    marks: 1,
+    estimatedTimeSec: 70,
+    isPublished: true,
+    options: [
+      { label: "A", text: "$1$", isCorrect: false, sortOrder: 0 },
+      { label: "B", text: "$2$", isCorrect: true, sortOrder: 1 },
+      { label: "C", text: "$\\sqrt{3}$", isCorrect: false, sortOrder: 2 },
+      { label: "D", text: "$4$", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  mcq({
+    questionCode: "QB-G12-MATH-LTX-0021",
+    title: "Phase shift of a sine graph",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-04",
+    subChapterCode: "G12-MATH-04-B",
+    difficulty: Difficulty.hard,
+    body: "Which phase shift describes $y = \\sin(x + 45^\\circ)$?",
+    explanation:
+      "Replacing $x$ with $x + 45^\\circ$ shifts the graph $45^\\circ$ to the left.",
+    questionImageUrls: [MATH_SVG_ASSETS.trigShift],
+    solutionImageUrls: [MATH_SVG_ASSETS.trigShift],
+    marks: 1,
+    estimatedTimeSec: 65,
+    isPublished: true,
+    options: [
+      { label: "A", text: "Shift $45^\\circ$ right", isCorrect: false, sortOrder: 0 },
+      { label: "B", text: "Shift $45^\\circ$ left", isCorrect: true, sortOrder: 1 },
+      { label: "C", text: "Shift 2 units up", isCorrect: false, sortOrder: 2 },
+      { label: "D", text: "No phase shift", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  mcq({
+    questionCode: "QB-G12-MATH-LTX-0022",
+    title: "Identify a hyperbola from standard form",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-05",
+    subChapterCode: "G12-MATH-05-B",
+    difficulty: Difficulty.hard,
+    body: "The equation $\\frac{x^2}{9} - \\frac{y^2}{16} = 1$ represents which conic?",
+    explanation:
+      "A difference of squared terms equal to 1 is the standard form of a hyperbola.",
+    questionImageUrls: [MATH_SVG_ASSETS.hyperbolaStandard],
+    solutionImageUrls: [MATH_SVG_ASSETS.hyperbolaStandard],
+    marks: 1,
+    estimatedTimeSec: 60,
+    isPublished: true,
+    options: [
+      { label: "A", text: "Circle", isCorrect: false, sortOrder: 0 },
+      { label: "B", text: "Ellipse", isCorrect: false, sortOrder: 1 },
+      { label: "C", text: "Parabola", isCorrect: false, sortOrder: 2 },
+      { label: "D", text: "Hyperbola", isCorrect: true, sortOrder: 3 },
+    ],
+  }),
+  mcq({
+    questionCode: "QB-G12-MATH-LTX-0028",
+    title: "Read a complex number from the Argand diagram",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-03",
+    subChapterCode: "G12-MATH-03-A",
+    difficulty: Difficulty.medium,
+    body: "In the Argand diagram, point $P(-2,3)$ represents which complex number?",
+    explanation:
+      "A point $(a,b)$ on the Argand plane represents the complex number $a + bi$, so the point is $-2 + 3i$.",
+    questionImageUrls: [MATH_SVG_ASSETS.complexPlane],
+    solutionImageUrls: [MATH_SVG_ASSETS.complexPlane],
+    marks: 1,
+    estimatedTimeSec: 55,
+    isPublished: true,
+    options: [
+      { label: "A", text: "$-2 + 3i$", isCorrect: true, sortOrder: 0 },
+      { label: "B", text: "$2 - 3i$", isCorrect: false, sortOrder: 1 },
+      { label: "C", text: "$3 - 2i$", isCorrect: false, sortOrder: 2 },
+      { label: "D", text: "$-3 + 2i$", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  fillBlank({
+    questionCode: "QB-G12-MATH-LTX-0029",
+    title: "Maximum value of a transformed cosine graph",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-04",
+    subChapterCode: "G12-MATH-04-A",
+    difficulty: Difficulty.medium,
+    body: "Fill in the blank: The maximum value of $y = 2\\cos x + 1$ is ____.",
+    answerText: "3",
+    explanation: "The cosine value ranges from $-1$ to $1$. Multiplying by 2 gives $-2$ to $2$, then adding 1 gives $-1$ to $3$.",
+    marks: 1,
+    estimatedTimeSec: 55,
+    isPublished: true,
+  }),
+  shortAnswer({
+    questionCode: "QB-G12-MATH-LTX-0030",
+    title: "Read the vertices of an ellipse",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-05",
+    subChapterCode: "G12-MATH-05-A",
+    difficulty: Difficulty.medium,
+    body: "For the ellipse $\\frac{x^2}{16} + \\frac{y^2}{9} = 1$, state the vertices on the major axis.",
+    answerText: "$(\\pm 4, 0)$",
+    explanation: "Since $a^2 = 16$, we have $a = 4$. The major axis lies on the x-axis, so the vertices are $(4,0)$ and $(-4,0)$.",
+    questionImageUrls: [MATH_SVG_ASSETS.ellipseMajorAxis],
+    solutionImageUrls: [MATH_SVG_ASSETS.ellipseMajorAxis],
+    marks: 2,
+    estimatedTimeSec: 75,
+    isPublished: true,
+  }),
+  mcq({
+    questionCode: "QB-G12-MATH-LTX-0031",
+    title: "Limit read from a graph",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-02",
+    subChapterCode: "G12-MATH-02-A",
+    difficulty: Difficulty.medium,
+    body: "From the graph, what is $\\lim_{x \\to 2} f(x)$?",
+    explanation:
+      "Both sides of the graph approach the same y-value, 5, as $x$ approaches 2. So the limit is 5.",
+    questionImageUrls: [MATH_SVG_ASSETS.limitApproach],
+    solutionImageUrls: [MATH_SVG_ASSETS.limitApproach],
+    marks: 1,
+    estimatedTimeSec: 60,
+    isPublished: true,
+    options: [
+      { label: "A", text: "$2$", isCorrect: false, sortOrder: 0 },
+      { label: "B", text: "$4$", isCorrect: false, sortOrder: 1 },
+      { label: "C", text: "$5$", isCorrect: true, sortOrder: 2 },
+      { label: "D", text: "Does not exist", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  trueFalse({
+    questionCode: "QB-G12-MATH-LTX-0032",
+    title: "Asymptotes of a hyperbola",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-05",
+    subChapterCode: "G12-MATH-05-B",
+    difficulty: Difficulty.hard,
+    body: "True or False: The asymptotes of $\\frac{x^2}{9} - \\frac{y^2}{16} = 1$ are $y = \\pm \\frac{4}{3}x$.",
+    answerText: "True",
+    explanation:
+      "For $\\frac{x^2}{a^2} - \\frac{y^2}{b^2} = 1$, the asymptotes are $y = \\pm \\frac{b}{a}x$. Here $a=3$ and $b=4$.",
+    questionImageUrls: [MATH_SVG_ASSETS.hyperbolaStandard],
+    solutionImageUrls: [MATH_SVG_ASSETS.hyperbolaStandard],
+    marks: 1,
+    estimatedTimeSec: 55,
+    isPublished: true,
+  }),
+  matching({
+    questionCode: "QB-G12-MATH-LTX-0033",
+    title: "Match trig equations with their key features",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-04",
+    subChapterCode: "G12-MATH-04-B",
+    difficulty: Difficulty.medium,
+    body: "Match each trigonometric equation with the correct graph feature.",
+    explanation:
+      "Compare the coefficient in front of the trig function for amplitude and the number multiplying x for period changes.",
+    questionImageUrls: [MATH_SVG_ASSETS.trigComparison],
+    solutionImageUrls: [MATH_SVG_ASSETS.trigComparison],
+    marks: 5,
+    estimatedTimeSec: 100,
+    isPublished: true,
+    options: [
+      { label: "$y = 2\\sin x$", text: "Amplitude 2", isCorrect: true, sortOrder: 0 },
+      { label: "$y = \\sin(2x)$", text: "Period $\\pi$", isCorrect: true, sortOrder: 1 },
+      { label: "$y = \\cos x + 3$", text: "Shifted 3 units up", isCorrect: true, sortOrder: 2 },
+    ],
+  }),
+  longAnswer({
+    questionCode: "QB-G12-MATH-LTX-0034",
+    title: "Describe a shifted parabola",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-05",
+    subChapterCode: "G12-MATH-05-A",
+    difficulty: Difficulty.hard,
+    body:
+      "Using the graph of $y = (x - 2)^2 - 1$, describe the vertex, the axis of symmetry, and the direction in which the parabola opens.",
+    answerText: "Vertex (2,-1), axis of symmetry x = 2, opens upward",
+    explanation:
+      "The equation is in the form $y = (x-h)^2 + k$. Hence the vertex is $(h,k)=(2,-1)$, the axis is $x=2$, and the positive coefficient means the parabola opens upward.",
+    questionImageUrls: [MATH_SVG_ASSETS.shiftedParabola],
+    solutionImageUrls: [MATH_SVG_ASSETS.shiftedParabola],
+    marks: 10,
+    estimatedTimeSec: 220,
+    isPublished: true,
+  }),
+  fillBlank({
+    questionCode: "QB-G12-MATH-LTX-0023",
+    title: "Value of a quadratic at a point",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-01",
+    subChapterCode: "G12-MATH-01-A",
+    difficulty: Difficulty.medium,
+    body: "Fill in the blank: If $f(x) = x^2 - 4x + 4$, then $f(2) =$ ____.",
+    answerText: "0",
+    explanation: "Substitute $x = 2$: $2^2 - 4(2) + 4 = 4 - 8 + 4 = 0$.",
+    marks: 1,
+    estimatedTimeSec: 50,
+    isPublished: true,
+  }),
+  shortAnswer({
+    questionCode: "QB-G12-MATH-LTX-0024",
+    title: "Evaluate a factorized limit",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-02",
+    subChapterCode: "G12-MATH-02-A",
+    difficulty: Difficulty.hard,
+    body: "Evaluate $\\lim_{x \\to 3} \\frac{x^2 - 9}{x - 3}$.",
+    answerText: "$6$",
+    explanation:
+      "Factor the numerator: $x^2 - 9 = (x-3)(x+3)$. Cancel $(x-3)$, then substitute $x=3$ to get $6$.",
+    marks: 3,
+    estimatedTimeSec: 95,
+    isPublished: true,
+  }),
+  trueFalse({
+    questionCode: "QB-G12-MATH-LTX-0025",
+    title: "Modulus statement check",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-03",
+    subChapterCode: "G12-MATH-03-B",
+    difficulty: Difficulty.medium,
+    body: "True or False: $|1 - i| = 2$.",
+    answerText: "False",
+    explanation:
+      "$|1 - i| = \\sqrt{1^2 + (-1)^2} = \\sqrt{2}$, not $2$.",
+    marks: 1,
+    estimatedTimeSec: 45,
+    isPublished: true,
+  }),
+  matching({
+    questionCode: "QB-G12-MATH-LTX-0026",
+    title: "Match conic equations with conic names",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-05",
+    subChapterCode: "G12-MATH-05-B",
+    difficulty: Difficulty.medium,
+    body: "Match each standard equation with the correct conic section.",
+    explanation:
+      "Check whether the equation has one squared variable, both added squared variables, or a difference of squared variables.",
+    marks: 5,
+    estimatedTimeSec: 95,
+    isPublished: true,
+    options: [
+      { label: "$y^2 = 8x$", text: "Parabola", isCorrect: true, sortOrder: 0 },
+      { label: "$x^2 + y^2 = 16$", text: "Circle", isCorrect: true, sortOrder: 1 },
+      { label: "$\\frac{x^2}{9} - \\frac{y^2}{4} = 1$", text: "Hyperbola", isCorrect: true, sortOrder: 2 },
+    ],
+  }),
+  longAnswer({
+    questionCode: "QB-G12-MATH-LTX-0027",
+    title: "Compare ellipse and hyperbola features",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-05",
+    subChapterCode: "G12-MATH-05-B",
+    difficulty: Difficulty.hard,
+    body:
+      "Explain two differences between an ellipse and a hyperbola, and give one example equation for each.",
+    explanation:
+      "A strong answer compares the overall graph shape and the standard-form sign pattern, then gives one correct example for each conic.",
+    marks: 10,
+    estimatedTimeSec: 240,
+    isPublished: true,
+  }),
+  mcq({
+    questionCode: "QB-G12-MATH-LTX-0035",
+    title: "Roots of a quadratic expression",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-01",
+    subChapterCode: "G12-MATH-01-A",
+    difficulty: Difficulty.medium,
+    body: "The roots of $x^2 - 6x + 5 = 0$ are:",
+    explanation: "Factorize: $x^2 - 6x + 5 = (x-1)(x-5)$, so the roots are 1 and 5.",
+    questionImageUrls: [MATH_SVG_ASSETS.quadraticGraph],
+    solutionImageUrls: [MATH_SVG_ASSETS.quadraticGraph],
+    marks: 1,
+    estimatedTimeSec: 55,
+    isPublished: true,
+    options: [
+      { label: "A", text: "$1$ and $5$", isCorrect: true, sortOrder: 0 },
+      { label: "B", text: "$-1$ and $-5$", isCorrect: false, sortOrder: 1 },
+      { label: "C", text: "$2$ and $4$", isCorrect: false, sortOrder: 2 },
+      { label: "D", text: "$-2$ and $-4$", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  shortAnswer({
+    questionCode: "QB-G12-MATH-LTX-0036",
+    title: "Use logarithm laws to simplify",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-01",
+    subChapterCode: "G12-MATH-01-B",
+    difficulty: Difficulty.medium,
+    body: "Simplify $\\log_a 8 + \\log_a 4$ into a single logarithm.",
+    answerText: "$\\log_a 32$",
+    explanation:
+      "Use the product rule: $\\log_a 8 + \\log_a 4 = \\log_a (8 \\times 4) = \\log_a 32$.",
+    questionImageUrls: [MATH_SVG_ASSETS.logarithmSteps],
+    solutionImageUrls: [MATH_SVG_ASSETS.logarithmSteps],
+    marks: 3,
+    estimatedTimeSec: 85,
+    isPublished: true,
+  }),
+  fillBlank({
+    questionCode: "QB-G12-MATH-LTX-0037",
+    title: "Derivative at a point",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-02",
+    subChapterCode: "G12-MATH-02-B",
+    difficulty: Difficulty.medium,
+    body: "Fill in the blank: If $f(x) = x^2$, then $f'(2) =$ ____.",
+    answerText: "4",
+    explanation: "Differentiate first: $f'(x) = 2x$. Then substitute $x = 2$ to get $4$.",
+    questionImageUrls: [MATH_SVG_ASSETS.derivativeSlope],
+    solutionImageUrls: [MATH_SVG_ASSETS.derivativeSlope],
+    marks: 1,
+    estimatedTimeSec: 50,
+    isPublished: true,
+  }),
+  shortAnswer({
+    questionCode: "QB-G12-MATH-LTX-0038",
+    title: "Gradient of a tangent",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-02",
+    subChapterCode: "G12-MATH-02-B",
+    difficulty: Difficulty.hard,
+    body: "Find the gradient of the tangent to $y = x^2$ at the point where $x = 2$.",
+    answerText: "4",
+    explanation:
+      "The derivative of $y = x^2$ is $\\frac{dy}{dx} = 2x$. At $x = 2$, the gradient is $2(2) = 4$.",
+    questionImageUrls: [MATH_SVG_ASSETS.derivativeSlope],
+    solutionImageUrls: [MATH_SVG_ASSETS.derivativeSlope],
+    marks: 3,
+    estimatedTimeSec: 95,
+    isPublished: true,
+  }),
+  trueFalse({
+    questionCode: "QB-G12-MATH-LTX-0039",
+    title: "Continuity of a polynomial",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-02",
+    subChapterCode: "G12-MATH-02-A",
+    difficulty: Difficulty.easy,
+    body: "True or False: Every polynomial function is continuous for all real values of $x$.",
+    answerText: "True",
+    explanation:
+      "Polynomial functions do not have breaks, holes, or vertical asymptotes, so they are continuous for all real numbers.",
+    marks: 1,
+    estimatedTimeSec: 45,
+    isPublished: true,
+  }),
+  mcq({
+    questionCode: "QB-G12-MATH-LTX-0040",
+    title: "Identify the point on the Argand plane",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-03",
+    subChapterCode: "G12-MATH-03-A",
+    difficulty: Difficulty.medium,
+    body: "From the Argand diagram, which complex number is represented by the point $P$?",
+    explanation:
+      "The point has real part $-2$ and imaginary part $3$, so it represents $-2 + 3i$.",
+    questionImageUrls: [MATH_SVG_ASSETS.complexPlane],
+    solutionImageUrls: [MATH_SVG_ASSETS.complexPlane],
+    marks: 1,
+    estimatedTimeSec: 60,
+    isPublished: true,
+    options: [
+      { label: "A", text: "$2 + 3i$", isCorrect: false, sortOrder: 0 },
+      { label: "B", text: "$-2 + 3i$", isCorrect: true, sortOrder: 1 },
+      { label: "C", text: "$-3 + 2i$", isCorrect: false, sortOrder: 2 },
+      { label: "D", text: "$2 - 3i$", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  shortAnswer({
+    questionCode: "QB-G12-MATH-LTX-0041",
+    title: "Describe a trigonometric phase shift",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-04",
+    subChapterCode: "G12-MATH-04-B",
+    difficulty: Difficulty.medium,
+    body: "Using the diagram, describe the transformation from $y = \\sin x$ to $y = \\sin(x + 45^\\circ)$.",
+    answerText: "A phase shift of 45 degrees to the left",
+    explanation:
+      "Adding $45^\\circ$ inside the bracket shifts the graph horizontally 45 degrees to the left.",
+    questionImageUrls: [MATH_SVG_ASSETS.trigShift],
+    solutionImageUrls: [MATH_SVG_ASSETS.trigShift],
+    marks: 2,
+    estimatedTimeSec: 80,
+    isPublished: true,
+  }),
+  fillBlank({
+    questionCode: "QB-G12-MATH-LTX-0042",
+    title: "Center of a hyperbola",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-05",
+    subChapterCode: "G12-MATH-05-B",
+    difficulty: Difficulty.medium,
+    body: "Fill in the blank: The center of the hyperbola $\\frac{x^2}{9} - \\frac{y^2}{16} = 1$ is ____.",
+    answerText: "$(0,0)$",
+    explanation:
+      "In the standard form shown, both squared terms are centered at the origin, so the center is $(0,0)$.",
+    questionImageUrls: [MATH_SVG_ASSETS.hyperbolaStandard],
+    solutionImageUrls: [MATH_SVG_ASSETS.hyperbolaStandard],
+    marks: 1,
+    estimatedTimeSec: 50,
+    isPublished: true,
+  }),
+  trueFalse({
+    questionCode: "QB-G12-MATH-LTX-0043",
+    title: "Major axis of an ellipse",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-05",
+    subChapterCode: "G12-MATH-05-A",
+    difficulty: Difficulty.easy,
+    body: "True or False: For the ellipse $\\frac{x^2}{16} + \\frac{y^2}{9} = 1$, the major axis lies on the x-axis.",
+    answerText: "True",
+    explanation:
+      "Since $16 > 9$, the larger denominator is under $x^2$, so the major axis is horizontal.",
+    questionImageUrls: [MATH_SVG_ASSETS.ellipseMajorAxis],
+    solutionImageUrls: [MATH_SVG_ASSETS.ellipseMajorAxis],
+    marks: 1,
+    estimatedTimeSec: 45,
+    isPublished: true,
+  }),
+  matching({
+    questionCode: "QB-G12-MATH-LTX-0044",
+    title: "Match complex numbers with their descriptions",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-03",
+    subChapterCode: "G12-MATH-03-B",
+    difficulty: Difficulty.medium,
+    body: "Match each complex-number expression with the correct description.",
+    explanation:
+      "Read each complex number in terms of its real part, imaginary part, or modulus.",
+    questionImageUrls: [MATH_SVG_ASSETS.complexPlane],
+    solutionImageUrls: [MATH_SVG_ASSETS.complexPlane],
+    marks: 5,
+    estimatedTimeSec: 95,
+    isPublished: true,
+    options: [
+      { label: "$3 + 0i$", text: "Purely real number", isCorrect: true, sortOrder: 0 },
+      { label: "$0 + 4i$", text: "Purely imaginary number", isCorrect: true, sortOrder: 1 },
+      { label: "$3 + 4i$", text: "Has modulus 5", isCorrect: true, sortOrder: 2 },
+    ],
+  }),
+  longAnswer({
+    questionCode: "QB-G12-MATH-LTX-0045",
+    title: "Explain a translated sine graph",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-04",
+    subChapterCode: "G12-MATH-04-B",
+    difficulty: Difficulty.hard,
+    body:
+      "Using the reference graph, explain how the function $y = \\sin(x + 45^\\circ)$ differs from $y = \\sin x$. State the phase shift, and comment on the amplitude and period.",
+    answerText:
+      "Shifted 45 degrees left; amplitude 1; period 360 degrees",
+    explanation:
+      "The graph keeps the same amplitude and period as $y = \\sin x$, but the positive angle inside the bracket moves the graph 45 degrees to the left.",
+    questionImageUrls: [MATH_SVG_ASSETS.trigShift],
+    solutionImageUrls: [MATH_SVG_ASSETS.trigShift],
+    marks: 10,
+    estimatedTimeSec: 210,
+    isPublished: true,
+  }),
+  mcq({
+    questionCode: "QB-G12-MATH-LTX-0046",
+    title: "Read the focus from a parabola reference",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-05",
+    subChapterCode: "G12-MATH-05-A",
+    difficulty: Difficulty.medium,
+    body: "According to the reference diagram for $y^2 = 8x$, what is the focus of the parabola?",
+    explanation: "For $y^2 = 8x$, we have $4a = 8$, so $a = 2$ and the focus is $(2,0)$.",
+    questionImageUrls: [MATH_SVG_ASSETS.parabolaFocus],
+    solutionImageUrls: [MATH_SVG_ASSETS.parabolaFocus],
+    marks: 1,
+    estimatedTimeSec: 55,
+    isPublished: true,
+    options: [
+      { label: "A", text: "$(0,2)$", isCorrect: false, sortOrder: 0 },
+      { label: "B", text: "$(2,0)$", isCorrect: true, sortOrder: 1 },
+      { label: "C", text: "$(-2,0)$", isCorrect: false, sortOrder: 2 },
+      { label: "D", text: "$(4,0)$", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  shortAnswer({
+    questionCode: "QB-G12-MATH-LTX-0047",
+    title: "State the modulus from an Argand diagram",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-03",
+    subChapterCode: "G12-MATH-03-B",
+    difficulty: Difficulty.hard,
+    body: "Using the Argand diagram for the point $P(-2,3)$, find $|z|$.",
+    answerText: "$\\sqrt{13}$",
+    explanation: "Use the modulus formula: $|z| = \\sqrt{(-2)^2 + 3^2} = \\sqrt{4 + 9} = \\sqrt{13}$.",
+    questionImageUrls: [MATH_SVG_ASSETS.complexPlane],
+    solutionImageUrls: [MATH_SVG_ASSETS.complexPlane],
+    marks: 3,
+    estimatedTimeSec: 90,
+    isPublished: true,
+  }),
+  fillBlank({
+    questionCode: "QB-G12-MATH-LTX-0048",
+    title: "Complete the period of a shifted trig graph",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-04",
+    subChapterCode: "G12-MATH-04-A",
+    difficulty: Difficulty.easy,
+    body: "Fill in the blank: The period of $y = \\sin(x + 45^\\circ)$ is ____.",
+    answerText: "$360^\\circ$",
+    explanation: "A phase shift changes position only. The sine graph keeps its original period of $360^\\circ$.",
+    questionImageUrls: [MATH_SVG_ASSETS.trigShift],
+    solutionImageUrls: [MATH_SVG_ASSETS.trigShift],
+    marks: 1,
+    estimatedTimeSec: 45,
+    isPublished: true,
+  }),
+  trueFalse({
+    questionCode: "QB-G12-MATH-LTX-0049",
+    title: "Check a logarithm identity",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-01",
+    subChapterCode: "G12-MATH-01-B",
+    difficulty: Difficulty.medium,
+    body: "True or False: $\\log_a(MN) = \\log_a M + \\log_a N$.",
+    answerText: "True",
+    explanation: "This is the standard logarithm product rule.",
+    questionImageUrls: [MATH_SVG_ASSETS.logarithmSteps],
+    solutionImageUrls: [MATH_SVG_ASSETS.logarithmSteps],
+    marks: 1,
+    estimatedTimeSec: 40,
+    isPublished: true,
+  }),
+  matching({
+    questionCode: "QB-G12-MATH-LTX-0050",
+    title: "Match conic references with features",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-05",
+    subChapterCode: "G12-MATH-05-B",
+    difficulty: Difficulty.medium,
+    body: "Match each conic reference with the correct feature.",
+    explanation: "Use the standard form and the reference card to identify the key feature of each conic.",
+    marks: 5,
+    estimatedTimeSec: 90,
+    isPublished: true,
+    options: [
+      { label: "$y^2 = 8x$", text: "Focus at $(2,0)$", isCorrect: true, sortOrder: 0 },
+      { label: "$x^2/16 + y^2/9 = 1$", text: "Vertices at $(\\pm 4,0)$", isCorrect: true, sortOrder: 1 },
+      { label: "$x^2/9 - y^2/16 = 1$", text: "Asymptotes $y = \\pm \\frac{4}{3}x$", isCorrect: true, sortOrder: 2 },
+    ],
+  }),
+  longAnswer({
+    questionCode: "QB-G12-MATH-LTX-0051",
+    title: "Compare three graph families",
+    gradeCode: "G12",
+    subjectCode: "MATH",
+    chapterCode: "G12-MATH-05",
+    subChapterCode: "G12-MATH-05-B",
+    difficulty: Difficulty.hard,
+    body:
+      "Using the reference diagrams, compare a parabola, an ellipse, and a hyperbola. State one defining feature for each and give one example equation.",
+    answerText:
+      "Parabola: one focus, e.g. $y^2 = 8x$; ellipse: closed curve, e.g. $x^2/16 + y^2/9 = 1$; hyperbola: two separate branches, e.g. $x^2/9 - y^2/16 = 1$",
+    explanation:
+      "A strong answer identifies one reliable graphical feature and one correct standard-form example for each conic.",
+    questionImageUrls: [MATH_SVG_ASSETS.parabolaFocus, MATH_SVG_ASSETS.ellipseMajorAxis, MATH_SVG_ASSETS.hyperbolaStandard],
+    solutionImageUrls: [MATH_SVG_ASSETS.parabolaFocus, MATH_SVG_ASSETS.ellipseMajorAxis, MATH_SVG_ASSETS.hyperbolaStandard],
+    marks: 10,
+    estimatedTimeSec: 230,
+    isPublished: true,
+  }),
+];
+
 const coreQuestionSeeds: readonly QuestionSeed[] = [
   mcq({
     questionCode: "QB-G06-MATH-0001",
@@ -702,6 +2296,7 @@ const coreQuestionSeeds: readonly QuestionSeed[] = [
     estimatedTimeSec: 45,
     isPublished: true,
   }),
+  ...curatedMathQuestionSeeds,
   trueFalse({
     questionCode: "QB-G06-SCI-0001",
     title: "Photosynthesis",
@@ -816,6 +2411,301 @@ const coreQuestionSeeds: readonly QuestionSeed[] = [
     marks: 10,
     estimatedTimeSec: 240,
     isPublished: true,
+  }),
+  mcq({
+    questionCode: "QB-G12-ENG-0008",
+    title: "Identify the main idea",
+    gradeCode: "G12",
+    subjectCode: "ENG",
+    chapterCode: "G12-ENG-01",
+    subChapterCode: "G12-ENG-01-A",
+    difficulty: Difficulty.easy,
+    body:
+      "Read the sentence set: 'Many students revise with a timetable. They divide large topics into smaller tasks and review a little every day.' What is the main idea?",
+    explanation: "The details all support the idea that students use a timetable to revise effectively.",
+    marks: 1,
+    estimatedTimeSec: 55,
+    isPublished: true,
+    options: [
+      { label: "A", text: "Students dislike large topics.", isCorrect: false, sortOrder: 0 },
+      { label: "B", text: "A timetable helps students revise effectively.", isCorrect: true, sortOrder: 1 },
+      { label: "C", text: "Every student studies in the same way.", isCorrect: false, sortOrder: 2 },
+      { label: "D", text: "Daily review is unnecessary.", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  trueFalse({
+    questionCode: "QB-G12-ENG-0009",
+    title: "Infer the writer's tone",
+    gradeCode: "G12",
+    subjectCode: "ENG",
+    chapterCode: "G12-ENG-01",
+    subChapterCode: "G12-ENG-01-B",
+    difficulty: Difficulty.medium,
+    body:
+      "True or False: In the sentence 'The library finally opened its quiet new reading room, giving students a calm place to work,' the writer's tone is appreciative.",
+    answerText: "True",
+    explanation: "Words such as 'quiet', 'new', and 'calm place to work' show approval and appreciation.",
+    marks: 1,
+    estimatedTimeSec: 45,
+    isPublished: true,
+  }),
+  shortAnswer({
+    questionCode: "QB-G12-ENG-0010",
+    title: "Combine ideas into one sentence",
+    gradeCode: "G12",
+    subjectCode: "ENG",
+    chapterCode: "G12-ENG-02",
+    subChapterCode: "G12-ENG-02-A",
+    difficulty: Difficulty.medium,
+    body:
+      "Combine the ideas into one correct sentence: 'The experiment was simple. It was effective.'",
+    answerText: "The experiment was simple but effective.",
+    explanation: "Use a coordinating conjunction to join the contrasting ideas smoothly.",
+    marks: 2,
+    estimatedTimeSec: 60,
+    isPublished: true,
+  }),
+  longAnswer({
+    questionCode: "QB-G12-ENG-0011",
+    title: "Write a formal response",
+    gradeCode: "G12",
+    subjectCode: "ENG",
+    chapterCode: "G12-ENG-02",
+    subChapterCode: "G12-ENG-02-B",
+    difficulty: Difficulty.hard,
+    body:
+      "Write a short formal paragraph explaining why regular practice is important when preparing for an examination. Include a clear topic sentence and at least two supporting points.",
+    explanation:
+      "A strong answer presents a clear topic sentence, explains two relevant supporting points, and keeps a formal tone throughout.",
+    marks: 10,
+    estimatedTimeSec: 220,
+    isPublished: true,
+  }),
+  mcq({
+    questionCode: "QB-G12-SCI-0007",
+    title: "Calculate acceleration",
+    gradeCode: "G12",
+    subjectCode: "SCI",
+    chapterCode: "G12-SCI-01",
+    subChapterCode: "G12-SCI-01-A",
+    difficulty: Difficulty.easy,
+    body: "A car increases its velocity from 10 m/s to 18 m/s in 4 s. What is its acceleration?",
+    explanation: "Acceleration = change in velocity ÷ time = (18 - 10) ÷ 4 = 2 m/s².",
+    marks: 1,
+    estimatedTimeSec: 55,
+    isPublished: true,
+    options: [
+      { label: "A", text: "2 m/s²", isCorrect: true, sortOrder: 0 },
+      { label: "B", text: "4 m/s²", isCorrect: false, sortOrder: 1 },
+      { label: "C", text: "8 m/s²", isCorrect: false, sortOrder: 2 },
+      { label: "D", text: "28 m/s²", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  trueFalse({
+    questionCode: "QB-G12-SCI-0008",
+    title: "Balanced forces",
+    gradeCode: "G12",
+    subjectCode: "SCI",
+    chapterCode: "G12-SCI-01",
+    subChapterCode: "G12-SCI-01-B",
+    difficulty: Difficulty.medium,
+    body: "True or False: If two equal forces act in opposite directions on an object, the net force is zero.",
+    answerText: "True",
+    explanation: "Equal forces in opposite directions cancel each other, so the resultant force is zero.",
+    questionImageUrls: [MATH_SVG_ASSETS.forceDiagram],
+    solutionImageUrls: [MATH_SVG_ASSETS.forceDiagram],
+    marks: 1,
+    estimatedTimeSec: 45,
+    isPublished: true,
+  }),
+  shortAnswer({
+    questionCode: "QB-G12-SCI-0009",
+    title: "Define density",
+    gradeCode: "G12",
+    subjectCode: "SCI",
+    chapterCode: "G12-SCI-02",
+    subChapterCode: "G12-SCI-02-B",
+    difficulty: Difficulty.medium,
+    body: "State the formula for density and define each quantity in the formula.",
+    answerText: "Density = mass / volume",
+    explanation: "Density is the mass of a substance per unit volume, so density = mass ÷ volume.",
+    marks: 2,
+    estimatedTimeSec: 65,
+    isPublished: true,
+  }),
+  matching({
+    questionCode: "QB-G12-SCI-0010",
+    title: "Match energy changes",
+    gradeCode: "G12",
+    subjectCode: "SCI",
+    chapterCode: "G12-SCI-02",
+    subChapterCode: "G12-SCI-02-A",
+    difficulty: Difficulty.medium,
+    body: "Match each device or situation with the main energy conversion.",
+    explanation: "Think about the main energy form entering the system and the useful output energy.",
+    questionImageUrls: [MATH_SVG_ASSETS.energyTransfer],
+    solutionImageUrls: [MATH_SVG_ASSETS.energyTransfer],
+    marks: 5,
+    estimatedTimeSec: 90,
+    isPublished: true,
+    options: [
+      { label: "Battery lamp", text: "Chemical to light", isCorrect: true, sortOrder: 0 },
+      { label: "Electric fan", text: "Electrical to kinetic", isCorrect: true, sortOrder: 1 },
+      { label: "Solar panel", text: "Light to electrical", isCorrect: true, sortOrder: 2 },
+    ],
+  }),
+  mcq({
+    questionCode: "QB-G12-ENG-0012",
+    title: "Choose the best summary statement",
+    gradeCode: "G12",
+    subjectCode: "ENG",
+    chapterCode: "G12-ENG-01",
+    subChapterCode: "G12-ENG-01-A",
+    difficulty: Difficulty.medium,
+    body:
+      "Which sentence best summarizes the idea: 'Good readers pause to ask questions, connect ideas, and check whether each paragraph supports the main point.'?",
+    explanation:
+      "The main point is that strong reading habits include active thinking while reading.",
+    marks: 1,
+    estimatedTimeSec: 55,
+    isPublished: true,
+    options: [
+      { label: "A", text: "Readers should memorize every paragraph.", isCorrect: false, sortOrder: 0 },
+      { label: "B", text: "Active reading helps readers understand a text better.", isCorrect: true, sortOrder: 1 },
+      { label: "C", text: "Every paragraph contains the same idea.", isCorrect: false, sortOrder: 2 },
+      { label: "D", text: "Questions make reading slower and less useful.", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  fillBlank({
+    questionCode: "QB-G12-ENG-0013",
+    title: "Use a suitable connector",
+    gradeCode: "G12",
+    subjectCode: "ENG",
+    chapterCode: "G12-ENG-02",
+    subChapterCode: "G12-ENG-02-A",
+    difficulty: Difficulty.easy,
+    body:
+      "Fill in the blank with the best connector: 'The class was difficult, ____ the students kept working until they understood it.'",
+    answerText: "but",
+    explanation:
+      "The second clause contrasts with the first one, so 'but' is the most suitable connector.",
+    marks: 1,
+    estimatedTimeSec: 40,
+    isPublished: true,
+  }),
+  shortAnswer({
+    questionCode: "QB-G12-ENG-0014",
+    title: "Rewrite in a more formal style",
+    gradeCode: "G12",
+    subjectCode: "ENG",
+    chapterCode: "G12-ENG-02",
+    subChapterCode: "G12-ENG-02-B",
+    difficulty: Difficulty.medium,
+    body:
+      "Rewrite this sentence in a more formal style: 'A lot of students get nervous before an exam.'",
+    answerText: "Many students become nervous before an examination.",
+    explanation:
+      "A more formal answer replaces casual phrasing such as 'a lot of' with 'many' and may use 'examination' instead of 'exam'.",
+    marks: 2,
+    estimatedTimeSec: 70,
+    isPublished: true,
+  }),
+  matching({
+    questionCode: "QB-G12-ENG-0015",
+    title: "Match formal phrases with their purposes",
+    gradeCode: "G12",
+    subjectCode: "ENG",
+    chapterCode: "G12-ENG-02",
+    subChapterCode: "G12-ENG-02-B",
+    difficulty: Difficulty.medium,
+    body: "Match each formal phrase with its most suitable writing purpose.",
+    explanation:
+      "Think about whether each phrase introduces a reason, an example, or a conclusion.",
+    marks: 5,
+    estimatedTimeSec: 95,
+    isPublished: true,
+    options: [
+      { label: "Therefore", text: "Shows a conclusion", isCorrect: true, sortOrder: 0 },
+      { label: "For example", text: "Introduces an example", isCorrect: true, sortOrder: 1 },
+      { label: "Because", text: "Gives a reason", isCorrect: true, sortOrder: 2 },
+    ],
+  }),
+  fillBlank({
+    questionCode: "QB-G12-SCI-0011",
+    title: "Recall the speed formula",
+    gradeCode: "G12",
+    subjectCode: "SCI",
+    chapterCode: "G12-SCI-01",
+    subChapterCode: "G12-SCI-01-A",
+    difficulty: Difficulty.easy,
+    body: "Fill in the blank: Speed = distance ÷ ____.",
+    answerText: "time",
+    explanation: "Speed is the distance traveled in one unit of time.",
+    questionImageUrls: [MATH_SVG_ASSETS.forceDiagram],
+    solutionImageUrls: [MATH_SVG_ASSETS.forceDiagram],
+    marks: 1,
+    estimatedTimeSec: 35,
+    isPublished: true,
+  }),
+  mcq({
+    questionCode: "QB-G12-SCI-0012",
+    title: "Choose the correct energy change",
+    gradeCode: "G12",
+    subjectCode: "SCI",
+    chapterCode: "G12-SCI-02",
+    subChapterCode: "G12-SCI-02-A",
+    difficulty: Difficulty.medium,
+    body: "Which energy change is most closely associated with a solar panel?",
+    explanation: "A solar panel converts light energy into electrical energy.",
+    questionImageUrls: [MATH_SVG_ASSETS.energyTransfer],
+    solutionImageUrls: [MATH_SVG_ASSETS.energyTransfer],
+    marks: 1,
+    estimatedTimeSec: 50,
+    isPublished: true,
+    options: [
+      { label: "A", text: "Electrical to heat", isCorrect: false, sortOrder: 0 },
+      { label: "B", text: "Light to electrical", isCorrect: true, sortOrder: 1 },
+      { label: "C", text: "Chemical to sound", isCorrect: false, sortOrder: 2 },
+      { label: "D", text: "Kinetic to nuclear", isCorrect: false, sortOrder: 3 },
+    ],
+  }),
+  shortAnswer({
+    questionCode: "QB-G12-SCI-0013",
+    title: "State one effect of an unbalanced force",
+    gradeCode: "G12",
+    subjectCode: "SCI",
+    chapterCode: "G12-SCI-01",
+    subChapterCode: "G12-SCI-01-B",
+    difficulty: Difficulty.medium,
+    body:
+      "State one effect of an unbalanced force acting on an object.",
+    answerText: "It changes the object's motion.",
+    explanation:
+      "An unbalanced force can change speed, change direction, or both. All describe a change in motion.",
+    questionImageUrls: [MATH_SVG_ASSETS.forceDiagram],
+    solutionImageUrls: [MATH_SVG_ASSETS.forceDiagram],
+    marks: 2,
+    estimatedTimeSec: 60,
+    isPublished: true,
+  }),
+  matching({
+    questionCode: "QB-G12-SCI-0014",
+    title: "Match quantities with units",
+    gradeCode: "G12",
+    subjectCode: "SCI",
+    chapterCode: "G12-SCI-02",
+    subChapterCode: "G12-SCI-02-B",
+    difficulty: Difficulty.medium,
+    body: "Match each physical quantity with the correct SI unit.",
+    explanation: "Recall the standard units used in school science formulas.",
+    marks: 5,
+    estimatedTimeSec: 85,
+    isPublished: true,
+    options: [
+      { label: "Force", text: "newton (N)", isCorrect: true, sortOrder: 0 },
+      { label: "Mass", text: "kilogram (kg)", isCorrect: true, sortOrder: 1 },
+      { label: "Density", text: "kg/m³", isCorrect: true, sortOrder: 2 },
+    ],
   }),
   mcq({
     questionCode: "QB-G06-ENG-0003",
@@ -1217,8 +3107,8 @@ const generateMathQuestion = (params: {
       chapterCode: topic.chapterCode,
       subChapterCode: topic.subChapterCode,
       difficulty,
-      body: `Choose the correct value of ${a} + ${b}.`,
-      explanation: `Add ${a} and ${b} to get ${answer}.`,
+      body: `Choose the correct value of $${a} + ${b}$.`,
+      explanation: `Add the numbers: $${a} + ${b} = ${answer}$.`,
       marks,
       estimatedTimeSec,
       isPublished: false,
@@ -1239,9 +3129,9 @@ const generateMathQuestion = (params: {
       chapterCode: topic.chapterCode,
       subChapterCode: topic.subChapterCode,
       difficulty,
-      body: `True or False: ${number} is an even number.`,
+      body: `True or False: $${number}$ is an even number.`,
       answerText: statementTrue ? "True" : "False",
-      explanation: `${number} is ${number % 2 === 0 ? "even" : "odd"}.`,
+      explanation: `$${number}$ is ${number % 2 === 0 ? "even" : "odd"}.`,
       marks,
       estimatedTimeSec,
       isPublished: false,
@@ -1261,9 +3151,9 @@ const generateMathQuestion = (params: {
       chapterCode: topic.chapterCode,
       subChapterCode: topic.subChapterCode,
       difficulty,
-      body: `Compute ${a} x ${b}.`,
+      body: `Compute $${a} \\times ${b}$.`,
       answerText: String(answer),
-      explanation: `Multiply ${a} by ${b} to get ${answer}.`,
+      explanation: `$${a} \\times ${b} = ${answer}$.`,
       marks,
       estimatedTimeSec,
       isPublished: false,
@@ -1284,7 +3174,7 @@ const generateMathQuestion = (params: {
       subChapterCode: topic.subChapterCode,
       difficulty,
       body:
-        `A rectangle has length ${length} cm and width ${width} cm. Explain the formula for area and show how to find the area of the rectangle.`,
+        `A rectangle has length ${length} cm and width ${width} cm. Use $$A = l \\times w$$ to explain how to find its area.`,
       explanation:
         "A strong answer states the formula, substitutes the given values, and writes the final unit.",
       marks,
@@ -1306,9 +3196,9 @@ const generateMathQuestion = (params: {
       chapterCode: topic.chapterCode,
       subChapterCode: topic.subChapterCode,
       difficulty,
-      body: `Fill in the blank: The square root of ${square} is ____.`,
+      body: `Fill in the blank: $\\sqrt{${square}} =$ ____.`,
       answerText: String(root),
-      explanation: `${root} x ${root} = ${square}.`,
+      explanation: `$${root} \\times ${root} = ${square}$.`,
       marks,
       estimatedTimeSec,
       isPublished: false,
@@ -1334,20 +3224,20 @@ const generateMathQuestion = (params: {
     isPublished: false,
     options: [
       {
-        label: `Expr A (${leftA} + ${leftB})`,
-        text: String(leftA + leftB),
+        label: `Expr A: $${leftA} + ${leftB}$`,
+        text: `$${leftA + leftB}$`,
         isCorrect: true,
         sortOrder: 0,
       },
       {
-        label: `Expr B (${leftA} - ${leftC})`,
-        text: String(leftA - leftC),
+        label: `Expr B: $${leftA} - ${leftC}$`,
+        text: `$${leftA - leftC}$`,
         isCorrect: true,
         sortOrder: 1,
       },
       {
-        label: `Expr C (${leftB} x ${leftC})`,
-        text: String(leftB * leftC),
+        label: `Expr C: $${leftB} \\times ${leftC}$`,
+        text: `$${leftB * leftC}$`,
         isCorrect: true,
         sortOrder: 2,
       },
@@ -1836,6 +3726,22 @@ const ensureUniqueQuestionCodes = (questions: readonly QuestionSeed[]) => {
   }
 };
 
+const isAllowedSeedMarksForType = (
+  type: QuestionTypeValue,
+  marks: number,
+) => (generatedMarksByType[type] as readonly number[]).includes(marks);
+
+const assertQuestionMarksByType = (questions: readonly QuestionSeed[]) => {
+  for (const question of questions) {
+    const allowedMarks = generatedMarksByType[question.type];
+    if (!isAllowedSeedMarksForType(question.type, question.marks)) {
+      throw new Error(
+        `Invalid marks (${question.marks}) for ${question.type} in ${question.questionCode}. Allowed: ${allowedMarks.join(", ")}.`,
+      );
+    }
+  }
+};
+
 const questionTypeSummary = (questions: readonly QuestionSeed[]) => {
   const counts: Record<string, number> = {};
   for (const item of questions) {
@@ -1844,16 +3750,15 @@ const questionTypeSummary = (questions: readonly QuestionSeed[]) => {
   return counts;
 };
 
-export const seed = async () => {
-  ensureUniqueQuestionCodes(questionSeeds);
+const createSeedMaps = () => ({
+  gradesByCode: new Map<string, string>(),
+  subjectsByCode: new Map<string, string>(),
+  chaptersByCode: new Map<string, string>(),
+  subChaptersByCode: new Map<string, string>(),
+  plansByCode: new Map<string, string>(),
+});
 
-  const gradesByCode = new Map<string, string>();
-  const subjectsByCode = new Map<string, string>();
-  const chaptersByCode = new Map<string, string>();
-  const subChaptersByCode = new Map<string, string>();
-  const plansByCode = new Map<string, string>();
-  const seededAdmin = await ensureSeededAdminUser();
-
+const upsertPlans = async (plansByCode: Map<string, string>) => {
   for (const plan of planSeeds) {
     const record = firstOrThrow(
       await db
@@ -1884,7 +3789,9 @@ export const seed = async () => {
 
     plansByCode.set(record.code, record.id);
   }
+};
 
+const upsertGrades = async (gradesByCode: Map<string, string>) => {
   for (const grade of gradeSeeds) {
     const record = firstOrThrow(
       await db
@@ -1909,7 +3816,9 @@ export const seed = async () => {
 
     gradesByCode.set(record.code, record.id);
   }
+};
 
+const upsertSubjects = async (subjectsByCode: Map<string, string>) => {
   for (const subject of subjectSeeds) {
     const record = firstOrThrow(
       await db
@@ -1934,17 +3843,20 @@ export const seed = async () => {
 
     subjectsByCode.set(record.code, record.id);
   }
+};
 
+const upsertGradeSubjectLinks = async (params: {
+  gradesByCode: Map<string, string>;
+  subjectsByCode: Map<string, string>;
+}) => {
   for (const [subjectCode, gradeCodes] of Object.entries(subjectGradeMap)) {
-    const subjectId = subjectsByCode.get(subjectCode);
-
+    const subjectId = params.subjectsByCode.get(subjectCode);
     if (!subjectId) {
       throw new Error(`Subject ${subjectCode} was not created.`);
     }
 
     for (const [index, gradeCode] of gradeCodes.entries()) {
-      const gradeId = gradesByCode.get(gradeCode);
-
+      const gradeId = params.gradesByCode.get(gradeCode);
       if (!gradeId) {
         throw new Error(`Grade ${gradeCode} was not created.`);
       }
@@ -1966,11 +3878,17 @@ export const seed = async () => {
         });
     }
   }
+};
 
+const upsertChaptersAndSubChapters = async (params: {
+  gradesByCode: Map<string, string>;
+  subjectsByCode: Map<string, string>;
+  chaptersByCode: Map<string, string>;
+  subChaptersByCode: Map<string, string>;
+}) => {
   for (const chapter of chapterSeeds) {
-    const gradeId = gradesByCode.get(chapter.gradeCode);
-    const subjectId = subjectsByCode.get(chapter.subjectCode);
-
+    const gradeId = params.gradesByCode.get(chapter.gradeCode);
+    const subjectId = params.subjectsByCode.get(chapter.subjectCode);
     if (!gradeId || !subjectId) {
       throw new Error(`Missing relation for chapter ${chapter.code}.`);
     }
@@ -2002,7 +3920,7 @@ export const seed = async () => {
       `Failed to upsert chapter ${chapter.code}.`,
     );
 
-    chaptersByCode.set(chapter.code, chapterRecord.id);
+    params.chaptersByCode.set(chapter.code, chapterRecord.id);
 
     for (const subChapter of chapter.subChapters) {
       const subChapterRecord = firstOrThrow(
@@ -2031,23 +3949,82 @@ export const seed = async () => {
         `Failed to upsert sub-chapter ${subChapter.code}.`,
       );
 
-      subChaptersByCode.set(subChapter.code, subChapterRecord.id);
+      params.subChaptersByCode.set(subChapter.code, subChapterRecord.id);
     }
   }
+};
 
+const toQuestionPayload = (params: {
+  question: QuestionSeed;
+  gradeId: string;
+  subjectId: string;
+  chapterId: string | null;
+  subChapterId: string | null;
+  seededAdminId: string;
+}) => ({
+  gradeId: params.gradeId,
+  subjectId: params.subjectId,
+  chapterId: params.chapterId,
+  subChapterId: params.subChapterId,
+  title: params.question.title ?? null,
+  mode: params.question.mode,
+  type: params.question.type,
+  difficulty: params.question.difficulty,
+  body: params.question.body,
+  questionImageUrls: params.question.questionImageUrls ?? null,
+  explanation: params.question.explanation ?? null,
+  solutionImageUrls: params.question.solutionImageUrls ?? null,
+  answerText: params.question.answerText ?? null,
+  answerFormula: params.question.answerFormula ?? null,
+  variablesSchema: params.question.variablesSchema ?? null,
+  reviewStatus: params.question.reviewStatus ?? reviewStatusFor(params.question.isPublished),
+  marks: params.question.marks,
+  estimatedTimeSec: params.question.estimatedTimeSec ?? null,
+  isPublished: params.question.isPublished,
+  isActive: true,
+  createdBy: params.seededAdminId,
+});
+
+const replaceQuestionOptions = async (
+  questionId: string,
+  options: readonly OptionSeed[],
+) => {
+  await db.delete(questionOptionTable).where(eq(questionOptionTable.questionId, questionId));
+
+  if (!options.length) {
+    return;
+  }
+
+  await db.insert(questionOptionTable).values(
+    options.map((option) => ({
+      questionId,
+      label: option.label,
+      text: option.text,
+      isCorrect: option.isCorrect,
+      sortOrder: option.sortOrder,
+    })),
+  );
+};
+
+const upsertQuestions = async (params: {
+  gradesByCode: Map<string, string>;
+  subjectsByCode: Map<string, string>;
+  chaptersByCode: Map<string, string>;
+  subChaptersByCode: Map<string, string>;
+  seededAdminId: string;
+}) => {
   for (const question of questionSeeds) {
-    const gradeId = gradesByCode.get(question.gradeCode);
-    const subjectId = subjectsByCode.get(question.subjectCode);
-
+    const gradeId = params.gradesByCode.get(question.gradeCode);
+    const subjectId = params.subjectsByCode.get(question.subjectCode);
     if (!gradeId || !subjectId) {
       throw new Error(`Missing grade/subject relation for question ${question.questionCode}.`);
     }
 
     const chapterId = question.chapterCode
-      ? chaptersByCode.get(question.chapterCode) ?? null
+      ? params.chaptersByCode.get(question.chapterCode) ?? null
       : null;
     const subChapterId = question.subChapterCode
-      ? subChaptersByCode.get(question.subChapterCode) ?? null
+      ? params.subChaptersByCode.get(question.subChapterCode) ?? null
       : null;
 
     if (question.chapterCode && !chapterId) {
@@ -2058,110 +4035,284 @@ export const seed = async () => {
       throw new Error(`Missing sub-chapter relation for question ${question.questionCode}.`);
     }
 
-    const existingQuestion = await db.query.question.findFirst({
-      where: eq(questionTable.questionCode, question.questionCode),
-      columns: { id: true },
-    });
-
-    const payload = {
+    const payload = toQuestionPayload({
+      question,
       gradeId,
       subjectId,
       chapterId,
       subChapterId,
-      title: question.title ?? null,
-      mode: question.mode,
-      type: question.type,
-      difficulty: question.difficulty,
-      body: question.body,
-      explanation: question.explanation ?? null,
-      answerText: question.answerText ?? null,
-      answerFormula: question.answerFormula ?? null,
-      variablesSchema: question.variablesSchema ?? null,
-      reviewStatus: question.reviewStatus ?? reviewStatusFor(question.isPublished),
-      marks: question.marks,
-      estimatedTimeSec: question.estimatedTimeSec ?? null,
-      isPublished: question.isPublished,
-      isActive: true,
-      createdBy: seededAdmin.id,
-    } as const;
+      seededAdminId: params.seededAdminId,
+    });
 
-    const questionId = existingQuestion?.id;
+    const upserted = firstOrThrow(
+      await db
+        .insert(questionTable)
+        .values({
+          questionCode: question.questionCode,
+          ...payload,
+        })
+        .onConflictDoUpdate({
+          target: questionTable.questionCode,
+          set: payload,
+        })
+        .returning(),
+      `Failed to upsert question ${question.questionCode}.`,
+    );
 
-    if (questionId) {
-      await db.update(questionTable).set(payload).where(eq(questionTable.id, questionId));
-      await db.delete(questionOptionTable).where(eq(questionOptionTable.questionId, questionId));
-    } else {
-      const createdQuestion = firstOrThrow(
-        await db
-          .insert(questionTable)
-          .values({
-            questionCode: question.questionCode,
-            ...payload,
-          })
-          .returning(),
-        `Failed to create question ${question.questionCode}.`,
-      );
+    await replaceQuestionOptions(upserted.id, question.options);
+  }
+};
 
-      const newQuestionId = createdQuestion.id;
-
-      if (question.options.length > 0) {
-        await db.insert(questionOptionTable).values(
-          question.options.map((option) => ({
-            questionId: newQuestionId,
-            label: option.label,
-            text: option.text,
-            isCorrect: option.isCorrect,
-            sortOrder: option.sortOrder,
-          })),
-        );
-      }
-
-      continue;
+const upsertStarterBlueprints = async (params: {
+  gradesByCode: Map<string, string>;
+  subjectsByCode: Map<string, string>;
+  chaptersByCode: Map<string, string>;
+  subChaptersByCode: Map<string, string>;
+  seededAdminId: string;
+}) => {
+  for (const blueprint of starterBlueprintSeeds) {
+    const gradeId = params.gradesByCode.get(blueprint.gradeCode);
+    const subjectId = params.subjectsByCode.get(blueprint.subjectCode);
+    if (!gradeId || !subjectId) {
+      throw new Error(`Missing grade/subject relation for starter blueprint "${blueprint.title}".`);
     }
 
-    if (question.options.length > 0) {
-      await db.insert(questionOptionTable).values(
-        question.options.map((option) => ({
-          questionId,
-          label: option.label,
-          text: option.text,
-          isCorrect: option.isCorrect,
-          sortOrder: option.sortOrder,
-        })),
+    const chapterIds = (blueprint.presetChapterCodes ?? []).map((code) => {
+      const id = params.chaptersByCode.get(code);
+      if (!id) {
+        throw new Error(`Missing chapter relation for starter blueprint "${blueprint.title}" (${code}).`);
+      }
+      return id;
+    });
+
+    const subChapterIds = (blueprint.presetSubChapterCodes ?? []).map((code) => {
+      const id = params.subChaptersByCode.get(code);
+      if (!id) {
+        throw new Error(
+          `Missing sub-chapter relation for starter blueprint "${blueprint.title}" (${code}).`,
+        );
+      }
+      return id;
+    });
+
+    const existing = await db.query.paperBlueprint.findFirst({
+      where: and(
+        eq(paperBlueprintTable.userId, params.seededAdminId),
+        eq(paperBlueprintTable.title, blueprint.title),
+      ),
+      columns: { id: true },
+    });
+
+    const payload = {
+      userId: params.seededAdminId,
+      title: blueprint.title,
+      mode: blueprint.mode,
+      status: blueprint.status,
+      gradeId,
+      subjectId,
+      totalMarks: blueprint.totalMarks,
+      pdfTemplateKey: blueprint.pdfTemplateKey ?? "default",
+      examYearLabel: blueprint.examYearLabel ?? null,
+      timeAllowedLabel: blueprint.timeAllowedLabel ?? null,
+      departmentLine: blueprint.departmentLine ?? null,
+      answerInstructionLine: blueprint.answerInstructionLine ?? null,
+      includeAnswerPaper: blueprint.includeAnswerPaper,
+      difficultyDistribution: blueprint.difficultyDistribution,
+      presetConfig: {
+        chapterIds,
+        subChapterIds,
+      },
+      templateConfig: blueprint.templateConfig ?? null,
+    };
+
+    let blueprintId = existing?.id;
+    if (!blueprintId) {
+      const inserted = firstOrThrow(
+        await db.insert(paperBlueprintTable).values(payload).returning(),
+        `Failed to insert starter blueprint "${blueprint.title}".`,
+      );
+      blueprintId = inserted.id;
+    } else {
+      await db.update(paperBlueprintTable).set(payload).where(eq(paperBlueprintTable.id, blueprintId));
+    }
+
+    await db.delete(paperBlueprintSlotTable).where(eq(paperBlueprintSlotTable.blueprintId, blueprintId));
+    await db
+      .delete(paperBlueprintSectionTable)
+      .where(eq(paperBlueprintSectionTable.blueprintId, blueprintId));
+
+    const sectionIdByCode = new Map<string, string>();
+    if (blueprint.sections.length > 0) {
+      const insertedSections = await db
+        .insert(paperBlueprintSectionTable)
+        .values(
+          blueprint.sections.map((section) => ({
+            blueprintId,
+            code: section.code,
+            title: section.title ?? null,
+            questionType: section.questionType ?? null,
+            marksPerQuestion: section.marksPerQuestion ?? null,
+            questionCount: section.questionCount,
+            totalMarks: section.totalMarks,
+            sortOrder: section.sortOrder,
+          })),
+        )
+        .returning();
+
+      for (const section of insertedSections) {
+        sectionIdByCode.set(section.code, section.id);
+      }
+    }
+
+    if (blueprint.slots.length > 0) {
+      await db.insert(paperBlueprintSlotTable).values(
+        blueprint.slots.map((slot) => {
+          const chapterId = slot.chapterCode ? params.chaptersByCode.get(slot.chapterCode) ?? null : null;
+          const subChapterId = slot.subChapterCode
+            ? params.subChaptersByCode.get(slot.subChapterCode) ?? null
+            : null;
+
+          if (slot.chapterCode && !chapterId) {
+            throw new Error(`Missing chapter relation for slot ${slot.slotNumber} in "${blueprint.title}".`);
+          }
+          if (slot.subChapterCode && !subChapterId) {
+            throw new Error(
+              `Missing sub-chapter relation for slot ${slot.slotNumber} in "${blueprint.title}".`,
+            );
+          }
+
+          const sectionId = slot.sectionCode ? sectionIdByCode.get(slot.sectionCode) ?? null : null;
+          if (slot.sectionCode && !sectionId) {
+            throw new Error(
+              `Missing section relation for slot ${slot.slotNumber} in starter blueprint "${blueprint.title}".`,
+            );
+          }
+
+          return {
+            blueprintId,
+            sectionId,
+            slotNumber: slot.slotNumber,
+            questionType: slot.questionType,
+            marks: slot.marks,
+            difficultyTarget: slot.difficultyTarget ?? null,
+            chapterId,
+            subChapterId,
+            lockedQuestionId: null,
+            generatedQuestionId: null,
+            swapLimit: slot.swapLimit ?? 3,
+            slotConfig: slot.slotConfig ?? null,
+          };
+        }),
       );
     }
   }
+};
 
-  const freePlanId = plansByCode.get("free");
-  if (freePlanId) {
-    const users = await db.query.user.findMany({
-      columns: { id: true },
-    });
-    const now = new Date();
-    const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-    const periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+const ensureFreePlanSubscriptions = async (freePlanId: string | undefined) => {
+  if (!freePlanId) {
+    return;
+  }
 
-    for (const row of users) {
-      const existingSubscription = await db.query.subscription.findFirst({
-        where: eq(subscriptionTable.userId, row.id),
-        columns: { id: true },
-      });
+  const users = await db.query.user.findMany({
+    columns: { id: true },
+  });
 
-      if (existingSubscription) {
-        continue;
-      }
+  const existingSubscriptions = await db.query.subscription.findMany({
+    columns: { userId: true },
+  });
+  const existingUserIds = new Set(existingSubscriptions.map((row) => row.userId));
+  const missingUserIds = users
+    .map((row) => row.id)
+    .filter((userId) => !existingUserIds.has(userId));
 
-      await db.insert(subscriptionTable).values({
-        userId: row.id,
+  if (!missingUserIds.length) {
+    return;
+  }
+
+  const now = new Date();
+  const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+
+  await db
+    .insert(subscriptionTable)
+    .values(
+      missingUserIds.map((userId) => ({
+        userId,
         planId: freePlanId,
-        status: "active",
-        billingCycle: "monthly",
+        status: "active" as const,
+        billingCycle: "monthly" as const,
         startsAt: now,
         currentPeriodStart: periodStart,
         currentPeriodEnd: periodEnd,
-      });
-    }
+      })),
+    )
+    .onConflictDoNothing({
+      target: subscriptionTable.userId,
+    });
+};
+
+const ensureOwnerDeviceLimitOverrides = async () => {
+  if (!ownerOverrideEmails.length) {
+    return;
   }
+
+  const owners = await db.query.user.findMany({
+    columns: { id: true, email: true },
+  });
+
+  const ownerUserIds = owners
+    .filter((row) => ownerOverrideEmails.includes(String(row.email ?? "").trim().toLowerCase()))
+    .map((row) => row.id);
+
+  if (!ownerUserIds.length) {
+    return;
+  }
+
+  await db
+    .update(subscriptionTable)
+    .set({
+      deviceLimitOverride: ownerDeviceLimitOverride,
+      updatedAt: new Date(),
+    })
+    .where(inArray(subscriptionTable.userId, ownerUserIds));
+};
+
+export const seed = async () => {
+  ensureUniqueQuestionCodes(questionSeeds);
+  assertQuestionMarksByType(questionSeeds);
+
+  const maps = createSeedMaps();
+  const seededAdmin = await ensureSeededAdminUser();
+
+  await upsertPlans(maps.plansByCode);
+  await upsertGrades(maps.gradesByCode);
+  await upsertSubjects(maps.subjectsByCode);
+  await upsertGradeSubjectLinks({
+    gradesByCode: maps.gradesByCode,
+    subjectsByCode: maps.subjectsByCode,
+  });
+  await upsertChaptersAndSubChapters({
+    gradesByCode: maps.gradesByCode,
+    subjectsByCode: maps.subjectsByCode,
+    chaptersByCode: maps.chaptersByCode,
+    subChaptersByCode: maps.subChaptersByCode,
+  });
+  await upsertQuestions({
+    gradesByCode: maps.gradesByCode,
+    subjectsByCode: maps.subjectsByCode,
+    chaptersByCode: maps.chaptersByCode,
+    subChaptersByCode: maps.subChaptersByCode,
+    seededAdminId: seededAdmin.id,
+  });
+  await upsertStarterBlueprints({
+    gradesByCode: maps.gradesByCode,
+    subjectsByCode: maps.subjectsByCode,
+    chaptersByCode: maps.chaptersByCode,
+    subChaptersByCode: maps.subChaptersByCode,
+    seededAdminId: seededAdmin.id,
+  });
+  await ensureFreePlanSubscriptions(maps.plansByCode.get("free"));
+  await ensureOwnerDeviceLimitOverrides();
 
   const generatedQuestions = questionSeeds.filter((item) => item.questionCode.includes("-GEN-")).length;
   const generatedGradeSubjectPairs = Object.values(subjectGradeMap).reduce(
@@ -2182,6 +4333,7 @@ export const seed = async () => {
     generatedQuestionsPerGradeSubject,
     generatedGradeSubjectPairs,
     generatedQuestions,
+    starterBlueprints: starterBlueprintSeeds.length,
     questionTypes: questionTypeSummary(questionSeeds),
     publishedQuestions: questionSeeds.filter((question) => question.isPublished).length,
     freePreviewChapters: chapterSeeds.filter((chapter) => chapter.isFreePreview).length,

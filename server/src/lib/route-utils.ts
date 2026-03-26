@@ -23,7 +23,15 @@ export const parseJsonBodyWithSchema = async <T>(
 
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    throw new HTTPException(400, { message: parsed.error.message });
+    const firstIssue = parsed.error.issues[0];
+    const path =
+      firstIssue?.path && firstIssue.path.length > 0
+        ? firstIssue.path.map((part) => String(part)).join(".")
+        : "body";
+    const message = firstIssue
+      ? `${path}: ${firstIssue.message}`
+      : "Invalid request body.";
+    throw new HTTPException(400, { message });
   }
 
   return parsed.data;

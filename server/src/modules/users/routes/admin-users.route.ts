@@ -2,13 +2,15 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { AppBindings } from "@/core/types/app";
 import { writeAuditLogFromRequest } from "@/lib/audit";
-import { readPositiveNumberParam } from "@/lib/route-utils";
+import { parseJsonBodyWithSchema, readPositiveNumberParam } from "@/lib/route-utils";
 import { ensureAuthContext } from "@/middlewares/rbac";
 import {
   listAdminUserDevices,
   revokeAdminUserDevice,
 } from "../services/admin-user-device.service";
 import { listAdminUserDirectoryPage } from "../services/admin-user-directory.service";
+import { updateAdminUserRoleSchema } from "../users.schema";
+import { updateAdminUserRole } from "../services/admin-user-role.service";
 
 export const userAdminRoute = new Hono<AppBindings>();
 
@@ -20,6 +22,21 @@ const toAdminUsersHttpError = (error: unknown, fallbackMessage: string): never =
   const message = error instanceof Error ? error.message : fallbackMessage;
   if (message === "USER_NOT_FOUND" || message === "DEVICE_NOT_FOUND") {
     throw new HTTPException(404, { message: "Resource not found." });
+  }
+  if (message === "FORBIDDEN") {
+    throw new HTTPException(403, {
+      message: "Only super admins can change user roles.",
+    });
+  }
+  if (message === "TARGET_SUPERADMIN_LOCKED") {
+    throw new HTTPException(400, {
+      message: "Superadmin accounts are protected from this role editor.",
+    });
+  }
+  if (message === "SELF_DEMOTION_BLOCKED") {
+    throw new HTTPException(400, {
+      message: "You cannot demote your own admin access.",
+    });
   }
   if (error instanceof Error) {
     throw new HTTPException(400, { message });
@@ -35,7 +52,10 @@ userAdminRoute.get("/admin/directory", async (c) => {
     page: readPositiveNumberParam(c.req.query("page"), 1),
     pageSize: readPositiveNumberParam(c.req.query("pageSize"), 20),
     search: c.req.query("search") ?? undefined,
-    role: role === "user" || role === "admin" ? role : undefined,
+    role:
+      role === "user" || role === "admin" || role === "superadmin"
+        ? role
+        : undefined,
     accountStatus:
       accountStatus === "active" ||
       accountStatus === "suspended" ||
@@ -84,5 +104,36 @@ userAdminRoute.post("/admin/:userId/devices/:deviceId/revoke", async (c) => {
     return c.json(result);
   } catch (error) {
     toAdminUsersHttpError(error, "Failed to revoke device.");
+  }
+});
+
+userAdminRoute.patch("/admin/:userId/role", async (c) => {
+  try {
+    const authContext = await ensureAuthContext(c);
+    const payload = await parseJsonBodyWithSchema(c.req.raw, updateAdminUserRoleSchema);
+    const userId = c.req.param("userId");
+
+    const result = await updateAdminUserRole({
+      actorUserId: authContext.user.id,
+      actorIsSuperAdmin: authContext.roles.includes("superadmin"),
+      targetUserId: userId,
+      role: payload.role,
+    });
+
+    await writeAuditLogFromRequest({
+      request: c.req.raw,
+      action: "admin.user_role_updated",
+      actorUserId: authContext.user.id,
+      entityType: "user",
+      entityId: result.user.id,
+      metadata: {
+        changed: result.changed,
+        role: result.user.role,
+      },
+    });
+
+    return c.json(result);
+  } catch (error) {
+    toAdminUsersHttpError(error, "Failed to update user role.");
   }
 });

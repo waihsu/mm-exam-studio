@@ -174,17 +174,60 @@ const SectionPreview = ({ section }: { section: HelpSection }) => {
           <View style={[styles.previewPill, { backgroundColor: section.accentSoft }]} />
           <View style={styles.previewTinyPill} />
         </View>
-        <View style={styles.previewSearchBar} />
-        <View style={styles.previewGrid}>
-          <View style={[styles.previewGridCard, { borderColor: section.accentSoft }]}>
-            <View style={[styles.previewIconBlob, { backgroundColor: section.accentSoft }]} />
-            <View style={[styles.previewLineShort, { backgroundColor: section.accentColor }]} />
-            <View style={styles.previewLineMuted} />
+        <View style={styles.previewScopeRow}>
+          <View style={[styles.previewScopeChip, { borderColor: section.accentSoft }]}>
+            <View style={[styles.previewScopeChipAccent, { backgroundColor: section.accentSoft }]} />
+            <View style={styles.previewScopeChipCopy}>
+              <View style={[styles.previewLineShort, { backgroundColor: section.accentColor }]} />
+              <View style={styles.previewLineMuted} />
+            </View>
           </View>
-          <View style={[styles.previewGridCard, { borderColor: section.accentSoft }]}>
-            <View style={[styles.previewIconBlob, { backgroundColor: section.accentSoft }]} />
+          <View style={[styles.previewScopeChip, { borderColor: section.accentSoft }]}>
+            <View style={[styles.previewScopeChipAccent, { backgroundColor: section.accentSoft }]} />
+            <View style={styles.previewScopeChipCopy}>
+              <View style={[styles.previewLineShort, { backgroundColor: section.accentColor }]} />
+              <View style={styles.previewLineMuted} />
+            </View>
+          </View>
+        </View>
+        <View style={styles.previewBuilderCard}>
+          <View style={styles.previewBuilderHeader}>
             <View style={[styles.previewLineShort, { backgroundColor: section.accentColor }]} />
-            <View style={styles.previewLineMuted} />
+            <View style={styles.previewTinyPill} />
+          </View>
+          <View style={styles.previewStack}>
+            <View style={styles.previewBlueprintRow}>
+              <View style={styles.previewBlueprintLabelWrap}>
+                <View style={[styles.previewIconBlob, { backgroundColor: section.accentSoft }]} />
+                <View style={styles.previewScopeChipCopy}>
+                  <View style={[styles.previewLineShort, { backgroundColor: section.accentColor }]} />
+                  <View style={styles.previewLineMuted} />
+                </View>
+              </View>
+              <View style={styles.previewCounterWrap}>
+                <View style={styles.previewCounterButton} />
+                <View style={styles.previewCounterValue} />
+                <View style={styles.previewCounterButton} />
+              </View>
+            </View>
+            <View style={styles.previewBlueprintRow}>
+              <View style={styles.previewBlueprintLabelWrap}>
+                <View style={[styles.previewIconBlob, { backgroundColor: section.accentSoft }]} />
+                <View style={styles.previewScopeChipCopy}>
+                  <View style={[styles.previewLineShort, { backgroundColor: section.accentColor }]} />
+                  <View style={styles.previewLineMuted} />
+                </View>
+              </View>
+              <View style={styles.previewCounterWrap}>
+                <View style={styles.previewCounterButton} />
+                <View style={styles.previewCounterValue} />
+                <View style={styles.previewCounterButton} />
+              </View>
+            </View>
+          </View>
+          <View style={styles.previewButtonRow}>
+            <View style={[styles.previewActionButton, { backgroundColor: section.accentColor }]} />
+            <View style={styles.previewGhostButton} />
           </View>
         </View>
       </View>
@@ -201,10 +244,40 @@ const SectionPreview = ({ section }: { section: HelpSection }) => {
         <View style={styles.previewFormCard}>
           <View style={[styles.previewLineStrongBlock, { backgroundColor: section.accentSoft }]} />
           <View style={styles.previewInputLine} />
-          <View style={styles.previewInputLine} />
-          <View style={styles.previewButtonRow}>
-            <View style={[styles.previewActionButton, { backgroundColor: section.accentSoft }]} />
-            <View style={styles.previewGhostButton} />
+          <View style={styles.previewToggleRow}>
+            <View style={[styles.previewTogglePillActive, { backgroundColor: section.accentSoft }]} />
+            <View style={styles.previewTogglePill} />
+          </View>
+        </View>
+        <View style={styles.previewDualCardRow}>
+          <View style={[styles.previewGridCard, { borderColor: section.accentSoft }]}>
+            <View style={styles.previewCardHeader}>
+              <View style={[styles.previewLineShort, { backgroundColor: section.accentColor }]} />
+              <View style={styles.previewTinyPill} />
+            </View>
+            <View style={styles.previewInputLine} />
+            <View style={styles.previewInputLine} />
+            <View style={[styles.previewActionButton, { backgroundColor: section.accentColor }]} />
+          </View>
+          <View style={[styles.previewGridCard, { borderColor: section.accentSoft }]}>
+            <View style={styles.previewCardHeader}>
+              <View style={[styles.previewLineShort, { backgroundColor: section.accentColor }]} />
+              <View style={styles.previewTinyPill} />
+            </View>
+            <View style={styles.previewTemplateRow}>
+              <View style={[styles.previewStatusBadge, { backgroundColor: section.accentSoft }]} />
+              <View style={styles.previewStatusTextWrap}>
+                <View style={[styles.previewLineShort, { backgroundColor: section.accentColor }]} />
+                <View style={styles.previewLineMuted} />
+              </View>
+            </View>
+            <View style={styles.previewTemplateRow}>
+              <View style={[styles.previewStatusBadge, { backgroundColor: section.accentSoft }]} />
+              <View style={styles.previewStatusTextWrap}>
+                <View style={[styles.previewLineShort, { backgroundColor: section.accentColor }]} />
+                <View style={styles.previewLineMuted} />
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -217,21 +290,30 @@ const SectionPreview = ({ section }: { section: HelpSection }) => {
         <View style={[styles.previewPill, { backgroundColor: section.accentSoft }]} />
         <View style={styles.previewTinyPill} />
       </View>
-      <View style={styles.previewStack}>
-        <View style={[styles.previewStatusCard, { borderColor: section.accentSoft }]}>
-          <View style={[styles.previewStatusBadge, { backgroundColor: section.accentSoft }]} />
-          <View style={styles.previewStatusTextWrap}>
+      <View style={styles.previewJourneyCard}>
+        <View style={styles.previewJourneyRow}>
+          <View style={[styles.previewJourneyStep, { backgroundColor: section.accentSoft }]} />
+          <View style={styles.previewJourneyLine} />
+          <View style={[styles.previewJourneyStep, { backgroundColor: section.accentSoft }]} />
+          <View style={styles.previewJourneyLine} />
+          <View style={[styles.previewJourneyStep, { backgroundColor: section.accentColor }]} />
+        </View>
+        <View style={styles.previewStatusCardRow}>
+          <View style={[styles.previewStatusCard, { borderColor: section.accentSoft }]}>
             <View style={[styles.previewLineShort, { backgroundColor: section.accentColor }]} />
             <View style={styles.previewLineMuted} />
+            <View style={styles.previewLineMutedWide} />
           </View>
-        </View>
-        <View style={[styles.previewStatusCard, { borderColor: section.accentSoft }]}>
-          <View style={[styles.previewStatusBadge, { backgroundColor: section.accentSoft }]} />
-          <View style={styles.previewStatusTextWrap}>
+          <View style={[styles.previewStatusCard, { borderColor: section.accentSoft }]}>
             <View style={[styles.previewLineShort, { backgroundColor: section.accentColor }]} />
             <View style={styles.previewLineMuted} />
+            <View style={styles.previewLineMutedWide} />
           </View>
         </View>
+      </View>
+      <View style={styles.previewButtonRow}>
+        <View style={[styles.previewActionButton, { backgroundColor: section.accentColor }]} />
+        <View style={styles.previewGhostButton} />
       </View>
     </View>
   );
@@ -343,6 +425,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
+  previewCardHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
   previewPill: {
     borderRadius: 999,
     height: 10,
@@ -354,12 +441,41 @@ const styles = StyleSheet.create({
     height: 10,
     width: 44,
   },
-  previewSearchBar: {
+  previewScopeRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  previewScopeChip: {
+    alignItems: "center",
     backgroundColor: "#FFFFFF",
-    borderColor: "#D8DEE9",
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    height: 34,
+    flex: 1,
+    flexDirection: "row",
+    gap: 8,
+    padding: 10,
+  },
+  previewScopeChipAccent: {
+    borderRadius: 999,
+    height: 22,
+    width: 22,
+  },
+  previewScopeChipCopy: {
+    flex: 1,
+    gap: 6,
+  },
+  previewBuilderCard: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 10,
+    padding: 10,
+  },
+  previewBuilderHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   previewGrid: {
     flexDirection: "row",
@@ -378,6 +494,37 @@ const styles = StyleSheet.create({
     height: 24,
     width: 24,
   },
+  previewBlueprintRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "space-between",
+  },
+  previewBlueprintLabelWrap: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+    gap: 8,
+  },
+  previewCounterWrap: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 6,
+  },
+  previewCounterButton: {
+    backgroundColor: "#E2E8F0",
+    borderRadius: 8,
+    height: 22,
+    width: 22,
+  },
+  previewCounterValue: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#CBD5E1",
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 22,
+    width: 30,
+  },
   previewLineShort: {
     borderRadius: 999,
     height: 8,
@@ -388,6 +535,12 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     height: 8,
     width: "72%",
+  },
+  previewLineMutedWide: {
+    backgroundColor: "#D8DEE9",
+    borderRadius: 999,
+    height: 8,
+    width: "86%",
   },
   previewFormCard: {
     backgroundColor: "#FFFFFF",
@@ -409,6 +562,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     height: 34,
   },
+  previewToggleRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  previewTogglePillActive: {
+    borderRadius: 999,
+    flex: 1,
+    height: 30,
+  },
+  previewTogglePill: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E2E8F0",
+    borderRadius: 999,
+    borderWidth: 1,
+    flex: 1,
+    height: 30,
+  },
+  previewDualCardRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
   previewButtonRow: {
     flexDirection: "row",
     gap: 8,
@@ -429,13 +603,45 @@ const styles = StyleSheet.create({
   previewStack: {
     gap: 8,
   },
-  previewStatusCard: {
+  previewTemplateRow: {
     alignItems: "center",
+    flexDirection: "row",
+    gap: 10,
+  },
+  previewJourneyCard: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 10,
+    padding: 10,
+  },
+  previewJourneyRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 6,
+  },
+  previewJourneyStep: {
+    borderRadius: 999,
+    height: 18,
+    width: 18,
+  },
+  previewJourneyLine: {
+    backgroundColor: "#D8DEE9",
+    borderRadius: 999,
+    flex: 1,
+    height: 6,
+  },
+  previewStatusCardRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  previewStatusCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 12,
     borderWidth: 1,
-    flexDirection: "row",
-    gap: 10,
+    flex: 1,
+    gap: 6,
     padding: 10,
   },
   previewStatusBadge: {

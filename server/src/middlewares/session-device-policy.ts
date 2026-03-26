@@ -20,7 +20,7 @@ type NormalizedSession = {
 
 type DeviceBucket = "mobile" | "desktop";
 
-const MOBILE_UA_PATTERN = /iphone|ipod|android.*mobile|mobile|phone/i;
+const MOBILE_UA_PATTERN = /iphone|ipod|android.*mobile|mobile|phone|okhttp|cfnetwork|darwin/i;
 const TABLET_UA_PATTERN = /ipad|tablet|android(?!.*mobile)/i;
 
 const toOptionalString = (value: unknown): string | null => {

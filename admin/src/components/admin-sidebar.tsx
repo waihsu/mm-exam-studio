@@ -1,7 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   BookText,
+  ChevronsLeft,
+  ChevronsRight,
+  CreditCard,
   Layers3,
+  LifeBuoy,
   LayoutDashboard,
   Settings,
   ShieldCheck,
@@ -15,15 +19,35 @@ import {
 } from "@/constants/routes";
 import { useAuthFlow } from "@/features/auth/hooks/use-auth-flow";
 import { useLanguage } from "@/i18n";
+import { Button } from "./ui/button";
 
 type AdminSidebarProps = {
   className?: string;
   collapsed?: boolean;
+  onToggleCollapsed?: () => void;
 };
 
 const isActivePath = (currentPath: string, path: string) => {
   if (path === ADMIN_ROUTES.dashboard) {
     return currentPath === ADMIN_ROUTES.dashboard;
+  }
+  if (path === ADMIN_ROUTES.questions) {
+    return (
+      (currentPath === ADMIN_ROUTES.questions ||
+        currentPath.startsWith(`${ADMIN_ROUTES.questions}/`)) &&
+      !currentPath.startsWith(`${ADMIN_ROUTES.questionBlueprints}/`) &&
+      currentPath !== ADMIN_ROUTES.questionBlueprints
+    );
+  }
+  if (path === ADMIN_ROUTES.users) {
+    return (
+      (currentPath === ADMIN_ROUTES.users ||
+        currentPath.startsWith(`${ADMIN_ROUTES.users}/`)) &&
+      !currentPath.startsWith(`${ADMIN_ROUTES.userSubscriptions}/`) &&
+      !currentPath.startsWith(`${ADMIN_ROUTES.userSupport}/`) &&
+      currentPath !== ADMIN_ROUTES.userSubscriptions &&
+      currentPath !== ADMIN_ROUTES.userSupport
+    );
   }
   return currentPath === path || currentPath.startsWith(`${path}/`);
 };
@@ -31,14 +55,16 @@ const isActivePath = (currentPath: string, path: string) => {
 const iconForRoute = (to: string) => {
   if (to === ADMIN_ROUTES.dashboard) return LayoutDashboard;
   if (to === ADMIN_ROUTES.questions) return BookText;
-  if (to === ADMIN_ROUTES.taxonomy || to.startsWith("/taxonomy")) return Layers3;
   if (
-    to === ADMIN_ROUTES.users ||
-    to === ADMIN_ROUTES.students ||
-    to === ADMIN_ROUTES.userSubscriptions ||
-    to === ADMIN_ROUTES.userSupport
-  )
-    return UsersRound;
+    to === ADMIN_ROUTES.questionBlueprints ||
+    to.startsWith(`${ADMIN_ROUTES.questionBlueprints}/`)
+  ) {
+    return Layers3;
+  }
+  if (to === ADMIN_ROUTES.taxonomy || to.startsWith("/taxonomy")) return Layers3;
+  if (to === ADMIN_ROUTES.userSubscriptions) return CreditCard;
+  if (to === ADMIN_ROUTES.userSupport) return LifeBuoy;
+  if (to === ADMIN_ROUTES.users) return UsersRound;
   if (to === ADMIN_ROUTES.settings || to.startsWith("/settings")) return Settings;
   return ShieldCheck;
 };
@@ -80,7 +106,11 @@ const renderSidebarLink = (
   );
 };
 
-export function AdminSidebar({ className, collapsed = false }: AdminSidebarProps) {
+export function AdminSidebar({
+  className,
+  collapsed = false,
+  onToggleCollapsed,
+}: AdminSidebarProps) {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
@@ -105,6 +135,41 @@ export function AdminSidebar({ className, collapsed = false }: AdminSidebarProps
         className,
       )}
     >
+      <div
+        className={cn(
+          "mb-3 flex items-center",
+          collapsed ? "justify-center px-0.5" : "justify-between px-1",
+        )}
+      >
+        {!collapsed ? (
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+              Workspace nav
+            </p>
+            <p className="mt-1 text-sm font-semibold text-slate-900">Admin controls</p>
+          </div>
+        ) : null}
+        {onToggleCollapsed ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className={cn(
+              "shrink-0 rounded-xl border-slate-300/80 bg-white/90 text-slate-700 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.65)]",
+              collapsed ? "h-10 w-10" : "h-9 w-9",
+            )}
+            onClick={onToggleCollapsed}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? (
+              <ChevronsRight className="h-4 w-4" />
+            ) : (
+              <ChevronsLeft className="h-4 w-4" />
+            )}
+          </Button>
+        ) : null}
+      </div>
+
       <div className={cn("space-y-2.5", collapsed && "space-y-2")}>
         {visibleGroups.map((group, groupIndex) => (
           <section

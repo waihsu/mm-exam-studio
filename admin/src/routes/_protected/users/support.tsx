@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { PagePanel } from "@/components/page-container";
+import { AdminPageHeader, AdminStatPill } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import { Messenger } from "@/components/uitripled/messenger";
 import { supportApi } from "@/features/support/api/support.api";
@@ -406,8 +408,33 @@ function UserSupportInboxPage() {
     [conversationsQuery.data?.rows, selectedConversationId, selectedMessages],
   );
 
+  const conversationRows = conversationsQuery.data?.rows ?? [];
+  const openCount = conversationRows.filter((conversation) => conversation.status === "open").length;
+  const unreadCount = conversationRows.reduce(
+    (sum, conversation) => sum + conversation.unreadForAdminCount,
+    0,
+  );
+
   return (
     <div className="space-y-4">
+      <AdminPageHeader
+        eyebrow="Support Inbox"
+        title="Review conversations and keep replies moving"
+        description="Search user threads, watch realtime activity, and reply without leaving the workspace."
+        actions={
+          <div className="grid gap-2 sm:grid-cols-3">
+            <AdminStatPill label="Visible threads" value={`${conversationRows.length}`} />
+            <AdminStatPill label="Open now" value={`${openCount}`} tone="cyan" />
+            <AdminStatPill label="Unread" value={`${unreadCount}`} tone="amber" />
+          </div>
+        }
+        chips={
+          <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700">
+            Realtime: {realtimeStatus === "live" ? "Live" : "Offline"}
+          </span>
+        }
+      />
+
       <Messenger
         title="Support Inbox"
         liveLabel={realtimeStatus === "live" ? "Live" : "Offline"}
@@ -614,9 +641,9 @@ function UserSupportInboxPage() {
         onQuickReply={setReplyBody}
         isThreadLoading={detailQuery.isLoading}
         emptyThread={
-          <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
+          <PagePanel className="border-dashed bg-white p-4 text-sm text-slate-500 shadow-none">
             No messages in this conversation yet.
-          </div>
+          </PagePanel>
         }
         emptySelection={
           <div className="flex min-h-[720px] items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-sm text-slate-500">

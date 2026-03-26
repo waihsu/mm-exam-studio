@@ -4,6 +4,9 @@ import type {
   CreateQuestionPaperInput,
   CreateQuestionPaperResponse,
   ExportedQuestionPaperListResponse,
+  MaterializePaperTemplateInput,
+  PaperTemplateDetail,
+  PaperTemplateListResponse,
   QuestionPaperDetail,
   QuestionPaperListResponse,
   QuestionPaperSwapCandidatesResponse,
@@ -20,6 +23,26 @@ export const createQuestionPaper = (payload: CreateQuestionPaperInput) =>
     method: "POST",
     body: payload,
   });
+
+export const listPaperTemplates = () =>
+  apiRequest<PaperTemplateListResponse>("/api/v1/workspace/paper-templates");
+
+export const getPaperTemplateDetail = (templateId: string) =>
+  apiRequest<PaperTemplateDetail>(
+    `/api/v1/workspace/paper-templates/${encodeURIComponent(templateId)}`,
+  );
+
+export const materializePaperTemplate = (
+  templateId: string,
+  payload: MaterializePaperTemplateInput,
+) =>
+  apiRequest<CreateQuestionPaperResponse>(
+    `/api/v1/workspace/paper-templates/${encodeURIComponent(templateId)}/materialize`,
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
 
 export const getQuestionPaperDetail = (paperId: string) =>
   apiRequest<QuestionPaperDetail>(`/api/v1/workspace/papers/${paperId}`);

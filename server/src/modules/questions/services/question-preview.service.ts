@@ -13,6 +13,7 @@ export const previewQuestion = async (data: QuestionPreviewInput) => {
     answerFormula: data.answerFormula,
     options: data.options,
     variablesSchema: data.variablesSchema,
+    parametricValueSets: data.parametricValueSets,
   });
 
   return renderQuestionPreviewResult(data);

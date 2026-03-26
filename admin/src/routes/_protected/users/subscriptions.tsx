@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PagePanel } from "@/components/page-container";
+import { AdminPageHeader, AdminStatPill } from "@/components/page-shell";
 import {
   Select,
   SelectContent,
@@ -395,48 +396,25 @@ function UserSubscriptionsPage() {
 
   return (
     <div className="space-y-4">
+      <AdminPageHeader
+        eyebrow="Subscription Approval"
+        title="Approve plans and tune usage limits"
+        description="Assign Free, Pro, or Premium, review payment requests, and apply account-level overrides without leaving the approval workspace."
+        actions={
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <AdminStatPill label="Visible users" value={`${subscriptionPage.total}`} />
+            <AdminStatPill label="Active now" value={`${activeSubscriptions}`} tone="emerald" />
+            <AdminStatPill
+              label="Pending requests"
+              value={`${pendingRequests}`}
+              tone="amber"
+            />
+            <AdminStatPill label="Showing rows" value={`${from}-${to}`} tone="cyan" />
+          </div>
+        }
+      />
+
       <PagePanel className="space-y-4 bg-gradient-to-br from-white/95 via-slate-50/80 to-slate-100/70">
-        <div className="space-y-2">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-            Subscription Approval
-          </p>
-          <h2 className="text-2xl font-black text-slate-900">
-            Approve plans and tune usage limits
-          </h2>
-          <p className="max-w-3xl text-sm leading-7 text-slate-600">
-            Admin can approve plan upgrades here by assigning <strong>Free</strong>,
-            <strong> Pro</strong>, or <strong>Premium</strong>, then optionally
-            override limits for one account.
-          </p>
-        </div>
-
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          <SummaryCard
-            label="Visible users"
-            value={`${subscriptionPage.total}`}
-            note="In current filter scope"
-            tone="slate"
-          />
-          <SummaryCard
-            label="Active now"
-            value={`${activeSubscriptions}`}
-            note="Accounts currently active"
-            tone="emerald"
-          />
-          <SummaryCard
-            label="Pending requests"
-            value={`${pendingRequests}`}
-            note="Needs manual review"
-            tone="amber"
-          />
-          <SummaryCard
-            label="Showing rows"
-            value={`${from}-${to}`}
-            note="Current pagination range"
-            tone="sky"
-          />
-        </div>
-
         <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_170px_170px_auto]">
           <div className="space-y-2">
             <Label htmlFor="subscription-search">Search user</Label>

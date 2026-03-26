@@ -1,29 +1,19 @@
 import { requestServerJson, toServerUrl } from "@/lib/server-http";
+import { getAuthToken } from "@/features/auth/utils/auth-token-store";
 import type {
   BrandAsset,
   PracticeSessionDetail,
   PracticeSessionSummary,
+  WorkspaceCatalogQuickCountsResponse,
   QuestionPaperDetail,
   QuestionPaperSummary,
   SubscriptionRequestRecord,
-  WorkspaceCatalogPage,
   WorkspaceCatalogQuestion,
   WorkspaceFilters,
+  WorkspaceQuestionMixEntry,
   WorkspaceMeta,
   WorkspaceSummary,
 } from "../types";
-
-const buildQueryString = (params: Record<string, string | number | undefined>) => {
-  const searchParams = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(params)) {
-    if (value === undefined || value === "") continue;
-    searchParams.set(key, String(value));
-  }
-
-  const query = searchParams.toString();
-  return query ? `?${query}` : "";
-};
 
 const postJson = async <T>(path: string, payload: unknown) =>
   requestServerJson<T>(path, {
@@ -74,15 +64,32 @@ export const workspaceApi = {
   async getMeta() {
     return requestServerJson<WorkspaceMeta>("/api/v1/workspace/meta");
   },
-  async getCatalog(
+  async getCatalogCounts(
     params: WorkspaceFilters & {
-      questionType?: "mcq" | "true_false" | "short_answer" | "fill_blank" | "matching";
-      page?: number;
-      pageSize?: number;
+      excludeQuestionType?: Array<
+        "mcq" | "true_false" | "short_answer" | "long_answer" | "fill_blank" | "matching"
+      >;
     },
   ) {
-    return requestServerJson<WorkspaceCatalogPage>(
-      `/api/v1/workspace/catalog${buildQueryString(params)}`,
+    const searchParams = new URLSearchParams();
+
+    const append = (key: string, value: string | undefined) => {
+      if (!value || value.trim().length === 0) return;
+      searchParams.append(key, value.trim());
+    };
+
+    append("search", params.search);
+    append("gradeId", params.gradeId);
+    append("subjectId", params.subjectId);
+    append("chapterId", params.chapterId);
+    append("subChapterId", params.subChapterId);
+    for (const type of params.excludeQuestionType ?? []) {
+      searchParams.append("excludeQuestionType", type);
+    }
+
+    const query = searchParams.toString();
+    return requestServerJson<WorkspaceCatalogQuickCountsResponse>(
+      `/api/v1/workspace/catalog/counts${query ? `?${query}` : ""}`,
     );
   },
   async listPracticeSessions() {
@@ -98,9 +105,8 @@ export const workspaceApi = {
     chapterId?: string;
     subChapterId?: string;
     questionType?: "mcq" | "true_false" | "short_answer" | "fill_blank" | "matching";
-    generatorMode?: "all_questions" | "mcq_only";
-    questionIds?: string[];
     count?: number;
+    questionMix?: WorkspaceQuestionMixEntry[];
   }) {
     return postJson<{ id: string; title?: string | null; totalQuestions: number }>(
       "/api/v1/workspace/practice/sessions",
@@ -138,10 +144,15 @@ export const workspaceApi = {
     subjectId?: string;
     chapterId?: string;
     subChapterId?: string;
-    questionType?: "mcq" | "true_false" | "short_answer" | "fill_blank" | "matching";
-    generatorMode?: "all_questions" | "mcq_only";
-    questionIds?: string[];
+    questionType?:
+      | "mcq"
+      | "true_false"
+      | "short_answer"
+      | "long_answer"
+      | "fill_blank"
+      | "matching";
     count?: number;
+    questionMix?: WorkspaceQuestionMixEntry[];
   }) {
     return postJson<{ id: string; title: string }>(
       "/api/v1/workspace/papers",
@@ -210,10 +221,12 @@ export const workspaceApi = {
     });
   },
   async downloadQuestionPaperPdf(id: string) {
+    const token = getAuthToken();
     const response = await fetch(toServerUrl(`/api/v1/workspace/papers/${id}/pdf`), {
-      credentials: "include",
+      credentials: "omit",
       headers: {
         accept: "application/pdf",
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
       },
     });
 

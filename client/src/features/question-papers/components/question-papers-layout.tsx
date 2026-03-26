@@ -1,4 +1,5 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
+import { SectionCard } from "@/components/ui/page-shell";
 
 export function QuestionPapersLayout() {
   const location = useLocation();
@@ -13,7 +14,7 @@ export function QuestionPapersLayout() {
   return (
     <div className="space-y-5">
       {isNewRoute ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <SectionCard title="Question Papers">
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <Link to="/question-papers" className="font-semibold text-slate-600 hover:text-slate-900">
               Question Papers
@@ -21,7 +22,7 @@ export function QuestionPapersLayout() {
             <span className="text-slate-300">/</span>
             <span className="font-semibold text-slate-900">New paper</span>
           </div>
-        </div>
+        </SectionCard>
       ) : null}
       <Outlet />
     </div>

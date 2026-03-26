@@ -1,4 +1,6 @@
+import "@/lib/global-typography";
 import { Stack, router, type ErrorBoundaryProps } from "expo-router";
+import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useState } from "react";
@@ -87,8 +89,19 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded, fontsError] = useFonts({
+    "NotoSans-Regular": require("../../assets/fonts/NotoSans-Regular.ttf"),
+    "NotoSans-Medium": require("../../assets/fonts/NotoSans-Medium.ttf"),
+    "NotoSans-SemiBold": require("../../assets/fonts/NotoSans-SemiBold.ttf"),
+    "NotoSans-Bold": require("../../assets/fonts/NotoSans-Bold.ttf"),
+    "PlusJakartaSans-Regular": require("../../assets/fonts/PlusJakartaSans-Regular.ttf"),
+    "PlusJakartaSans-SemiBold": require("../../assets/fonts/PlusJakartaSans-SemiBold.ttf"),
+    "PlusJakartaSans-Bold": require("../../assets/fonts/PlusJakartaSans-Bold.ttf"),
+    "PlusJakartaSans-ExtraBold": require("../../assets/fonts/PlusJakartaSans-ExtraBold.ttf"),
+  });
   const [isLaunchReady, setIsLaunchReady] = useState(false);
   const [showLaunchOverlay, setShowLaunchOverlay] = useState(true);
+  const isFontReady = fontsLoaded || Boolean(fontsError);
 
   useEffect(() => {
     let isMounted = true;
@@ -120,12 +133,16 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (!isLaunchReady) {
+    if (!isLaunchReady || !isFontReady) {
       return;
     }
 
     void SplashScreen.hideAsync().catch(() => undefined);
-  }, [isLaunchReady]);
+  }, [isFontReady, isLaunchReady]);
+
+  if (!isLaunchReady || !isFontReady) {
+    return null;
+  }
 
   return (
     <SafeAreaProvider>
@@ -141,6 +158,8 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="sign-in" />
           <Stack.Screen name="sign-up" />
+          <Stack.Screen name="legal" />
+          <Stack.Screen name="verify-email-pending" />
           <Stack.Screen name="forgot-password" />
           <Stack.Screen name="reset-password" />
           <Stack.Screen name="email-verified" />

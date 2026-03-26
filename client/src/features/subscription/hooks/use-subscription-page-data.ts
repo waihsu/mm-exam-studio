@@ -1,6 +1,7 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { workspaceApi } from "@/features/workspace/api/workspace-api";
+import type { CatalogPlanCode } from "../subscription-catalog";
 
 const WORKSPACE_SUMMARY_QUERY_KEY = ["workspace-summary"] as const;
 const SUBSCRIPTION_REQUESTS_QUERY_KEY = ["subscription-requests"] as const;
@@ -12,6 +13,7 @@ export function useSubscriptionPageData() {
   const [transactionId, setTransactionId] = useState("");
   const [selectedProofName, setSelectedProofName] = useState("");
   const [paymentProofImageDataUrl, setPaymentProofImageDataUrl] = useState("");
+  const [selectedPlanCode, setSelectedPlanCode] = useState<CatalogPlanCode>("pro");
 
   const summaryQuery = useQuery({
     queryKey: WORKSPACE_SUMMARY_QUERY_KEY,
@@ -72,6 +74,12 @@ export function useSubscriptionPageData() {
   const latestRequest = requests[0] ?? plan?.latestRequest ?? null;
   const pendingCount = requests.filter((request) => request.status === "pending").length;
   const isPending = latestRequest?.status === "pending";
+  const effectiveSelectedPlanCode: Exclude<CatalogPlanCode, "free"> =
+    selectedPlanCode === "premium"
+      ? "premium"
+      : plan?.code === "premium"
+        ? "premium"
+        : "pro";
 
   const onPaymentProofFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -97,6 +105,8 @@ export function useSubscriptionPageData() {
     setTransactionId,
     selectedProofName,
     paymentProofImageDataUrl,
+    selectedPlanCode: effectiveSelectedPlanCode,
+    setSelectedPlanCode,
     summaryQuery,
     requestsQuery,
     summary,

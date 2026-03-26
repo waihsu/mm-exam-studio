@@ -10,6 +10,7 @@ export {
 
 export {
   assertUsageAvailable,
+  consumeUsageOrThrow,
   incrementUsage,
 } from "./core/subscription-usage.service";
 

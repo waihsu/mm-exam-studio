@@ -54,6 +54,7 @@ import {
   ensureMatchingOptions,
   ensureMcqOptions,
   getPreviewValueDefault,
+  normalizeMediaUrls,
   normalizeVariableDefinitions,
   sanitizeVariables,
   type VariableDraft,
@@ -240,6 +241,9 @@ export function QuestionForm({
           : createEmptyOptions(),
     }));
   };
+
+  const parseMediaUrls = (value: string) =>
+    normalizeMediaUrls(value.split(/\r?\n/g));
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
@@ -591,6 +595,53 @@ export function QuestionForm({
           content={form.body}
           emptyLabel="Question body preview will appear here."
         />
+      </div>
+
+      <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+        <div className="space-y-1">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+            Media URLs
+          </p>
+          <p className="text-sm text-slate-600">
+            Add up to 4 URLs per section. Use one URL per line.
+          </p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="question-image-urls">
+              Question image URLs ({form.questionImageUrls.length}/4)
+            </Label>
+            <Textarea
+              id="question-image-urls"
+              value={form.questionImageUrls.join("\n")}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  questionImageUrls: parseMediaUrls(event.target.value),
+                }))
+              }
+              placeholder="https://.../diagram-1.png"
+              className="min-h-24"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="solution-image-urls">
+              Solution image URLs ({form.solutionImageUrls.length}/4)
+            </Label>
+            <Textarea
+              id="solution-image-urls"
+              value={form.solutionImageUrls.join("\n")}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  solutionImageUrls: parseMediaUrls(event.target.value),
+                }))
+              }
+              placeholder="https://.../solution-step-1.png"
+              className="min-h-24"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">

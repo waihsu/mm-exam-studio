@@ -70,11 +70,13 @@ export async function requestServerJson<T>(
   init: RequestInit = {},
 ): Promise<ServerJsonResult<T>> {
   try {
+    const token = getAuthToken();
     const response = await fetch(toServerUrl(input), {
-      credentials: "include",
+      credentials: "omit",
       ...init,
       headers: {
         accept: "application/json",
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
         ...(init.headers ?? {}),
       },
     });
@@ -85,6 +87,9 @@ export async function requestServerJson<T>(
       : null;
 
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        clearAuthToken();
+      }
       return {
         ok: false,
         status: response.status,
@@ -108,3 +113,7 @@ export async function requestServerJson<T>(
     };
   }
 }
+import {
+  clearAuthToken,
+  getAuthToken,
+} from "@/features/auth/utils/auth-token-store";

@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, LogOut, RefreshCcw, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageHeader, SectionCard, StatGrid } from "@/components/ui/page-shell";
 import { userAppRoutes } from "@/constants/routes";
+import { getPlanCatalogItem } from "@/features/subscription/subscription-catalog";
 import { useProfilePageData } from "../hooks/use-profile-page-data";
 import { ProfileSessionsSection } from "./profile-sessions-section";
 import { InfoCard, MetaRow, StatusRow } from "./profile-shared";
@@ -28,30 +30,23 @@ export function ProfilePage() {
   const errors = [queryError, revokeOthersError, revokeSessionError].filter(
     (item): item is string => Boolean(item),
   );
+  const planCatalog = getPlanCatalogItem(summary?.subscription.code ?? "free");
 
   return (
     <div className="space-y-4">
-      <section className="app-hero">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-          Account
-        </p>
-        <h2 className="mt-1 text-2xl font-semibold text-slate-900">
-          Profile and devices
-        </h2>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <span className="app-chip">
-            {sessions.length}/{deviceLimit} devices
-          </span>
-          <span className="app-chip">
-            {summary?.subscription.name ?? "Free"} plan
-          </span>
-          <span className="app-chip">
-            {isWithinDeviceLimit ? "Within limit" : "Over limit"}
-          </span>
-        </div>
-      </section>
+      <PageHeader
+        eyebrow="Account"
+        title="Profile and devices"
+        chips={
+          <>
+            <span className="app-chip">{sessions.length}/{deviceLimit} devices</span>
+            <span className="app-chip">{summary?.subscription.name ?? "Free"} plan</span>
+            <span className="app-chip">{isWithinDeviceLimit ? "Within limit" : "Over limit"}</span>
+          </>
+        }
+      />
 
-      <section className="stagger-children grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <StatGrid>
         <InfoCard label="Name" value={user?.name || "Not set"} />
         <InfoCard label="Email" value={user?.email || "Unknown"} />
         <InfoCard label="Status" value={user?.accountStatus || "active"} />
@@ -59,7 +54,7 @@ export function ProfilePage() {
           label="Current device"
           value={currentDeviceLabel}
         />
-      </section>
+      </StatGrid>
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <ProfileSessionsSection
@@ -78,21 +73,32 @@ export function ProfilePage() {
         />
 
         <aside className="stagger-children space-y-4">
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-              Account readiness
-            </p>
+          <SectionCard title="Account readiness">
             <div className="mt-3 space-y-2">
               <StatusRow label="Email verified" ok={Boolean(user?.emailVerified)} />
               <StatusRow label="Plan active" ok={(summary?.subscription.status ?? "active") === "active"} />
               <StatusRow label="Device count in limit" ok={isWithinDeviceLimit} />
+            </div>
+            <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+                Plan snapshot
+              </p>
+              <p className="mt-2 text-sm font-semibold text-slate-900">
+                {summary?.subscription.name ?? "Free"} plan
+              </p>
+              <p className="mt-1 text-sm text-slate-600">{planCatalog.tagline}</p>
+              <div className="mt-3 space-y-2">
+                <MetaRow label="Practice" value={planCatalog.limitSummary.practice} />
+                <MetaRow label="Paper" value={planCatalog.limitSummary.paper} />
+                <MetaRow label="Devices" value={planCatalog.limitSummary.devices} />
+              </div>
             </div>
             <div className="mt-4 space-y-2">
               <Button asChild variant="outline" className="w-full justify-between bg-white">
                 <Link to={userAppRoutes.subscription}>
                   <span className="inline-flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4" />
-                    Plan and limits
+                    Compare plans
                   </span>
                   <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -104,18 +110,12 @@ export function ProfilePage() {
                 </Link>
               </Button>
             </div>
-          </div>
+          </SectionCard>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-              Account switching
-            </p>
-            <h3 className="mt-2 text-base font-semibold text-slate-900">
-              Switch accounts on this device
-            </h3>
-            <p className="mt-2 text-sm text-slate-500">
-              Sign out here and choose another account.
-            </p>
+          <SectionCard
+            title="Switch accounts on this device"
+            description="Sign out here and choose another account."
+          >
             <div className="mt-4 space-y-2">
               <Button className="w-full" onClick={() => void switchAccount()}>
                 <RefreshCcw className="h-4 w-4" />
@@ -126,12 +126,9 @@ export function ProfilePage() {
                 Sign out
               </Button>
             </div>
-          </div>
+          </SectionCard>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-              Current session
-            </p>
+          <SectionCard title="Current session">
             <div className="mt-3 space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
               <MetaRow label="Device" value={currentDeviceLabel} />
               <MetaRow label="Type" value={currentSession?.bucket || "unknown"} />
@@ -140,11 +137,11 @@ export function ProfilePage() {
                 value={
                   currentSession?.expiresAt
                     ? new Date(currentSession.expiresAt).toLocaleString("en-US")
-                    : "Unknown"
+                  : "Unknown"
                 }
               />
             </div>
-          </div>
+          </SectionCard>
         </aside>
       </section>
     </div>

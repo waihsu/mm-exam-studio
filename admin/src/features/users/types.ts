@@ -1,4 +1,4 @@
-export type AdminUserRole = "user" | "admin";
+export type AdminUserRole = "user" | "admin" | "superadmin";
 export type AccountStatus = "active" | "suspended" | "deactivated";
 export type SubscriptionStatus = "active" | "canceled" | "past_due" | "expired";
 export type BillingCycle = "monthly" | "yearly" | "lifetime";
@@ -79,5 +79,16 @@ export type RevokeAdminUserDeviceResult = {
   device: {
     label: string | null;
     type: AdminUserDeviceType;
+  };
+};
+
+export type UpdateAdminUserRoleResult = {
+  changed: boolean;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: AdminUserRole;
+    updatedAt: string;
   };
 };

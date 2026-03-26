@@ -7,9 +7,9 @@ export const useSignUpEmailMutation = () => {
 
   return useMutation({
     mutationFn: signUpWithEmail,
-    onSuccess: (result) => {
+    onSuccess: () => {
       queryClient.clear();
-      queryClient.setQueryData(AUTH_SESSION_QUERY_KEY, result.session);
+      queryClient.setQueryData(AUTH_SESSION_QUERY_KEY, null);
     },
   });
 };

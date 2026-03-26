@@ -8,6 +8,7 @@ import {
 } from "../route-utils";
 import {
   createPracticeSession,
+  deletePracticeSession,
   getPracticeSessionDetail,
   listPracticeSessions,
   submitPracticeSession,
@@ -66,5 +67,16 @@ workspacePracticeRoute.post("/practice/sessions/:id/submit", async (c) => {
     return c.json(result);
   } catch (error) {
     toHttpError(error, "Failed to submit practice session.");
+  }
+});
+
+workspacePracticeRoute.delete("/practice/sessions/:id", async (c) => {
+  const { user } = await ensureAuthContext(c);
+
+  try {
+    const result = await deletePracticeSession(user.id, c.req.param("id"));
+    return c.json(result);
+  } catch (error) {
+    toHttpError(error, "Failed to delete practice session.");
   }
 });

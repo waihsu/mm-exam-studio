@@ -35,7 +35,7 @@ export const user = pgTable(
       "user_account_status_check",
       sql`${table.accountStatus} in ('active', 'suspended', 'deactivated')`,
     ),
-    check("user_role_check", sql`${table.role} in ('user', 'admin')`),
+    check("user_role_check", sql`${table.role} in ('user', 'admin', 'superadmin')`),
   ],
 );
 

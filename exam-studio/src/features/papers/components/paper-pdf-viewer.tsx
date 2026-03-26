@@ -96,8 +96,8 @@ export const PaperPdfViewer = ({
         showsVerticalScrollIndicator={false}
         trustAllCerts={false}
         renderActivityIndicator={() => (
-            <View style={styles.loadingState}>
-              <ActivityIndicator color="#2563EB" size="large" />
+          <View style={styles.loadingState}>
+            <ActivityIndicator color="#60A5FA" size="large" />
             <Text style={styles.loadingText}>
               {t("viewer.rendering", { percent: Math.round(loadProgress * 100) })}
             </Text>
@@ -128,18 +128,14 @@ export const PaperPdfViewer = ({
 
 const styles = StyleSheet.create({
   viewerFrame: {
-    backgroundColor: "#111827",
-    borderColor: "rgba(255,255,255,0.08)",
-    borderRadius: 20,
-    borderWidth: 1,
     flex: 1,
-    minHeight: 320,
+    minHeight: 0,
     overflow: "hidden",
   },
   pdf: {
+    backgroundColor: "#111827",
     flex: 1,
     width: "100%",
-    backgroundColor: "#111827",
   },
   loadingState: {
     alignItems: "center",
@@ -156,13 +152,10 @@ const styles = StyleSheet.create({
   unavailableState: {
     alignItems: "center",
     backgroundColor: "#111827",
-    borderColor: "rgba(255,255,255,0.08)",
-    borderRadius: 20,
-    borderWidth: 1,
     flex: 1,
     gap: 12,
     justifyContent: "center",
-    minHeight: 320,
+    minHeight: 0,
     paddingHorizontal: 24,
     paddingVertical: 32,
   },

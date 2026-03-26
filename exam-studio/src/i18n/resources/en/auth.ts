@@ -6,6 +6,11 @@ const auth = {
     signInTab: "Sign In",
     signUpTab: "Create Account",
   },
+  consent: {
+    label: "I have read and agree to the",
+    linkLabel: "Privacy & Policy",
+    required: "Please review and accept the Privacy & Policy before continuing.",
+  },
   signIn: {
     title: "Welcome back",
     subtitle: "Enter your account and continue.",
@@ -19,11 +24,13 @@ const auth = {
     forgotPassword: "Forgot password?",
     createAccount: "New here? Create an account",
     twoFactorRequired: "Two-factor verification required.",
+    emailNotVerified:
+      "Please verify your email first. Open the pending verification screen to resend a new link when needed.",
     failed: "Sign-in failed.",
   },
   signUp: {
     title: "Create your account",
-    subtitle: "Create your account and get started.",
+    subtitle: "Create your account, verify your email, then sign in.",
     kicker: "Sign up",
     sectionTitle: "Set up your student profile.",
     nameLabel: "Full name",
@@ -43,6 +50,18 @@ const auth = {
     confirmMismatch: "Password confirmation does not match.",
     passwordTooShort: "Password must be at least 8 characters.",
     failed: "Account creation failed.",
+  },
+  verifyEmailPending: {
+    title: "Check your email",
+    subtitle: "Verify your email before signing in.",
+    kicker: "Email verification",
+    sectionTitle: "Finish setting up your account.",
+    body:
+      "We sent a verification link to {{email}}. Open that email, confirm your account, then come back here and sign in.",
+    resend: "Resend verification email",
+    resendFailed: "Failed to resend verification email.",
+    backToSignIn: "Back to sign in",
+    emailFallback: "your email address",
   },
   forgotPassword: {
     title: "Forgot password?",
@@ -75,12 +94,11 @@ const auth = {
   },
   emailVerified: {
     title: "Verification complete",
-    subtitle: "Your email was confirmed successfully.",
+    subtitle: "Your email was confirmed successfully. Sign in to continue.",
     kicker: "Email verification",
-    sectionTitle: "Your account is now verified.",
+    sectionTitle: "Your account is ready.",
     body:
-      "Return to the app and continue. If you were already signed in, refresh your account screen once.",
-    goHome: "Go to home",
+      "Your email is verified now. Return to the app and sign in with your email and password.",
     goSignIn: "Go to sign in",
   },
   mfa: {
@@ -96,6 +114,31 @@ const auth = {
     backupCodeLabel: "Backup code",
     verify: "Verify and continue",
     backToSignIn: "Back to sign in",
+  },
+  legal: {
+    kicker: "Privacy & policy",
+    title: "Privacy & Policy",
+    subtitle: "A short and clear overview of how the app handles account data, device content, and support activity.",
+    back: "Back",
+    updatedAt: "Updated March 2026",
+    noticeTitle: "Before you continue",
+    noticeBody:
+      "This app helps students practice, prepare papers, and manage exports. By continuing, you confirm that you understand the handling of account data, generated content, and support requests inside the app.",
+    privacyTitle: "What we store",
+    privacyBody:
+      "We store your account profile, sign-in session details, practice activity, generated papers, subscription state, and support conversation history needed to keep the service working across your signed-in devices.",
+    dataUseTitle: "How data is used",
+    dataUseBody:
+      "Your data is used to sign you in, sync your progress, enforce plan limits, generate papers and previews, and help the support team investigate account or billing issues when you contact us.",
+    securityTitle: "Files and device safety",
+    securityBody:
+      "Temporary preview files and session artifacts may be cached on the device to speed up loading. Sensitive exports should be handled carefully, and you should sign out from shared devices when your work is finished.",
+    userResponsibilitiesTitle: "Your responsibilities",
+    userResponsibilitiesBody:
+      "Only upload or generate content that you are allowed to use. Do not share copyrighted or confidential assessment material without permission, and review exported papers before distributing them.",
+    supportTitle: "Support and policy updates",
+    supportBody:
+      "Some subscription changes, payment checks, and support replies may require manual review. We may update this policy as the product changes, and the latest in-app version should be treated as the current reference.",
   },
 } as const;
 

@@ -3,7 +3,6 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   CheckCircle2,
-  Download,
   LoaderCircle,
   Pencil,
   Printer,
@@ -14,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
+import { PageHeader, SectionCard } from "@/components/ui/page-shell";
 import { BrandAssetPicker } from "@/features/workspace/components/brand-asset-picker";
 import { QuestionPaperEditor } from "@/features/workspace/components/question-paper-editor";
 import { PaperPreview } from "@/features/workspace/components/paper-preview";
@@ -64,26 +64,26 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
 
   return (
     <div className="space-y-4">
-      <section className="app-hero print:hidden">
+      <div className="print:hidden">
         {paper ? (
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-                {paper.exportedAt ? "exported" : paper.status}
-              </p>
-              <h2 className="mt-1 text-2xl font-semibold text-slate-900">{paper.title}</h2>
-              <p className="mt-2 text-sm text-slate-600">
-                {paper.totalQuestions} questions • {paper.totalMarks} total marks
-              </p>
-              <p className="mt-2 text-sm text-slate-500">
-                {paper.exportedAt
-                  ? `Last exported ${new Date(paper.exportedAt).toLocaleString("en-US")}`
-                  : "Ready to print/export"}
-              </p>
-              {isDraft ? (
-                <p className="mt-2 text-sm text-slate-600">Draft is editable.</p>
-              ) : null}
-              <div className="mt-3 flex flex-wrap gap-2">
+          <PageHeader
+            eyebrow={paper.exportedAt ? "exported" : paper.status}
+            title={paper.title}
+            description={
+              paper.exportedAt
+                ? `Last exported ${new Date(paper.exportedAt).toLocaleString("en-US")}`
+                : isDraft
+                  ? "Draft is editable."
+                  : "Ready to print/export"
+            }
+            chips={
+              <>
+                <span className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                  {paper.totalQuestions} questions
+                </span>
+                <span className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                  {paper.totalMarks} total marks
+                </span>
                 {[paper.grade?.name, paper.subject?.name, paper.chapter?.name, paper.subChapter?.name]
                   .filter(Boolean)
                   .map((item) => (
@@ -94,9 +94,9 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
                       {item}
                     </span>
                   ))}
-              </div>
-            </div>
-            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+              </>
+            }
+            actions={<div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
               <Button asChild variant="outline" className="bg-white">
                 <Link to="/question-papers">
                   <ArrowLeft className="h-4 w-4" />
@@ -113,8 +113,8 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
                   void pdfMutation.mutateAsync();
                 }}
               >
-                <Download className="h-4 w-4" />
-                {pdfMutation.isPending ? "Generating..." : "Download PDF"}
+                <Printer className="h-4 w-4" />
+                {pdfMutation.isPending ? "Opening..." : "Open PDF"}
               </Button>
               {isDraft ? (
                 <Button
@@ -181,16 +181,16 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
                 <Trash2 className="h-4 w-4" />
                 Delete
               </Button>
-            </div>
-          </div>
+            </div>}
+          />
         ) : (
           <EmptyState title="Loading paper..." icon={LoaderCircle} className="bg-white/80 py-6" />
         )}
-      </section>
+      </div>
 
       {pdfMutation.data?.ok ? (
         <Notice tone="success" className="print:hidden">
-          PDF generated and export recorded.
+          PDF opened for printing and export recorded.
         </Notice>
       ) : null}
 
@@ -222,11 +222,9 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
         <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
           <aside className="space-y-4 print:hidden xl:sticky xl:top-6 xl:self-start">
             {isEditing ? (
-              <section className="rounded-xl border border-slate-200 bg-white p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-                    Paper details
-                  </p>
+              <SectionCard
+                title="Paper Details"
+                actions={
                   <Button
                     disabled={!form.title.trim() || updateMutation.isPending}
                     onClick={() => {
@@ -238,9 +236,9 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
                   >
                     {updateMutation.isPending ? "Saving..." : "Save"}
                   </Button>
-                </div>
-
-                <div className="mt-4 space-y-4">
+                }
+              >
+                <div className="space-y-4">
                   <label className="block space-y-2">
                     <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                       Title
@@ -319,15 +317,11 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
                     Include answer key
                   </label>
                 </div>
-              </section>
+              </SectionCard>
             ) : null}
 
-            <section className="rounded-xl border border-slate-200 bg-white p-4">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-                Print summary
-              </p>
-              <h3 className="mt-2 text-base font-semibold text-slate-900">{paper.title}</h3>
-              <div className="mt-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+            <SectionCard title="Print Summary">
+              <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
                 <MiniInfo label="Questions" value={String(paper.totalQuestions)} />
                 <MiniInfo label="Marks" value={String(paper.totalMarks)} />
                 <MiniInfo label="Status" value={paper.exportedAt ? "exported" : paper.status} />
@@ -346,21 +340,16 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
                   value={isDraft ? "Swap and reorder available" : "Locked after finalizing"}
                 />
               </div>
-            </section>
+            </SectionCard>
           </aside>
 
           <section className="space-y-4">
             {isDraft ? (
-              <div className="rounded-xl border border-slate-200 bg-white p-4 print:hidden">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-                      Printable preview
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      Toggle while editing draft.
-                    </p>
-                  </div>
+              <SectionCard
+                title="Printable Preview"
+                description="Toggle while editing draft."
+                className="print:hidden"
+                actions={
                   <Button
                     variant="outline"
                     className="bg-white"
@@ -368,8 +357,10 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
                   >
                     {showDraftPreview ? "Hide preview" : "Show preview"}
                   </Button>
-                </div>
-              </div>
+                }
+              >
+                <></>
+              </SectionCard>
             ) : null}
 
             {showDraftPreview || !isDraft ? (
@@ -417,7 +408,7 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
                     void pdfMutation.mutateAsync();
                   }}
                 >
-                  {pdfMutation.isPending ? "Generating..." : "PDF"}
+                  {pdfMutation.isPending ? "Opening..." : "Open PDF"}
                 </Button>
               </div>
             </div>

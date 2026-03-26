@@ -1,6 +1,10 @@
-import { and, eq } from "drizzle-orm";
-import { chapter, db, gradeSubject, subChapter } from "@/db";
-import type { CreateQuestionInput, QuestionVariableInput } from "../question.schema";
+import { and, eq, ne } from "drizzle-orm";
+import { chapter, db, gradeSubject, question, subChapter } from "@/db";
+import type {
+  CreateQuestionInput,
+  QuestionParametricValueSetInput,
+  QuestionVariableInput,
+} from "../question.schema";
 
 export type QuestionReviewStatus = "draft" | "in_review" | "needs_changes" | "approved";
 
@@ -12,6 +16,33 @@ export const toVariableDefinitions = (
   }
 
   return value as QuestionVariableInput[];
+};
+
+export const toQuestionImageUrls = (value: unknown): string[] | undefined => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const normalized = value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+
+  if (!normalized.length) {
+    return undefined;
+  }
+
+  return [...new Set(normalized)].slice(0, 4);
+};
+
+export const toParametricValueSets = (
+  value: unknown,
+): QuestionParametricValueSetInput[] | undefined => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  return value as QuestionParametricValueSetInput[];
 };
 
 const ensureGradeSubjectLink = async (gradeId: string, subjectId: string) => {
@@ -131,6 +162,39 @@ export const assertPublishState = (params: {
   }
 };
 
+export const validateStructuredQuestionData = (
+  params: Pick<
+    CreateQuestionInput,
+    | "mode"
+    | "swapGroupId"
+    | "variationNumber"
+    | "parametricValueSets"
+    | "questionImageUrls"
+    | "solutionImageUrls"
+  >,
+) => {
+  const hasSwapGroupId = Boolean(params.swapGroupId?.trim());
+  const hasVariationNumber = typeof params.variationNumber === "number";
+
+  if (hasSwapGroupId !== hasVariationNumber) {
+    throw new Error(
+      "Swap-enabled questions need both a swap group ID and a variation number.",
+    );
+  }
+
+  if (params.mode === "static" && (params.parametricValueSets?.length ?? 0) > 0) {
+    throw new Error("Static questions cannot include parametric value sets.");
+  }
+
+  if ((params.questionImageUrls?.length ?? 0) > 4) {
+    throw new Error("Question content supports up to 4 images.");
+  }
+
+  if ((params.solutionImageUrls?.length ?? 0) > 4) {
+    throw new Error("Solution content supports up to 4 images.");
+  }
+};
+
 export const normalizeReviewStatus = (params: {
   isPublished: boolean;
   reviewStatus?: QuestionReviewStatus;
@@ -154,3 +218,69 @@ export const toQuestionOptionsInput = (input: {
     text: option.text,
     isCorrect: option.isCorrect,
   })) satisfies CreateQuestionInput["options"];
+
+export const assertSwapGroupVariationIntegrity = async (params: {
+  questionId?: string;
+  swapGroupId?: string | null;
+  variationNumber?: number | null;
+  gradeId: string;
+  subjectId: string;
+  type: CreateQuestionInput["type"];
+  marks: number;
+}) => {
+  const swapGroupId = params.swapGroupId?.trim();
+  if (!swapGroupId || typeof params.variationNumber !== "number") {
+    return;
+  }
+
+  const groupQuestions = await db.query.question.findMany({
+    where: and(
+      eq(question.swapGroupId, swapGroupId),
+      params.questionId ? ne(question.id, params.questionId) : undefined,
+    ),
+    columns: {
+      id: true,
+      variationNumber: true,
+      gradeId: true,
+      subjectId: true,
+      type: true,
+      marks: true,
+    },
+  });
+
+  if (groupQuestions.length >= 3) {
+    throw new Error(
+      "Swap group already has 3 variants. Use a different swap group ID.",
+    );
+  }
+
+  if (
+    groupQuestions.some(
+      (item) => item.variationNumber === params.variationNumber,
+    )
+  ) {
+    throw new Error(
+      `Variation number ${params.variationNumber} already exists in this swap group.`,
+    );
+  }
+
+  if (groupQuestions.some((item) => typeof item.variationNumber !== "number")) {
+    throw new Error(
+      "Swap group contains invalid legacy records without variation numbers.",
+    );
+  }
+
+  const incompatibleQuestion = groupQuestions.find(
+    (item) =>
+      item.gradeId !== params.gradeId ||
+      item.subjectId !== params.subjectId ||
+      item.type !== params.type ||
+      item.marks !== params.marks,
+  );
+
+  if (incompatibleQuestion) {
+    throw new Error(
+      "Swap group questions must share the same grade, subject, type, and marks.",
+    );
+  }
+};

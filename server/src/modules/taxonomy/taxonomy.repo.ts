@@ -1,4 +1,4 @@
-import { and, asc, count, eq, inArray, sql } from "drizzle-orm";
+import { count, eq, inArray } from "drizzle-orm";
 
 import {
   chapter,
@@ -45,21 +45,6 @@ const normalizePagination = (params: PaginationParams) => {
 };
 
 const uniqueIds = (ids: string[]) => [...new Set(ids.filter(Boolean))];
-
-const createCountMap = <T extends Record<string, number>>(
-  rows: Array<{ id: string } & T>,
-  keys: Array<keyof T>,
-) => {
-  const map = new Map<string, Record<string, number>>();
-  for (const row of rows) {
-    const entry: Record<string, number> = {};
-    for (const key of keys) {
-      entry[String(key)] = row[key] ?? 0;
-    }
-    map.set(row.id, entry);
-  }
-  return map;
-};
 
 const attachCount = <T extends { id: string }>(
   rows: T[],

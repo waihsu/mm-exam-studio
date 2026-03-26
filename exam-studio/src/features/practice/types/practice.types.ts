@@ -6,7 +6,13 @@ export type PracticeQuestionType =
   | "fill_blank"
   | "matching";
 
+export type PracticeSessionStatus = "active" | "completed";
+
 export type PracticeGeneratorMode = "all_questions" | "mcq_only";
+export type PracticeQuestionMixEntry = {
+  questionType: PracticeQuestionType;
+  count: number;
+};
 
 export type CatalogQuestion = {
   id: string;
@@ -43,49 +49,14 @@ export type CatalogQuestion = {
   isFreePreview: boolean;
 };
 
-export type CatalogLockedQuestion = {
-  id: string;
-  questionCode: string;
-  type: PracticeQuestionType;
-  difficulty: "easy" | "medium" | "hard";
-  mode: "static" | "variable";
-  marks: number;
-  estimatedTimeSec: number | null;
-  grade: {
-    id: string;
-    code: string;
-    name: string;
-  };
-  subject: {
-    id: string;
-    code: string;
-    name: string;
-  };
-  chapter: {
-    id: string;
-    code: string | null;
-    name: string;
-    isFreePreview: boolean;
-  } | null;
-  subChapter: {
-    id: string;
-    code: string | null;
-    name: string;
-    isFreePreview: boolean;
-  } | null;
-  isFreePreview: boolean;
-  lockReasonCode: string;
-  lockReason: string;
-};
-
-export type WorkspaceCatalogResponse = {
-  rows: CatalogQuestion[];
-  lockedRows: CatalogLockedQuestion[];
-  lockedTotal: number;
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
+export type WorkspaceCatalogQuickCountsResponse = {
+  all: number;
+  mcq: number;
+  true_false: number;
+  short_answer: number;
+  long_answer: number;
+  fill_blank: number;
+  matching: number;
 };
 
 export type CatalogQueryParams = {
@@ -111,6 +82,7 @@ export type CreatePracticeSessionInput = {
   generatorMode?: PracticeGeneratorMode;
   questionIds?: string[];
   count?: number;
+  questionMix?: PracticeQuestionMixEntry[];
 };
 
 export type CreatePracticeSessionResponse = {
@@ -122,7 +94,7 @@ export type CreatePracticeSessionResponse = {
 export type PracticeSessionListRow = {
   id: string;
   title: string;
-  status: "started" | "completed";
+  status: PracticeSessionStatus;
   totalQuestions: number;
   correctAnswers: number | null;
   scorePercent: number | null;
@@ -144,6 +116,10 @@ export type PracticeSessionListResponse = {
   rows: PracticeSessionListRow[];
 };
 
+export type DeletePracticeSessionResponse = {
+  id: string;
+};
+
 export type PracticeSessionItemOption = {
   label: string | null;
   text: string;
@@ -159,6 +135,8 @@ export type PracticeSessionItem = {
   body: string;
   explanation: string | null;
   answerText: string | null;
+  questionImageUrls: string[];
+  solutionImageUrls: string[];
   options: PracticeSessionItemOption[];
   variableContext: unknown;
   submittedAnswer: string | null;
@@ -168,7 +146,7 @@ export type PracticeSessionItem = {
 export type PracticeSessionDetail = {
   id: string;
   title: string;
-  status: "started" | "completed";
+  status: PracticeSessionStatus;
   totalQuestions: number;
   correctAnswers: number | null;
   scorePercent: number | null;

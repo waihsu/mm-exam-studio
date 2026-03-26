@@ -54,6 +54,9 @@ export const buildPreviewPayload = (question: PublishedQuestionRecord) => ({
         choices?: string[];
       }>)
     : undefined,
+  parametricValueSets: Array.isArray(question.parametricValueSets)
+    ? (question.parametricValueSets as Array<Record<string, string | number>>)
+    : undefined,
   isPublished: question.isPublished,
   marks: question.marks,
   options: question.options.map((option) => ({
@@ -150,6 +153,10 @@ export const assertPracticeSessionQuota = async (params: {
 export const buildQuestionPaperItemPayload = async (
   question: PublishedQuestionRecord,
   position: number,
+  source?: {
+    blueprintSectionId?: string | null;
+    blueprintSlotId?: string | null;
+  },
 ) => {
   const preview = await previewQuestionForWorkspace(buildPreviewPayload(question));
   const renderedOptions = preview.options.map((option) => ({
@@ -161,6 +168,8 @@ export const buildQuestionPaperItemPayload = async (
   return {
     position,
     questionId: question.id,
+    blueprintSectionId: source?.blueprintSectionId ?? null,
+    blueprintSlotId: source?.blueprintSlotId ?? null,
     questionCode: question.questionCode,
     questionType: question.type,
     marks: question.marks,
@@ -186,6 +195,10 @@ const shuffle = <T,>(items: T[]) => {
 export const resolveSelectionQuestions = async (params: {
   questionIds?: string[];
   count?: number;
+  questionMix?: Array<{
+    questionType: CatalogFilters["questionType"];
+    count: number;
+  }>;
   filters: CatalogFilters;
   access?: WorkspaceAccessPolicy;
   generatorMode?: "all_questions" | "mcq_only";
@@ -214,6 +227,44 @@ export const resolveSelectionQuestions = async (params: {
 
     const rowMap = new Map(rows.map((row) => [row.id, row]));
     return questionIds.map((id) => rowMap.get(id)).filter(Boolean) as PublishedQuestionRecord[];
+  }
+
+  const questionMix = params.questionMix?.filter(
+    (entry): entry is NonNullable<typeof params.questionMix>[number] =>
+      Boolean(entry.questionType) && Number.isFinite(entry.count) && entry.count > 0,
+  ) ?? [];
+
+  if (questionMix.length > 0) {
+    const selectedIds: string[] = [];
+
+    for (const entry of questionMix) {
+      const questionType = entry.questionType as NonNullable<CatalogFilters["questionType"]>;
+      const ids = await findPublishedQuestionIds({
+        filters: {
+          ...selectionFilters,
+          questionType,
+        },
+        access: params.access,
+        excludeIds: selectedIds,
+        limit: Math.max(entry.count * 6, entry.count),
+      });
+
+      const pool = await loadPublishedQuestionsByIds(ids);
+      if (pool.length < entry.count) {
+        throw new Error(
+          `Not enough ${questionType.replaceAll("_", " ")} questions matched your current filters.`,
+        );
+      }
+
+      const picked = shuffle(pool).slice(0, entry.count);
+      selectedIds.push(...picked.map((item) => item.id));
+    }
+
+    const rows = await loadPublishedQuestionsByIds(selectedIds);
+    const rowMap = new Map(rows.map((row) => [row.id, row]));
+    return selectedIds
+      .map((id) => rowMap.get(id))
+      .filter(Boolean) as PublishedQuestionRecord[];
   }
 
   const count = Math.max(1, Math.min(50, params.count ?? 10));

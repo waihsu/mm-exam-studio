@@ -132,32 +132,27 @@ const loadSessionPayload = async (
 ========================================================= */
 
 export const resolveUserRoles = async (user: AppUser): Promise<AppRole[]> => {
-  // DB role (simple)
   const [dbUser] = await authDb
     .select({ role: authUser.role })
     .from(authUser)
     .where(eq(authUser.id, user.id))
     .limit(1);
 
-  let roles: AppRole[] = [];
-
   const isVerifiedEmail = (user as AuthenticatedAppUser).emailVerified === true;
   const normalizedUserEmail = normalizeEmail(user.email);
   const isEnvAdmin = getEnvAdminEmails().includes(normalizedUserEmail);
   const isEnvSuperAdmin = getEnvSuperAdminEmails().includes(normalizedUserEmail);
+  const roles = new Set<AppRole>(["student"]);
+  const dbRole = dbUser?.role;
 
-  if (dbUser?.role === "admin" || (isEnvAdmin && isVerifiedEmail)) {
-    roles.push("admin");
-  } else {
-    roles.push("student"); // default user role
+  if (dbRole === "superadmin" || (isEnvSuperAdmin && isVerifiedEmail)) {
+    roles.add("admin");
+    roles.add("superadmin");
+  } else if (dbRole === "admin" || (isEnvAdmin && isVerifiedEmail)) {
+    roles.add("admin");
   }
 
-  // Superadmin via ENV (override)
-  if (isEnvSuperAdmin && isVerifiedEmail) {
-    roles.push("superadmin");
-  }
-
-  return roles;
+  return Array.from(roles);
 };
 
 /* =========================================================

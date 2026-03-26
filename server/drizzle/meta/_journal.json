@@ -22,6 +22,104 @@
       "when": 1774275303526,
       "tag": "0003_square_boom_boom",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1774329687320,
+      "tag": "0004_hot_johnny_blaze",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1774330285912,
+      "tag": "0005_shocking_wither",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1774330863788,
+      "tag": "0006_greedy_carmella_unuscione",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1774331839136,
+      "tag": "0007_chubby_mephistopheles",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1774332686685,
+      "tag": "0008_new_big_bertha",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1774346879348,
+      "tag": "0008_fancy_husk",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1774346985245,
+      "tag": "0009_cold_jimmy_woo",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1774347898227,
+      "tag": "0010_smooth_red_skull",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1774374000000,
+      "tag": "0011_gentle_puck",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1774380000000,
+      "tag": "0012_brisk_exam_template",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1774380600000,
+      "tag": "0013_root_superadmin",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1774464000000,
+      "tag": "0014_adjust_device_limits",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1774464600000,
+      "tag": "0015_owner_device_override",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1774465200000,
+      "tag": "0016_user_role_check_superadmin",
+      "breakpoints": true
     }
   ]
 }

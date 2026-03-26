@@ -69,6 +69,25 @@ const questionOptionSchema = z.object({
   isCorrect: z.boolean(),
 });
 
+const questionMediaArraySchema = z
+  .array(z.string().trim().min(1))
+  .max(4)
+  .superRefine((value, ctx) => {
+    const normalized = value.map((item) => item.trim());
+    const unique = new Set(normalized);
+    if (unique.size !== normalized.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Duplicate image URLs are not allowed.",
+      });
+    }
+  });
+const questionParametricValueSchema = z.union([z.string(), z.number()]);
+const questionParametricValueSetSchema = z.record(
+  z.string().trim().min(1),
+  questionParametricValueSchema,
+);
+
 export const questionVariableSchema = z
   .object({
     key: z
@@ -133,6 +152,8 @@ const questionSchemaBase = z.object({
   type: z.enum(QUESTION_TYPES),
   difficulty: z.enum(["easy", "medium", "hard"]).default("medium"),
   mode: z.enum(["static", "variable"]).default("static"),
+  swapGroupId: z.string().trim().min(1).nullable().optional(),
+  variationNumber: z.number().int().min(1).max(3).nullable().optional(),
   reviewStatus: z
     .enum(["draft", "in_review", "needs_changes", "approved"])
     .optional(),
@@ -144,9 +165,16 @@ const questionSchemaBase = z.object({
   subChapterId: z.string().nullable().optional(),
 
   explanation: z.string().nullable().optional(),
+  questionTopText: z.string().nullable().optional(),
+  questionBottomText: z.string().nullable().optional(),
+  questionImageUrls: questionMediaArraySchema.optional(),
+  solutionTopText: z.string().nullable().optional(),
+  solutionBottomText: z.string().nullable().optional(),
+  solutionImageUrls: questionMediaArraySchema.optional(),
   answerText: z.string().nullable().optional(),
   answerFormula: z.string().nullable().optional(),
   variablesSchema: z.array(questionVariableSchema).optional(),
+  parametricValueSets: z.array(questionParametricValueSetSchema).optional(),
   isPublished: z.boolean().optional(),
   marks: z
     .number()
@@ -300,6 +328,7 @@ export const updateQuestionSchema = questionSchemaBase
 export const questionPreviewSchema = questionSchemaBase
   .extend({
     previewValues: previewValuesSchema.optional(),
+    parametricSetIndex: z.number().int().min(0).optional(),
   })
   .superRefine(applyQuestionRefinements);
 
@@ -308,6 +337,9 @@ export const questionImportSchema = z.object({
 });
 
 export type QuestionVariableInput = z.infer<typeof questionVariableSchema>;
+export type QuestionParametricValueSetInput = z.infer<
+  typeof questionParametricValueSetSchema
+>;
 export type CreateQuestionInput = z.infer<typeof createQuestionSchema>;
 export type UpdateQuestionInput = z.infer<typeof updateQuestionSchema>;
 export type QuestionPreviewInput = z.infer<typeof questionPreviewSchema>;

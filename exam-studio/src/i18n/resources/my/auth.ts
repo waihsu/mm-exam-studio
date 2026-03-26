@@ -6,6 +6,11 @@ const auth = {
     signInTab: "ဝင်ရန်",
     signUpTab: "အကောင့်ဖွင့်ရန်",
   },
+  consent: {
+    label: "ကျွန်ုပ်သည်",
+    linkLabel: "Privacy & Policy",
+    required: "ဆက်လုပ်ရန် Privacy & Policy ကိုဖတ်ရှုပြီး သဘောတူကြောင်းအတည်ပြုပါ။",
+  },
   signIn: {
     title: "ပြန်လည်ကြိုဆိုပါတယ်",
     subtitle: "အကောင့်ဝင်ပြီး ဆက်လုပ်ပါ။",
@@ -19,11 +24,13 @@ const auth = {
     forgotPassword: "Password မေ့နေပါသလား?",
     createAccount: "အသစ်လား? အကောင့်ဖွင့်ပါ",
     twoFactorRequired: "Two-factor verification လိုအပ်ပါတယ်။",
+    emailNotVerified:
+      "အရင်ဆုံး email ကို verify လုပ်ပါ။ Link အသစ်လိုရင် verification pending screen ကနေ resend လုပ်ပါ။",
     failed: "အကောင့်ဝင်မရပါ။",
   },
   signUp: {
     title: "အကောင့်ဖွင့်ပါ",
-    subtitle: "အကောင့်အသစ်ဖွင့်ပြီး စတင်ပါ။",
+    subtitle: "အကောင့်ဖွင့်ပါ၊ email verify လုပ်ပါ၊ ပြီးမှ sign in ဝင်ပါ။",
     kicker: "အကောင့်ဖွင့်ရန်",
     sectionTitle: "Student profile ကို စတင်ပြင်ဆင်ပါ။",
     nameLabel: "အမည်အပြည့်အစုံ",
@@ -43,6 +50,18 @@ const auth = {
     confirmMismatch: "Password အတည်ပြုမှု မကိုက်ညီပါ။",
     passwordTooShort: "Password သည် အနည်းဆုံး စာလုံး 8 လုံးလိုပါတယ်။",
     failed: "အကောင့်ဖွင့်မရပါ။",
+  },
+  verifyEmailPending: {
+    title: "Email ကိုစစ်ပါ",
+    subtitle: "Sign in မဝင်ခင် email ကိုအရင် verify လုပ်ပါ။",
+    kicker: "Email အတည်ပြုမှု",
+    sectionTitle: "အကောင့် setup ကိုအပြီးသတ်ပါ။",
+    body:
+      "{{email}} သို့ verification link ပို့ပြီးပါပြီ။ Email ကိုဖွင့်ပြီး account ကိုအတည်ပြုပြီးမှ app ထဲပြန်လာကာ sign in ဝင်ပါ။",
+    resend: "Verification email ပြန်ပို့မည်",
+    resendFailed: "Verification email ပြန်မပို့နိုင်ပါ။",
+    backToSignIn: "Sign in သို့ပြန်မည်",
+    emailFallback: "သင့် email လိပ်စာ",
   },
   forgotPassword: {
     title: "Password မေ့နေပါသလား?",
@@ -75,12 +94,11 @@ const auth = {
   },
   emailVerified: {
     title: "အတည်ပြုပြီးပါပြီ",
-    subtitle: "သင့် email ကိုအောင်မြင်စွာ အတည်ပြုပြီးပါပြီ။",
+    subtitle: "သင့် email ကိုအောင်မြင်စွာ အတည်ပြုပြီးပါပြီ။ အခု sign in ဝင်နိုင်ပါပြီ။",
     kicker: "Email အတည်ပြုမှု",
-    sectionTitle: "သင့်အကောင့်ကို verified အဖြစ်သတ်မှတ်ပြီးပါပြီ။",
+    sectionTitle: "သင့်အကောင့် အဆင်သင့်ဖြစ်ပါပြီ။",
     body:
-      "App ထဲပြန်ဝင်ပြီး ဆက်အသုံးပြုပါ။ Sign in ဝင်ထားပြီးသားဖြစ်ရင် account screen ကိုတစ်ချက် refresh လုပ်ပါ။",
-    goHome: "Home သို့သွားမည်",
+      "Email verified ဖြစ်သွားပါပြီ။ App ထဲပြန်လာပြီး email နဲ့ password ဖြင့် sign in ဝင်ပါ။",
     goSignIn: "Sign in သို့သွားမည်",
   },
   mfa: {
@@ -96,6 +114,32 @@ const auth = {
     backupCodeLabel: "Backup code",
     verify: "အတည်ပြုပြီးဆက်မည်",
     backToSignIn: "Sign in သို့ပြန်မည်",
+  },
+  legal: {
+    kicker: "Privacy & policy",
+    title: "Privacy & Policy",
+    subtitle:
+      "အကောင့်ဒေတာ, device ထဲက files, နဲ့ support activity တွေကို app ကဘယ်လိုကိုင်တွယ်သလဲဆိုတာကို တိုတိုရှင်းရှင်းဖော်ပြထားပါတယ်။",
+    back: "ပြန်သွားမည်",
+    updatedAt: "Updated March 2026",
+    noticeTitle: "ဆက်မလုပ်ခင် သိထားရန်",
+    noticeBody:
+      "ဒီ app ကို practice လုပ်ရန်, paper ပြင်ဆင်ရန်, နဲ့ export များစီမံရန် အသုံးပြုနိုင်ပါတယ်။ ဆက်လုပ်ခြင်းအားဖြင့် account data, generated content, နဲ့ support requests တွေကို app အတွင်းဘယ်လိုကိုင်တွယ်သလဲဆိုတာကို သဘောပေါက်ထားကြောင်း အတည်ပြုပါသည်။",
+    privacyTitle: "သိမ်းဆည်းထားသောအချက်အလက်များ",
+    privacyBody:
+      "Signed-in devices အားလုံးမှာ service မှန်မှန်အလုပ်လုပ်စေရန် account profile, sign-in session details, practice activity, generated papers, subscription state, နဲ့ support conversation history တွေကိုသိမ်းထားနိုင်ပါတယ်။",
+    dataUseTitle: "ဒေတာအသုံးပြုရသည့်အကြောင်းရင်း",
+    dataUseBody:
+      "သင့်ဒေတာကို sign in ဝင်ရန်, progress sync လုပ်ရန်, plan limit များထိန်းရန်, papers နဲ့ previews များ generate လုပ်ရန်, နဲ့ support ကိုဆက်သွယ်သောအခါ account သို့မဟုတ် billing issue များစစ်ဆေးနိုင်ရန် အသုံးပြုပါတယ်။",
+    securityTitle: "Files နှင့် device လုံခြုံရေး",
+    securityBody:
+      "Preview files နှင့် session artifacts တချို့ကို loading မြန်စေရန် device ထဲတွင် ယာယီ cache လုပ်ထားနိုင်ပါတယ်။ Sensitive exports များကို သေချာစွာကိုင်တွယ်ပြီး shared device များမှာ အသုံးပြုပြီးပါက sign out လုပ်ပါ။",
+    userResponsibilitiesTitle: "အသုံးပြုသူ၏တာဝန်",
+    userResponsibilitiesBody:
+      "အသုံးပြုခွင့်ရှိသော content များကိုသာ upload သို့မဟုတ် generate လုပ်ပါ။ ခွင့်ပြုချက်မရှိဘဲ copyrighted သို့မဟုတ် confidential assessment material များကို မမျှဝေပါနှင့်။ Export လုပ်ထားသော papers များကို ဖြန့်ချိမီ ပြန်လည်စစ်ဆေးပါ။",
+    supportTitle: "Support နှင့် policy update များ",
+    supportBody:
+      "Subscription change, payment check, နဲ့ support reply တချို့မှာ manual review အချိန်လိုနိုင်ပါတယ်။ Product ပြောင်းလဲလာသည်နှင့်အမျှ ဒီ policy ကို update လုပ်နိုင်ပြီး app ထဲတွင်မြင်ရသော နောက်ဆုံး version ကို current reference အဖြစ်ယူသင့်ပါတယ်။",
   },
 } as const;
 

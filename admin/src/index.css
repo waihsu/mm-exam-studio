@@ -1,6 +1,183 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@font-face {
+  font-family: "MMExam Sans";
+  src: url("/fonts/NotoSans-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF,
+    U+0100-024F,
+    U+1E00-1EFF,
+    U+2000-206F;
+}
+
+@font-face {
+  font-family: "MMExam Sans";
+  src: url("/fonts/NotoSans-SemiBold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF,
+    U+0100-024F,
+    U+1E00-1EFF,
+    U+2000-206F;
+}
+
+@font-face {
+  font-family: "MMExam Sans";
+  src: url("/fonts/NotoSans-Medium.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF,
+    U+0100-024F,
+    U+1E00-1EFF,
+    U+2000-206F;
+}
+
+@font-face {
+  font-family: "MMExam Sans";
+  src: url("/fonts/NotoSans-SemiBold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF,
+    U+0100-024F,
+    U+1E00-1EFF,
+    U+2000-206F;
+}
+
+@font-face {
+  font-family: "MMExam Sans";
+  src: url("/fonts/NotoSans-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF,
+    U+0100-024F,
+    U+1E00-1EFF,
+    U+2000-206F;
+}
+
+@font-face {
+  font-family: "MMExam Sans";
+  src: url("/fonts/NotoSansMyanmar-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range:
+    U+1000-109F,
+    U+A9E0-A9FF,
+    U+AA60-AA7F;
+}
+
+@font-face {
+  font-family: "MMExam Sans";
+  src: url("/fonts/NotoSansMyanmar-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  unicode-range:
+    U+1000-109F,
+    U+A9E0-A9FF,
+    U+AA60-AA7F;
+}
+
+@font-face {
+  font-family: "MMExam Display";
+  src: url("/fonts/PlusJakartaSans-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF,
+    U+0100-024F,
+    U+1E00-1EFF,
+    U+2000-206F;
+}
+
+@font-face {
+  font-family: "MMExam Display";
+  src: url("/fonts/PlusJakartaSans-SemiBold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF,
+    U+0100-024F,
+    U+1E00-1EFF,
+    U+2000-206F;
+}
+
+@font-face {
+  font-family: "MMExam Display";
+  src: url("/fonts/PlusJakartaSans-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF,
+    U+0100-024F,
+    U+1E00-1EFF,
+    U+2000-206F;
+}
+
+@font-face {
+  font-family: "MMExam Display";
+  src: url("/fonts/PlusJakartaSans-ExtraBold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF,
+    U+0100-024F,
+    U+1E00-1EFF,
+    U+2000-206F;
+}
+
+@font-face {
+  font-family: "MMExam Display";
+  src: url("/fonts/NotoSansMyanmar-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range:
+    U+1000-109F,
+    U+A9E0-A9FF,
+    U+AA60-AA7F;
+}
+
+@font-face {
+  font-family: "MMExam Display";
+  src: url("/fonts/NotoSansMyanmar-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  unicode-range:
+    U+1000-109F,
+    U+A9E0-A9FF,
+    U+AA60-AA7F;
+}
+
+@font-face {
+  font-family: "MMExam Display";
+  src: url("/fonts/NotoSansMyanmar-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  unicode-range:
+    U+1000-109F,
+    U+A9E0-A9FF,
+    U+AA60-AA7F;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -43,10 +220,8 @@
 
 :root {
   --admin-header-height: 4rem;
-  --font-sans: "Plus Jakarta Sans", "Manrope", "Avenir Next", "Segoe UI",
-    sans-serif;
-  --font-heading: "Sora", "Plus Jakarta Sans", "Avenir Next", "Segoe UI",
-    sans-serif;
+  --font-sans: "MMExam Sans", "Segoe UI", sans-serif;
+  --font-heading: "MMExam Display", "MMExam Sans", "Segoe UI", sans-serif;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -116,11 +291,21 @@
 }
 
 @layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+    min-height: 100dvh;
     font-family: var(--font-sans);
     line-height: 1.5;
     text-rendering: optimizeLegibility;
@@ -134,6 +319,7 @@
   h4 {
     font-family: var(--font-heading);
     letter-spacing: -0.01em;
+    font-weight: 700;
   }
 }
 

@@ -4,19 +4,35 @@ import {
   View,
   type ViewProps,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 type AppShellProps = ViewProps & {
   children: React.ReactNode;
 };
 
 export const AppShell = ({ children, style, ...rest }: AppShellProps) => (
-  <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-    <View style={[styles.container, style]} {...rest}>
-      {children}
-    </View>
-  </SafeAreaView>
+  <AppShellInner style={style} {...rest}>
+    {children}
+  </AppShellInner>
 );
+
+const AppShellInner = ({ children, style, ...rest }: AppShellProps) => {
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = React.useContext(BottomTabBarHeightContext) ?? 0;
+  const bottomPadding = tabBarHeight > 0 ? 16 : insets.bottom + 16;
+
+  return (
+    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
+      <View
+        style={[styles.container, { paddingBottom: bottomPadding }, style]}
+        {...rest}
+      >
+        {children}
+      </View>
+    </SafeAreaView>
+  );
+};
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -26,7 +42,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 16,
     gap: 16,
   },
 });

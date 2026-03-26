@@ -3,14 +3,14 @@ import React, { useMemo } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppShell } from "@/features/app-shell/components/app-shell";
-import { usePracticeSessionsQuery } from "@/features/practice/hooks/use-practice-sessions-query";
 import { useAuthSessionQuery } from "@/features/auth/hooks/use-auth-session-query";
 import { useExportedQuestionPapersQuery } from "@/features/papers/hooks/use-exported-question-papers-query";
 import { useQuestionPapersQuery } from "@/features/papers/hooks/use-question-papers-query";
-import { useRefreshAction } from "@/hooks/use-refresh-action";
+import { usePracticeSessionsQuery } from "@/features/practice/hooks/use-practice-sessions-query";
 import { useAppDateTimeFormatter } from "@/features/settings/hooks/use-app-date-time-formatter";
 import { useSubscriptionPaymentConfigQuery } from "@/features/subscriptions/hooks/use-subscription-payment-config-query";
 import { useWorkspaceSummaryQuery } from "@/features/workspace/hooks/use-workspace-summary-query";
+import { useRefreshAction } from "@/hooks/use-refresh-action";
 
 const formatNullableCount = (value: number | null, uncappedLabel: string) => {
   if (typeof value !== "number") {
@@ -19,6 +19,68 @@ const formatNullableCount = (value: number | null, uncappedLabel: string) => {
 
   return `${value}`;
 };
+
+const HomeSection = ({
+  title,
+  description,
+  actionLabel,
+  onActionPress,
+  children,
+}: {
+  title: string;
+  description?: string;
+  actionLabel?: string;
+  onActionPress?: () => void;
+  children: React.ReactNode;
+}) => (
+  <View style={styles.sectionCard}>
+    <View style={styles.sectionHeader}>
+      <View style={styles.sectionHeaderCopy}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        {description ? <Text style={styles.sectionDescription}>{description}</Text> : null}
+      </View>
+      {actionLabel && onActionPress ? (
+        <Pressable
+          style={({ pressed }) => [styles.sectionAction, pressed && styles.buttonPressed]}
+          onPress={onActionPress}
+        >
+          <Text style={styles.sectionActionLabel}>{actionLabel}</Text>
+        </Pressable>
+      ) : null}
+    </View>
+    <View style={styles.sectionBody}>{children}</View>
+  </View>
+);
+
+const HeroAction = ({
+  title,
+  tone,
+  onPress,
+}: {
+  title: string;
+  tone: "primary" | "secondary";
+  onPress: () => void;
+}) => (
+  <Pressable
+    style={({ pressed }) => [
+      styles.heroAction,
+      tone === "primary" ? styles.heroActionPrimary : styles.heroActionSecondary,
+      pressed && styles.buttonPressed,
+    ]}
+    onPress={onPress}
+  >
+    <View style={styles.heroActionCopy}>
+      <Text
+        style={[
+          styles.heroActionLabel,
+          tone === "primary" ? styles.heroActionLabelPrimary : styles.heroActionLabelSecondary,
+        ]}
+      >
+        {title}
+      </Text>
+    </View>
+  </Pressable>
+);
 
 const QuickAction = ({
   title,
@@ -34,12 +96,16 @@ const QuickAction = ({
   <Pressable
     style={({ pressed }) => [
       styles.quickActionCard,
-      { borderColor: accent },
+      { borderColor: `${accent}33` },
       pressed && styles.buttonPressed,
     ]}
     onPress={onPress}
   >
-    <Text style={[styles.quickActionTitle, { color: accent }]}>{title}</Text>
+    <View style={[styles.quickActionAccent, { backgroundColor: accent }]} />
+    <View style={styles.quickActionHeader}>
+      <Text style={styles.quickActionTitle}>{title}</Text>
+      <Text style={styles.quickActionArrow}>›</Text>
+    </View>
     <Text style={styles.quickActionHint}>{hint}</Text>
   </Pressable>
 );
@@ -53,10 +119,66 @@ const HomeMetricCard = ({
   value: string;
   tone: string;
 }) => (
-  <View style={[styles.metricCard, { borderColor: tone }]}>
-    <Text style={[styles.metricValue, { color: tone }]}>{value}</Text>
+  <View
+    style={[
+      styles.metricCard,
+      { borderColor: `${tone}24`, backgroundColor: `${tone}0C` },
+    ]}
+  >
     <Text style={styles.metricLabel}>{label}</Text>
+    <Text style={[styles.metricValue, { color: tone }]}>{value}</Text>
   </View>
+);
+
+const MetaPill = ({
+  label,
+  tone = "default",
+}: {
+  label: string;
+  tone?: "default" | "info" | "success" | "warning";
+}) => (
+  <View
+    style={[
+      styles.metaPill,
+      tone === "info" ? styles.metaPillInfo : null,
+      tone === "success" ? styles.metaPillSuccess : null,
+      tone === "warning" ? styles.metaPillWarning : null,
+    ]}
+  >
+    <Text
+      style={[
+        styles.metaPillLabel,
+        tone === "info" ? styles.metaPillLabelInfo : null,
+        tone === "success" ? styles.metaPillLabelSuccess : null,
+        tone === "warning" ? styles.metaPillLabelWarning : null,
+      ]}
+    >
+      {label}
+    </Text>
+  </View>
+);
+
+const ActivityCard = ({
+  title,
+  body,
+  muted = false,
+  onPress,
+}: {
+  title: string;
+  body: string;
+  muted?: boolean;
+  onPress: () => void;
+}) => (
+  <Pressable
+    style={({ pressed }) => [
+      muted ? styles.activityCardMuted : styles.activityCard,
+      pressed && styles.buttonPressed,
+    ]}
+    onPress={onPress}
+  >
+    <Text style={styles.activityTitle}>{title}</Text>
+    <Text style={styles.metaText}>{body}</Text>
+  </Pressable>
 );
 
 export const HomeScreen = () => {
@@ -71,12 +193,10 @@ export const HomeScreen = () => {
   const paymentConfigQuery = useSubscriptionPaymentConfigQuery(Boolean(authSessionQuery.data));
   const homeRefresh = useRefreshAction(async () => {
     await Promise.allSettled([
-      authSessionQuery.refetch(),
       workspaceSummaryQuery.refetch(),
       sessionsQuery.refetch(),
       papersQuery.refetch(),
       exportedPapersQuery.refetch(),
-      paymentConfigQuery.refetch(),
     ]);
   });
 
@@ -86,7 +206,7 @@ export const HomeScreen = () => {
     t("defaultUserName");
 
   const continueSession = useMemo(
-    () => sessionsQuery.data?.rows.find((session) => session.status === "started") ?? null,
+    () => sessionsQuery.data?.rows.find((session) => session.status === "active") ?? null,
     [sessionsQuery.data?.rows],
   );
 
@@ -111,7 +231,14 @@ export const HomeScreen = () => {
   const summary = workspaceSummaryQuery.data;
   const subscription = summary?.subscription;
   const latestRequest = subscription?.latestRequest;
-
+  const notifications = summary?.notifications;
+  const supportConversation = notifications?.supportConversation;
+  const hasUnreadNotifications = (notifications?.unreadCount ?? 0) > 0;
+  const hasSupportUnread = (notifications?.supportUnreadCount ?? 0) > 0;
+  const hasPendingSubscriptionRequest = notifications?.hasPendingSubscriptionRequest ?? false;
+  const primaryPracticeTitle = continueSession
+    ? t("quickActions.continuePractice.title")
+    : t("quickActions.startPractice.title");
   return (
     <AppShell>
       <ScrollView
@@ -128,25 +255,133 @@ export const HomeScreen = () => {
         }
       >
         <View style={styles.heroCard}>
-          <Text style={styles.eyebrow}>{t("appName")}</Text>
-          <Text style={styles.heroTitle}>{t("welcomeBack", { name: userName })}</Text>
-          <Text style={styles.heroSubtitle}>{t("heroSubtitle")}</Text>
+          <View style={styles.heroTopRow}>
+            <View style={styles.heroTitleWrap}>
+              <Text style={styles.eyebrow}>{t("appName")}</Text>
+              <Text style={styles.heroTitle}>{t("welcomeBack", { name: userName })}</Text>
+              <Text style={styles.heroSubtitle}>{t("heroSubtitle")}</Text>
+            </View>
+            <Text style={styles.heroPlanPill}>{subscription?.name ?? "Free"}</Text>
+          </View>
           <View style={styles.heroBadgeRow}>
-            <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeLabel}>
-                {t("planBadge", { name: subscription?.name ?? "Free" })}
-              </Text>
-            </View>
-            <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeLabel}>
-                {continueSession ? t("sessionReady") : t("newWorkReady")}
-              </Text>
-            </View>
+            <MetaPill
+              label={continueSession ? t("sessionReady") : t("newWorkReady")}
+              tone="success"
+            />
+            {hasUnreadNotifications ? (
+              <MetaPill
+                label={t("notificationsBadge", {
+                  count: notifications?.unreadCount ?? 0,
+                })}
+                tone="info"
+              />
+            ) : null}
+            {hasPendingSubscriptionRequest ? (
+              <MetaPill label={t("pendingUpgradeBadge")} tone="warning" />
+            ) : null}
+          </View>
+          <View style={styles.heroActionRow}>
+            <HeroAction
+              title={primaryPracticeTitle}
+              tone="primary"
+              onPress={() =>
+                router.push(
+                  continueSession
+                    ? (`/practice/${continueSession.id}` as RelativePathString)
+                    : ("/practice" as RelativePathString),
+                )
+              }
+            />
+            <HeroAction
+              title={t("quickActions.buildPaper.title")}
+              tone="secondary"
+              onPress={() => router.push("/papers" as RelativePathString)}
+            />
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t("quickActions.title")}</Text>
+        <HomeSection title={t("snapshot.title")} description={t("usage.planName", { name: subscription?.name ?? "Free" })}>
+          <View style={styles.metricsGrid}>
+            <HomeMetricCard
+              label={t("snapshot.publishedQuestions")}
+              value={`${summary?.publishedQuestionCount ?? 0}`}
+              tone="#2563EB"
+            />
+            <HomeMetricCard
+              label={t("snapshot.practiceSessions")}
+              value={`${summary?.practiceSessionsCount ?? 0}`}
+              tone="#0F766E"
+            />
+            <HomeMetricCard
+              label={t("snapshot.draftPapers")}
+              value={`${summary?.papersCount ?? 0}`}
+              tone="#C2410C"
+            />
+            <HomeMetricCard
+              label={t("snapshot.pdfExports")}
+              value={`${summary?.exportedPapersCount ?? 0}`}
+              tone="#7C3AED"
+            />
+          </View>
+        </HomeSection>
+
+        <HomeSection
+          title={t("usage.title")}
+          description={t("usage.planName", { name: subscription?.name ?? "Free" })}
+          actionLabel={t("quickActions.managePlan.title")}
+          onActionPress={() => router.push("/settings/subscription" as RelativePathString)}
+        >
+          <View style={styles.usageBanner}>
+            <View style={styles.usageBannerCopy}>
+              <Text style={styles.usageBannerLabel}>{t("planBadge", { name: subscription?.name ?? "Free" })}</Text>
+              <Text style={styles.usageBannerTitle}>{t("quickActions.managePlan.hint")}</Text>
+            </View>
+            <Text style={styles.usageBannerValue}>
+              {formatNullableCount(subscription?.remaining.pdfExports ?? null, t("noCap"))}
+            </Text>
+          </View>
+          <View style={styles.usageGrid}>
+            <View style={styles.usageCard}>
+              <Text style={styles.usageValue}>
+                {formatNullableCount(subscription?.remaining.pdfExports ?? null, t("noCap"))}
+              </Text>
+              <Text style={styles.usageLabel}>{t("usage.pdfExportsLeftLabel")}</Text>
+            </View>
+            <View style={styles.usageCard}>
+              <Text style={styles.usageValue}>
+                {formatNullableCount(
+                  subscription?.remaining.paperGenerations ?? null,
+                  t("noCap"),
+                )}
+              </Text>
+              <Text style={styles.usageLabel}>{t("usage.paperGenerationsLeftLabel")}</Text>
+            </View>
+            <View style={styles.usageCard}>
+              <Text style={styles.usageValue}>
+                {formatNullableCount(subscription?.remaining.paperSwaps ?? null, t("noCap"))}
+              </Text>
+              <Text style={styles.usageLabel}>{t("usage.paperSwapsLeftLabel")}</Text>
+            </View>
+            <View style={styles.usageCard}>
+              <Text style={styles.usageValue}>{subscription?.limits.deviceLimit ?? 1}</Text>
+              <Text style={styles.usageLabel}>{t("usage.deviceLimitLabel")}</Text>
+            </View>
+          </View>
+          {latestRequest ? (
+            <View style={styles.inlineNotice}>
+              <Text style={styles.inlineNoticeTitle}>{t("usage.latestRequest")}</Text>
+              <Text style={styles.metaText}>
+                {t("usage.latestRequestMeta", {
+                  plan: latestRequest.requestedPlanCode,
+                  status: latestRequest.status,
+                  createdAt: formatDateTime(latestRequest.createdAt),
+                })}
+              </Text>
+            </View>
+          ) : null}
+        </HomeSection>
+
+        <HomeSection title={t("quickActions.title")} description={t("homeSectionHints.actions")}>
           <View style={styles.quickActionGrid}>
             {continueSession ? (
               <QuickAction
@@ -155,7 +390,7 @@ export const HomeScreen = () => {
                   title: continueSession.title,
                   count: continueSession.totalQuestions,
                 })}
-                accent="#1D4ED8"
+                accent="#2563EB"
                 onPress={() =>
                   router.push(`/practice/${continueSession.id}` as RelativePathString)
                 }
@@ -164,14 +399,14 @@ export const HomeScreen = () => {
               <QuickAction
                 title={t("quickActions.startPractice.title")}
                 hint={t("quickActions.startPractice.hint")}
-                accent="#1D4ED8"
+                accent="#2563EB"
                 onPress={() => router.push("/practice" as RelativePathString)}
               />
             )}
             <QuickAction
               title={t("quickActions.buildPaper.title")}
               hint={t("quickActions.buildPaper.hint")}
-              accent="#047857"
+              accent="#0F766E"
               onPress={() => router.push("/papers" as RelativePathString)}
             />
             <QuickAction
@@ -182,105 +417,41 @@ export const HomeScreen = () => {
             />
             <QuickAction
               title={t("quickActions.needHelp.title")}
-              hint={t("quickActions.needHelp.hint")}
+              hint={
+                hasSupportUnread
+                  ? t("quickActions.needHelp.unreadHint", {
+                      count: notifications?.supportUnreadCount ?? 0,
+                    })
+                  : t("quickActions.needHelp.hint")
+              }
               accent="#7C3AED"
               onPress={() => router.push("/settings/support" as RelativePathString)}
             />
           </View>
-        </View>
+        </HomeSection>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t("snapshot.title")}</Text>
-          <View style={styles.metricsGrid}>
-            <HomeMetricCard
-              label={t("snapshot.publishedQuestions")}
-              value={`${summary?.publishedQuestionCount ?? 0}`}
-              tone="#1D4ED8"
-            />
-            <HomeMetricCard
-              label={t("snapshot.practiceSessions")}
-              value={`${summary?.practiceSessionsCount ?? 0}`}
-              tone="#047857"
-            />
-            <HomeMetricCard
-              label={t("snapshot.draftPapers")}
-              value={`${summary?.papersCount ?? 0}`}
-              tone="#B45309"
-            />
-            <HomeMetricCard
-              label={t("snapshot.pdfExports")}
-              value={`${summary?.exportedPapersCount ?? 0}`}
-              tone="#7C3AED"
-            />
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t("usage.title")}</Text>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{t("usage.planName", { name: subscription?.name ?? "Free" })}</Text>
-            <Text style={styles.metaText}>
-              {t("usage.pdfExportsLeft", {
-                count: formatNullableCount(subscription?.remaining.pdfExports ?? null, t("noCap")),
-              })}
-            </Text>
-            <Text style={styles.metaText}>
-              {t("usage.paperGenerationsLeft", {
-                count: formatNullableCount(subscription?.remaining.paperGenerations ?? null, t("noCap")),
-              })}
-            </Text>
-            <Text style={styles.metaText}>
-              {t("usage.paperSwapsLeft", {
-                count: formatNullableCount(subscription?.remaining.paperSwaps ?? null, t("noCap")),
-              })}
-            </Text>
-            <Text style={styles.metaText}>
-              {t("usage.deviceLimit", { count: subscription?.limits.deviceLimit ?? 1 })}
-            </Text>
-            {latestRequest ? (
-              <View style={styles.inlineNotice}>
-                <Text style={styles.inlineNoticeTitle}>{t("usage.latestRequest")}</Text>
-                <Text style={styles.metaText}>
-                  {t("usage.latestRequestMeta", {
-                    plan: latestRequest.requestedPlanCode,
-                    status: latestRequest.status,
-                    createdAt: formatDateTime(latestRequest.createdAt),
-                  })}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t("recentActivity.title")}</Text>
-          {continueSession ? (
-            <Pressable
-              style={({ pressed }) => [styles.activityCard, pressed && styles.buttonPressed]}
-              onPress={() =>
-                router.push(`/practice/${continueSession.id}` as RelativePathString)
-              }
-            >
-              <Text style={styles.activityTitle}>
-                {t("recentActivity.continueLabel", { title: continueSession.title })}
-              </Text>
-              <Text style={styles.metaText}>
-                {t("recentActivity.startedMeta", {
+        <HomeSection
+          title={t("recentActivity.title")}
+          description={t("homeSectionHints.practice")}
+          actionLabel={t("quickActions.startPractice.title")}
+          onActionPress={() => router.push("/practice" as RelativePathString)}
+        >
+          <View style={styles.stack}>
+            {continueSession ? (
+              <ActivityCard
+                title={t("recentActivity.continueLabel", { title: continueSession.title })}
+                body={t("recentActivity.startedMeta", {
                   startedAt: formatDateTime(continueSession.startedAt),
                   count: continueSession.totalQuestions,
                 })}
-              </Text>
-            </Pressable>
-          ) : null}
-          {recentCompletedSessions.map((session) => (
-            <Pressable
-              key={session.id}
-              style={({ pressed }) => [styles.activityCard, pressed && styles.buttonPressed]}
-              onPress={() => router.push(`/practice/${session.id}` as RelativePathString)}
-            >
-              <Text style={styles.activityTitle}>{session.title}</Text>
-              <Text style={styles.metaText}>
-                {t("recentActivity.scoreMeta", {
+                onPress={() => router.push(`/practice/${continueSession.id}` as RelativePathString)}
+              />
+            ) : null}
+            {recentCompletedSessions.map((session) => (
+              <ActivityCard
+                key={session.id}
+                title={session.title}
+                body={t("recentActivity.scoreMeta", {
                   score:
                     typeof session.scorePercent === "number"
                       ? `${session.scorePercent.toFixed(1)}%`
@@ -289,62 +460,82 @@ export const HomeScreen = () => {
                     ? formatDateTime(session.completedAt)
                     : formatDateTime(session.startedAt),
                 })}
-              </Text>
-            </Pressable>
-          ))}
-          {!continueSession && recentCompletedSessions.length === 0 ? (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>{t("recentActivity.noneTitle")}</Text>
-              <Text style={styles.metaText}>{t("recentActivity.noneBody")}</Text>
-            </View>
-          ) : null}
-        </View>
+                onPress={() => router.push(`/practice/${session.id}` as RelativePathString)}
+              />
+            ))}
+            {!continueSession && recentCompletedSessions.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <Text style={styles.cardTitle}>{t("recentActivity.noneTitle")}</Text>
+                <Text style={styles.metaText}>{t("recentActivity.noneBody")}</Text>
+              </View>
+            ) : null}
+          </View>
+        </HomeSection>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t("papers.title")}</Text>
-          {recentDraftPapers.map((paper) => (
-            <Pressable
-              key={paper.id}
-              style={({ pressed }) => [styles.activityCard, pressed && styles.buttonPressed]}
-              onPress={() => router.push(`/papers/${paper.id}` as RelativePathString)}
-            >
-              <Text style={styles.activityTitle}>{paper.title}</Text>
-              <Text style={styles.metaText}>
-                {t("papers.draftMeta", {
+        <HomeSection
+          title={t("papers.title")}
+          description={t("homeSectionHints.papers")}
+          actionLabel={t("quickActions.buildPaper.title")}
+          onActionPress={() => router.push("/papers" as RelativePathString)}
+        >
+          <View style={styles.stack}>
+            {recentDraftPapers.map((paper) => (
+              <ActivityCard
+                key={paper.id}
+                title={paper.title}
+                body={t("papers.draftMeta", {
                   count: paper.totalQuestions,
                   marks: paper.totalMarks,
                   updatedAt: formatDateTime(paper.updatedAt),
                 })}
-              </Text>
-            </Pressable>
-          ))}
-          {recentExports.map((paper) => (
-            <Pressable
-              key={`export-${paper.id}`}
-              style={({ pressed }) => [styles.activityCardMuted, pressed && styles.buttonPressed]}
-              onPress={() => router.push(`/papers/${paper.id}` as RelativePathString)}
-            >
-              <Text style={styles.activityTitle}>{t("papers.exportedTitle", { title: paper.title })}</Text>
-              <Text style={styles.metaText}>
-                {t("papers.exportedMeta", {
+                onPress={() => router.push(`/papers/${paper.id}` as RelativePathString)}
+              />
+            ))}
+            {recentExports.map((paper) => (
+              <ActivityCard
+                key={`export-${paper.id}`}
+                title={t("papers.exportedTitle", { title: paper.title })}
+                body={t("papers.exportedMeta", {
                   when: paper.exportedAt ? formatDateTime(paper.exportedAt) : t("papers.ready"),
                   count: paper.totalQuestions,
                 })}
-              </Text>
-            </Pressable>
-          ))}
-          {recentDraftPapers.length === 0 && recentExports.length === 0 ? (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>{t("papers.noneTitle")}</Text>
-              <Text style={styles.metaText}>{t("papers.noneBody")}</Text>
-            </View>
-          ) : null}
-        </View>
+                muted
+                onPress={() => router.push(`/papers/${paper.id}` as RelativePathString)}
+              />
+            ))}
+            {recentDraftPapers.length === 0 && recentExports.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <Text style={styles.cardTitle}>{t("papers.noneTitle")}</Text>
+                <Text style={styles.metaText}>{t("papers.noneBody")}</Text>
+              </View>
+            ) : null}
+          </View>
+        </HomeSection>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t("support.title")}</Text>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{t("support.cardTitle")}</Text>
+        <HomeSection
+          title={t("support.title")}
+          description={t("support.cardTitle")}
+          actionLabel={t("quickActions.needHelp.title")}
+          onActionPress={() => router.push("/settings/support" as RelativePathString)}
+        >
+          <View style={styles.supportCard}>
+            {hasSupportUnread && supportConversation?.lastMessagePreview ? (
+              <View style={styles.inlineNotice}>
+                <Text style={styles.inlineNoticeTitle}>{t("support.newReplyTitle")}</Text>
+                <Text style={styles.metaText}>
+                  {t("support.newReplyBody", {
+                    count: notifications?.supportUnreadCount ?? 0,
+                    preview: supportConversation.lastMessagePreview,
+                  })}
+                </Text>
+              </View>
+            ) : null}
+            {hasPendingSubscriptionRequest ? (
+              <View style={styles.inlineNotice}>
+                <Text style={styles.inlineNoticeTitle}>{t("support.pendingRequestTitle")}</Text>
+                <Text style={styles.metaText}>{t("support.pendingRequestBody")}</Text>
+              </View>
+            ) : null}
             <Text style={styles.metaText}>
               {t("support.paymentHelp", {
                 value:
@@ -380,7 +571,7 @@ export const HomeScreen = () => {
               </Pressable>
             </View>
           </View>
-        </View>
+        </HomeSection>
       </ScrollView>
     </AppShell>
   );
@@ -388,82 +579,183 @@ export const HomeScreen = () => {
 
 const styles = StyleSheet.create({
   scrollContent: {
-    gap: 18,
+    gap: 16,
     paddingBottom: 24,
   },
   heroCard: {
-    backgroundColor: "#0F172A",
-    borderRadius: 20,
-    gap: 10,
+    backgroundColor: "#111B39",
+    borderColor: "#20315F",
+    borderRadius: 24,
+    borderWidth: 1,
+    gap: 14,
     padding: 18,
   },
+  heroTopRow: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: 12,
+    justifyContent: "space-between",
+  },
+  heroTitleWrap: {
+    flex: 1,
+    gap: 8,
+  },
   eyebrow: {
-    color: "#93C5FD",
+    color: "#AFC8FF",
     fontSize: 12,
     fontWeight: "800",
-    letterSpacing: 0.6,
+    letterSpacing: 0.8,
     textTransform: "uppercase",
   },
   heroTitle: {
     color: "#FFFFFF",
     fontSize: 28,
     fontWeight: "800",
+    lineHeight: 34,
   },
   heroSubtitle: {
     color: "#CBD5E1",
     fontSize: 14,
     lineHeight: 21,
   },
+  heroPlanPill: {
+    alignSelf: "flex-start",
+    backgroundColor: "#ECFDF5",
+    borderRadius: 999,
+    color: "#047857",
+    fontSize: 12,
+    fontWeight: "800",
+    overflow: "hidden",
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+  },
   heroBadgeRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    marginTop: 4,
   },
-  heroBadge: {
-    backgroundColor: "#1E293B",
-    borderColor: "#334155",
+  heroSpotlightCard: {
+    backgroundColor: "#162451",
+    borderColor: "#2B3C70",
+    borderRadius: 22,
+    borderWidth: 1,
+    gap: 14,
+    padding: 16,
+  },
+  heroSpotlightHeader: {
+    gap: 14,
+  },
+  heroSpotlightCopy: {
+    gap: 6,
+  },
+  heroSpotlightEyebrow: {
+    color: "#93C5FD",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0.7,
+    textTransform: "uppercase",
+  },
+  heroSpotlightTitle: {
+    color: "#FFFFFF",
+    fontSize: 21,
+    fontWeight: "800",
+    lineHeight: 27,
+  },
+  heroSpotlightBody: {
+    color: "#CBD5E1",
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  heroSpotlightMetrics: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  heroMiniMetric: {
+    backgroundColor: "#0F1B42",
+    borderColor: "#304272",
+    borderRadius: 16,
+    borderWidth: 1,
+    flex: 1,
+    gap: 4,
+    padding: 12,
+  },
+  heroMiniMetricValue: {
+    color: "#FFFFFF",
+    fontSize: 22,
+    fontWeight: "800",
+  },
+  heroMiniMetricLabel: {
+    color: "#AFC8FF",
+    fontSize: 11,
+    fontWeight: "700",
+    lineHeight: 16,
+    textTransform: "uppercase",
+  },
+  heroActionRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  heroAction: {
+    alignItems: "center",
+    borderRadius: 16,
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 52,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  heroActionPrimary: {
+    backgroundColor: "#2563EB",
+  },
+  heroActionSecondary: {
+    backgroundColor: "#F8FAFC",
+  },
+  heroActionCopy: {
+    alignItems: "center",
+  },
+  heroActionLabel: {
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  heroActionLabelPrimary: {
+    color: "#FFFFFF",
+  },
+  heroActionLabelSecondary: {
+    color: "#0F172A",
+  },
+  metaPill: {
+    backgroundColor: "#1E2B4F",
+    borderColor: "#2F447B",
     borderRadius: 999,
     borderWidth: 1,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
-  heroBadgeLabel: {
+  metaPillInfo: {
+    backgroundColor: "#132E67",
+    borderColor: "#355DB1",
+  },
+  metaPillSuccess: {
+    backgroundColor: "#103A2E",
+    borderColor: "#1E7A57",
+  },
+  metaPillWarning: {
+    backgroundColor: "#4A2B13",
+    borderColor: "#A16207",
+  },
+  metaPillLabel: {
     color: "#E2E8F0",
     fontSize: 12,
     fontWeight: "700",
   },
-  section: {
-    gap: 10,
+  metaPillLabelInfo: {
+    color: "#DBEAFE",
   },
-  sectionTitle: {
-    color: "#0F172A",
-    fontSize: 18,
-    fontWeight: "800",
+  metaPillLabelSuccess: {
+    color: "#D1FAE5",
   },
-  quickActionGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  quickActionCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    borderWidth: 1,
-    gap: 6,
-    minWidth: "48%",
-    padding: 14,
-    flexGrow: 1,
-    flexBasis: 0,
-  },
-  quickActionTitle: {
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  quickActionHint: {
-    color: "#475569",
-    fontSize: 13,
-    lineHeight: 19,
+  metaPillLabelWarning: {
+    color: "#FDE68A",
   },
   metricsGrid: {
     flexDirection: "row",
@@ -471,31 +763,219 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   metricCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    flexBasis: 0,
+    flexGrow: 1,
+    minWidth: "47%",
+    padding: 16,
+  },
+  metricValue: {
+    fontSize: 24,
+    fontWeight: "800",
+    marginTop: 6,
+  },
+  metricLabel: {
+    color: "#64748B",
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 18,
+    textTransform: "uppercase",
+  },
+  sectionCard: {
+    borderRadius: 18,
+    borderWidth: 1,
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    borderColor: "#D8DEE9",
+    padding: 16,
+  },
+  sectionHeader: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: 12,
+    justifyContent: "space-between",
+  },
+  sectionHeaderCopy: {
+    flex: 1,
+    gap: 4,
+  },
+  sectionTitle: {
+    color: "#0F172A",
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  sectionDescription: {
+    color: "#64748B",
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  sectionAction: {
+    backgroundColor: "#F8FAFC",
+    borderColor: "#D8DEE9",
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  sectionActionLabel: {
+    color: "#0F172A",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  sectionBody: {
+    gap: 12,
+    marginTop: 14,
+  },
+  quickActionGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  quickActionCard: {
+    backgroundColor: "#FBFCFE",
+    borderRadius: 18,
+    borderWidth: 1,
+    flexBasis: 0,
+    flexGrow: 1,
+    gap: 10,
+    minWidth: "47%",
+    overflow: "hidden",
+    padding: 14,
+  },
+  quickActionAccent: {
+    borderRadius: 999,
+    height: 6,
+    width: 42,
+  },
+  quickActionHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "space-between",
+  },
+  quickActionTitle: {
+    color: "#111827",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  quickActionArrow: {
+    color: "#94A3B8",
+    fontSize: 18,
+    fontWeight: "700",
+    lineHeight: 18,
+  },
+  quickActionHint: {
+    color: "#475569",
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  usageBanner: {
+    alignItems: "center",
+    backgroundColor: "#EFF6FF",
+    borderColor: "#BFDBFE",
+    borderRadius: 18,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 12,
+    justifyContent: "space-between",
+    padding: 14,
+  },
+  usageBannerCopy: {
+    flex: 1,
+    gap: 5,
+  },
+  usageBannerLabel: {
+    color: "#1D4ED8",
+    fontSize: 12,
+    fontWeight: "800",
+    textTransform: "uppercase",
+  },
+  usageBannerTitle: {
+    color: "#0F172A",
+    fontSize: 15,
+    fontWeight: "700",
+    lineHeight: 21,
+  },
+  usageBannerValue: {
+    color: "#2563EB",
+    fontSize: 28,
+    fontWeight: "800",
+  },
+  usageGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  usageCard: {
+    backgroundColor: "#FBFCFE",
+    borderColor: "#D8DEE9",
+    borderRadius: 18,
     borderWidth: 1,
     flexBasis: 0,
     flexGrow: 1,
     minWidth: "47%",
     padding: 14,
   },
-  metricValue: {
-    fontSize: 24,
+  usageValue: {
+    color: "#0F172A",
+    fontSize: 20,
     fontWeight: "800",
   },
-  metricLabel: {
-    color: "#475569",
-    fontSize: 13,
-    fontWeight: "600",
-    marginTop: 4,
+  usageLabel: {
+    color: "#64748B",
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 18,
+    marginTop: 6,
   },
-  card: {
+  inlineNotice: {
+    backgroundColor: "#F8FAFC",
+    borderColor: "#CBD5E1",
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 4,
+    padding: 12,
+  },
+  inlineNoticeTitle: {
+    color: "#1D4ED8",
+    fontSize: 12,
+    fontWeight: "800",
+    textTransform: "uppercase",
+  },
+  stack: {
+    gap: 10,
+  },
+  activityCard: {
     backgroundColor: "#FFFFFF",
     borderColor: "#D8DEE9",
     borderRadius: 16,
     borderWidth: 1,
-    gap: 8,
+    gap: 5,
     padding: 14,
+  },
+  activityCardMuted: {
+    backgroundColor: "#F8FAFC",
+    borderColor: "#E2E8F0",
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 5,
+    padding: 14,
+  },
+  activityTitle: {
+    color: "#111827",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  emptyCard: {
+    backgroundColor: "#F8FAFC",
+    borderColor: "#E2E8F0",
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 6,
+    padding: 14,
+  },
+  supportCard: {
+    gap: 10,
   },
   cardTitle: {
     color: "#0F172A",
@@ -507,47 +987,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
   },
-  inlineNotice: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#CBD5E1",
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 4,
-    marginTop: 4,
-    padding: 10,
-  },
-  inlineNoticeTitle: {
-    color: "#1D4ED8",
-    fontSize: 12,
-    fontWeight: "800",
-    textTransform: "uppercase",
-  },
-  activityCard: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#D8DEE9",
-    borderRadius: 14,
-    borderWidth: 1,
-    gap: 4,
-    padding: 14,
-  },
-  activityCardMuted: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#E2E8F0",
-    borderRadius: 14,
-    borderWidth: 1,
-    gap: 4,
-    padding: 14,
-  },
-  activityTitle: {
-    color: "#111827",
-    fontSize: 14,
-    fontWeight: "800",
-  },
   linkRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    marginTop: 4,
+    marginTop: 2,
   },
   inlineLink: {
     backgroundColor: "#EFF6FF",
@@ -555,7 +999,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingVertical: 8,
   },
   inlineLinkLabel: {
     color: "#1D4ED8",
@@ -563,6 +1007,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   buttonPressed: {
-    opacity: 0.85,
+    opacity: 0.86,
   },
 });

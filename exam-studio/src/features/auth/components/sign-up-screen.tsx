@@ -3,7 +3,13 @@ import React, { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "@/i18n";
 import { AuthScreenShell } from "./auth-screen-shell";
-import { AuthBanner, AuthButton, AuthField, authUiStyles } from "./auth-ui";
+import {
+  AuthBanner,
+  AuthButton,
+  AuthConsent,
+  AuthField,
+  authUiStyles,
+} from "./auth-ui";
 import { useSignUpEmailMutation } from "../hooks/use-sign-up-email-mutation";
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -15,6 +21,7 @@ export const SignUpScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptedPolicy, setAcceptedPolicy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const signUpMutation = useSignUpEmailMutation();
   const submitting = signUpMutation.isPending;
@@ -40,13 +47,16 @@ export const SignUpScreen = () => {
       email.trim().length > 0 &&
       password.length >= MIN_PASSWORD_LENGTH &&
       confirmPassword === password &&
+      acceptedPolicy &&
       !submitting,
-    [confirmPassword, email, name, password, submitting],
+    [acceptedPolicy, confirmPassword, email, name, password, submitting],
   );
 
   const submit = async () => {
     if (!canSubmit) {
-      if (password !== confirmPassword) {
+      if (!acceptedPolicy) {
+        setErrorMessage(t("consent.required"));
+      } else if (password !== confirmPassword) {
         setErrorMessage(t("signUp.confirmMismatch"));
       } else if (password.length < MIN_PASSWORD_LENGTH) {
         setErrorMessage(t("signUp.passwordTooShort"));
@@ -57,12 +67,15 @@ export const SignUpScreen = () => {
     setErrorMessage(null);
 
     try {
-      await signUpMutation.mutateAsync({
+      const result = await signUpMutation.mutateAsync({
         name: name.trim(),
         email: email.trim(),
         password,
       });
-      router.replace("/home" as RelativePathString);
+      router.replace({
+        pathname: "/verify-email-pending" as RelativePathString,
+        params: { email: result.email },
+      });
     } catch (error) {
       setErrorMessage(
         error instanceof Error && error.message.trim().length > 0
@@ -136,6 +149,18 @@ export const SignUpScreen = () => {
       />
 
       <AuthBanner message={errorMessage} tone="error" />
+      <AuthConsent
+        checked={acceptedPolicy}
+        labelPrefix={t("consent.label")}
+        linkLabel={t("consent.linkLabel")}
+        onPressLink={() => router.push("/legal" as RelativePathString)}
+        onToggle={() => {
+          setErrorMessage((current) =>
+            current === t("consent.required") ? null : current,
+          );
+          setAcceptedPolicy((current) => !current);
+        }}
+      />
 
       <View style={authUiStyles.actionStack}>
         <AuthButton

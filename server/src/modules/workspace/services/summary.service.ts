@@ -14,6 +14,7 @@ import {
   question as questionTable,
   questionPaper,
   subChapter,
+  supportConversation,
 } from "@/db";
 import {
   getCurrentSubscriptionRequest,
@@ -94,6 +95,7 @@ export const getWorkspaceSummary = async (userId: string) => {
     exportedPapersCount,
     subscription,
     brandingCount,
+    supportConversationRow,
   ] = await Promise.all([
     db
       .select({ total: dbCount() })
@@ -126,11 +128,18 @@ export const getWorkspaceSummary = async (userId: string) => {
       .from(brandAsset)
       .where(eq(brandAsset.userId, userId))
       .then((rows) => rows[0]?.total ?? 0),
+    db.query.supportConversation.findFirst({
+      where: eq(supportConversation.userId, userId),
+    }),
   ]);
   const effectivePlan = subscription.effectivePlan ?? subscription.plan;
   const publishedQuestionCount = await countPublishedQuestionsForPlan(
     effectivePlan.code,
   );
+  const supportUnreadCount = supportConversationRow?.unreadForUserCount ?? 0;
+  const hasPendingSubscriptionRequest = latestSubscriptionRequest?.status === "pending";
+  const notificationCount =
+    supportUnreadCount + (hasPendingSubscriptionRequest ? 1 : 0);
 
   return {
     publishedQuestionCount,
@@ -139,6 +148,19 @@ export const getWorkspaceSummary = async (userId: string) => {
     papersCount,
     exportedPapersCount,
     brandingCount,
+    notifications: {
+      unreadCount: notificationCount,
+      supportUnreadCount,
+      supportConversation: supportConversationRow
+        ? {
+            status: supportConversationRow.status,
+            allowUserReplies: supportConversationRow.allowUserReplies,
+            lastMessagePreview: supportConversationRow.lastMessagePreview ?? null,
+            lastMessageAt: supportConversationRow.lastMessageAt?.toISOString() ?? null,
+          }
+        : null,
+      hasPendingSubscriptionRequest,
+    },
     subscription: {
       code: effectivePlan.code,
       name: effectivePlan.name,

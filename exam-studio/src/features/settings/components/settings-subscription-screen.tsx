@@ -87,13 +87,9 @@ export const SettingsSubscriptionScreen = () => {
   const currentPlanPulse = useState(() => new Animated.Value(1))[0];
   const subscriptionRefresh = useRefreshAction(async () => {
     await Promise.allSettled([
-      authSessionQuery.refetch(),
       workspaceSummaryQuery.refetch(),
-      subscriptionPlansQuery.refetch(),
       currentSubscriptionRequestQuery.refetch(),
       ownSubscriptionRequestsQuery.refetch(),
-      paymentConfigQuery.refetch(),
-      appSettingsQuery.refetch(),
     ]);
   });
 

@@ -4,6 +4,8 @@ import {
   type PDFImage,
   type PDFFont,
   type PDFPage,
+  StandardFonts,
+  degrees,
   rgb,
 } from "pdf-lib";
 import {
@@ -13,10 +15,16 @@ import {
 import type { getQuestionPaperDetail } from "../services/paper.service";
 
 export type QuestionPaperDetail = Awaited<ReturnType<typeof getQuestionPaperDetail>>;
+export type QuestionPaperPdfVariant = "combined" | "question" | "answer";
+type RenderQuestionPaperPdfOptions = {
+  watermarkLabel?: string | null;
+};
 
 type PdfFontPack = {
   regular: PDFFont;
   bold: PDFFont;
+  serifRegular: PDFFont;
+  serifBold: PDFFont;
   myanmarRegular: PDFFont;
   myanmarBold: PDFFont;
 };
@@ -38,6 +46,11 @@ const COLORS = {
 };
 
 const MYANMAR_REGEX = /[\u1000-\u109F\uAA60-\uAA7F]/;
+const SECTION_TITLE_ONLY_REGEX = /^section\s*\(?[a-z0-9]+\)?$/i;
+const DEFAULT_MATRIC_EXAM_TITLE = "MATRICULATION EXAMINATION";
+const DEFAULT_MATRIC_DEPARTMENT_LINE = "DEPARTMENT OF MYANMAR EXAMINATION";
+const DEFAULT_MATRIC_TIME_ALLOWED = "(3) Hours";
+const DEFAULT_MATRIC_ANSWER_INSTRUCTION = "WRITE YOUR ANSWERS IN THE ANSWER BOOKLET.";
 
 const SUPERSCRIPT_MAP: Record<string, string> = {
   "0": "⁰",
@@ -172,9 +185,17 @@ const normalizePdfText = (value: string | null | undefined, fallback = "") =>
     .join("\n")
     .trim();
 
-const pickFont = (fonts: PdfFontPack, text: string, bold = false) => {
+const pickFont = (
+  fonts: PdfFontPack,
+  text: string,
+  bold = false,
+  serif = false,
+) => {
   if (MYANMAR_REGEX.test(text)) {
     return bold ? fonts.myanmarBold : fonts.myanmarRegular;
+  }
+  if (serif) {
+    return bold ? fonts.serifBold : fonts.serifRegular;
   }
   return bold ? fonts.bold : fonts.regular;
 };
@@ -182,63 +203,12 @@ const pickFont = (fonts: PdfFontPack, text: string, bold = false) => {
 const segmentText = (text: string) =>
   text.match(/[\u1000-\u109F\uAA60-\uAA7F]+|[^\u1000-\u109F\uAA60-\uAA7F]+/g) ?? [text];
 
-const measureText = (
-  fonts: PdfFontPack,
-  text: string,
-  size: number,
-  bold = false,
-) =>
-  segmentText(text).reduce((width, segment) => {
-    const font = pickFont(fonts, segment, bold);
-    return width + font.widthOfTextAtSize(segment, size);
-  }, 0);
-
-const wrapText = (
-  fonts: PdfFontPack,
-  text: string,
-  width: number,
-  size: number,
-  bold = false,
-) => {
-  const normalized = normalizePdfText(text);
-  if (!normalized) return [""];
-
-  const paragraphs = normalized.split("\n").flatMap((line) => line.split(/<br\s*\/?>/i));
-  const lines: string[] = [];
-
-  for (const paragraph of paragraphs) {
-    const words = paragraph.trim().split(/\s+/).filter(Boolean);
-    if (words.length === 0) {
-      lines.push("");
-      continue;
-    }
-
-    let current = "";
-    for (const word of words) {
-      const candidate = current ? `${current} ${word}` : word;
-      if (measureText(fonts, candidate, size, bold) <= width) {
-        current = candidate;
-        continue;
-      }
-
-      if (current) {
-        lines.push(current);
-      }
-      current = word;
-    }
-
-    if (current) {
-      lines.push(current);
-    }
-  }
-
-  return lines.length > 0 ? lines : [""];
-};
-
 const loadFonts = async (pdf: PDFDocument): Promise<PdfFontPack> => {
   pdf.registerFontkit(fontkit);
 
   const regular = await pdf.embedFont(decodeBase64(NOTO_SANS_REGULAR_BASE64));
+  const serifRegular = await pdf.embedFont(StandardFonts.TimesRoman);
+  const serifBold = await pdf.embedFont(StandardFonts.TimesRomanBold);
   const myanmarRegular = await pdf.embedFont(
     decodeBase64(NOTO_SANS_MYANMAR_REGULAR_BASE64),
   );
@@ -246,6 +216,8 @@ const loadFonts = async (pdf: PDFDocument): Promise<PdfFontPack> => {
   return {
     regular,
     bold: regular,
+    serifRegular,
+    serifBold,
     myanmarRegular,
     myanmarBold: myanmarRegular,
   };
@@ -308,10 +280,137 @@ const buildAnswerKey = (paper: QuestionPaperDetail) =>
     return `Q${index + 1}. ${answer}`;
   });
 
-export const renderQuestionPaperPdfBytes = async (paper: QuestionPaperDetail) => {
+const buildAnswerEntryTitle = (paper: QuestionPaperDetail, variant: QuestionPaperPdfVariant) => {
+  if (variant === "answer") {
+    return `${paper.title} - Answer Paper`;
+  }
+
+  return paper.title;
+};
+
+type PdfTemplateKey = "default" | "myanmar_matric";
+
+type ResolvedPdfTemplate = {
+  key: PdfTemplateKey;
+  yearLine: string;
+  examTitleLine: string;
+  departmentLine: string;
+  subjectLine: string;
+  timeAllowedLabel: string;
+  answerInstructionLine: string;
+};
+
+const resolvePdfTemplate = (paper: QuestionPaperDetail): ResolvedPdfTemplate => {
+  const key: PdfTemplateKey =
+    paper.pdfTemplateKey === "myanmar_matric" ? "myanmar_matric" : "default";
+
+  const normalizedSubjectLine = normalizePdfText(paper.subject?.name || paper.title).toUpperCase();
+
+  if (key === "myanmar_matric") {
+    return {
+      key,
+      yearLine: normalizePdfText(paper.examYearLabel || paper.academicYear || "").toUpperCase(),
+      examTitleLine: DEFAULT_MATRIC_EXAM_TITLE,
+      departmentLine: normalizePdfText(
+        paper.departmentLine || DEFAULT_MATRIC_DEPARTMENT_LINE,
+      ).toUpperCase(),
+      subjectLine: normalizedSubjectLine,
+      timeAllowedLabel: normalizePdfText(
+        paper.timeAllowedLabel || DEFAULT_MATRIC_TIME_ALLOWED,
+      ),
+      answerInstructionLine: normalizePdfText(
+        paper.answerInstructionLine || DEFAULT_MATRIC_ANSWER_INSTRUCTION,
+      ).toUpperCase(),
+    };
+  }
+
+  return {
+    key,
+    yearLine: normalizePdfText(paper.examYearLabel || ""),
+    examTitleLine: normalizePdfText(paper.title),
+    departmentLine: normalizePdfText(paper.departmentLine || ""),
+    subjectLine: normalizedSubjectLine,
+    timeAllowedLabel: normalizePdfText(paper.timeAllowedLabel || ""),
+    answerInstructionLine: normalizePdfText(paper.answerInstructionLine || ""),
+  };
+};
+
+const buildSectionHeading = (
+  section:
+    | {
+        code?: string | null;
+        title?: string | null;
+      }
+    | null
+    | undefined,
+) => {
+  const sectionCode = normalizePdfText(section?.code || "").toUpperCase();
+  const heading = sectionCode ? `SECTION (${sectionCode})` : "SECTION";
+  const normalizedTitle = normalizePdfText(section?.title || "");
+  if (!normalizedTitle || SECTION_TITLE_ONLY_REGEX.test(normalizedTitle)) {
+    return {
+      heading,
+      subtitle: "",
+    };
+  }
+  return {
+    heading,
+    subtitle: normalizedTitle,
+  };
+};
+
+const groupItemsBySection = (items: QuestionPaperDetail["items"]) => {
+  const groups: Array<{
+    section:
+      | {
+          code?: string | null;
+          title?: string | null;
+          sortOrder?: number | null;
+        }
+      | null;
+    items: QuestionPaperDetail["items"];
+  }> = [];
+
+  for (const item of items) {
+    const section = item.blueprintOrigin?.section
+      ? {
+          code: item.blueprintOrigin.section.code,
+          title: item.blueprintOrigin.section.title,
+          sortOrder: item.blueprintOrigin.section.sortOrder,
+        }
+      : null;
+
+    const lastGroup = groups[groups.length - 1];
+    if (
+      lastGroup &&
+      (lastGroup.section?.code ?? null) === (section?.code ?? null)
+    ) {
+      lastGroup.items.push(item);
+      continue;
+    }
+
+    groups.push({
+      section,
+      items: [item],
+    });
+  }
+
+  return groups;
+};
+
+export const renderQuestionPaperPdfBytes = async (
+  paper: QuestionPaperDetail,
+  variant: QuestionPaperPdfVariant = "combined",
+  options?: RenderQuestionPaperPdfOptions,
+) => {
   const pdf = await PDFDocument.create();
   const fonts = await loadFonts(pdf);
   const logo = await embedLogo(pdf, paper.brandAsset?.imageDataUrl);
+  const examTemplate = resolvePdfTemplate(paper);
+  const normalizedTextCache = new Map<string, string>();
+  const segmentedTextCache = new Map<string, string[]>();
+  const measuredTextCache = new Map<string, number>();
+  const wrappedTextCache = new Map<string, string[]>();
 
   let page = pdf.addPage([PAGE.width, PAGE.height]);
   let y = PAGE.height - PAGE.marginTop;
@@ -319,18 +418,135 @@ export const renderQuestionPaperPdfBytes = async (paper: QuestionPaperDetail) =>
 
   const contentWidth = PAGE.width - PAGE.marginX * 2;
   const footerY = 24;
+  const watermarkLabel = normalizePdfText(options?.watermarkLabel || "").toUpperCase();
+
+  const drawWatermark = () => {
+    if (!watermarkLabel) return;
+
+    const watermarkColor = rgb(0.9, 0.92, 0.96);
+    const positions = [
+      { x: PAGE.marginX + 18, y: PAGE.height - 180 },
+      { x: PAGE.width / 2 - 20, y: PAGE.height - 260 },
+      { x: PAGE.marginX + 28, y: PAGE.height - 430 },
+      { x: PAGE.width / 2 - 10, y: PAGE.height - 560 },
+    ];
+
+    for (const position of positions) {
+      page.drawText(watermarkLabel, {
+        x: position.x,
+        y: position.y,
+        size: 26,
+        font: fonts.serifBold,
+        color: watermarkColor,
+        rotate: degrees(-28),
+      });
+    }
+  };
+
+  const getNormalizedText = (value: string | null | undefined, fallback = "") => {
+    const cacheKey = `${fallback}__${value ?? ""}`;
+    const cached = normalizedTextCache.get(cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    const normalized = normalizePdfText(value, fallback);
+    normalizedTextCache.set(cacheKey, normalized);
+    return normalized;
+  };
+
+  const getSegmentedText = (text: string) => {
+    const cached = segmentedTextCache.get(text);
+    if (cached) {
+      return cached;
+    }
+
+    const segments = segmentText(text);
+    segmentedTextCache.set(text, segments);
+    return segments;
+  };
+
+  const getMeasuredText = (text: string, size: number, bold = false, serif = false) => {
+    const cacheKey = `${bold ? "b" : "r"}|${serif ? "s" : "n"}|${size}|${text}`;
+    const cached = measuredTextCache.get(cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    const width = getSegmentedText(text).reduce((total, segment) => {
+      const font = pickFont(fonts, segment, bold, serif);
+      return total + font.widthOfTextAtSize(segment, size);
+    }, 0);
+
+    measuredTextCache.set(cacheKey, width);
+    return width;
+  };
+
+  const getWrappedText = (
+    text: string,
+    width: number,
+    size: number,
+    bold = false,
+    serif = false,
+  ) => {
+    const normalized = getNormalizedText(text);
+    const cacheKey = `${bold ? "b" : "r"}|${serif ? "s" : "n"}|${size}|${width}|${normalized}`;
+    const cached = wrappedTextCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    if (!normalized) {
+      const empty = [""];
+      wrappedTextCache.set(cacheKey, empty);
+      return empty;
+    }
+
+    const paragraphs = normalized.split("\n").flatMap((line) => line.split(/<br\s*\/?>/i));
+    const lines: string[] = [];
+
+    for (const paragraph of paragraphs) {
+      const words = paragraph.trim().split(/\s+/).filter(Boolean);
+      if (words.length === 0) {
+        lines.push("");
+        continue;
+      }
+
+      let current = "";
+      for (const word of words) {
+        const candidate = current ? `${current} ${word}` : word;
+        if (getMeasuredText(candidate, size, bold, serif) <= width) {
+          current = candidate;
+          continue;
+        }
+
+        if (current) {
+          lines.push(current);
+        }
+        current = word;
+      }
+
+      if (current) {
+        lines.push(current);
+      }
+    }
+
+    const wrapped = lines.length > 0 ? lines : [""];
+    wrappedTextCache.set(cacheKey, wrapped);
+    return wrapped;
+  };
 
   const drawTextLine = (
     text: string,
     x: number,
     drawY: number,
     size: number,
-    options?: { bold?: boolean; color?: ReturnType<typeof rgb> },
+    options?: { bold?: boolean; serif?: boolean; color?: ReturnType<typeof rgb> },
   ) => {
-    const normalized = normalizePdfText(text);
+    const normalized = getNormalizedText(text);
     let cursorX = x;
-    for (const segment of segmentText(normalized)) {
-      const font = pickFont(fonts, segment, options?.bold ?? false);
+    for (const segment of getSegmentedText(normalized)) {
+      const font = pickFont(fonts, segment, options?.bold ?? false, options?.serif ?? false);
       page.drawText(segment, {
         x: cursorX,
         y: drawY,
@@ -348,11 +564,22 @@ export const renderQuestionPaperPdfBytes = async (paper: QuestionPaperDetail) =>
     drawY: number,
     width: number,
     size: number,
-    options?: { bold?: boolean; color?: ReturnType<typeof rgb>; lineGap?: number },
+    options?: {
+      bold?: boolean;
+      serif?: boolean;
+      color?: ReturnType<typeof rgb>;
+      lineGap?: number;
+    },
   ) => {
     let cursorY = drawY;
     const lineGap = options?.lineGap ?? 4;
-    for (const line of wrapText(fonts, text, width, size, options?.bold ?? false)) {
+    for (const line of getWrappedText(
+      text,
+      width,
+      size,
+      options?.bold ?? false,
+      options?.serif ?? false,
+    )) {
       if (line) {
         drawTextLine(line, x, cursorY, size, options);
       }
@@ -368,11 +595,21 @@ export const renderQuestionPaperPdfBytes = async (paper: QuestionPaperDetail) =>
       thickness: 0.8,
       color: COLORS.subtle,
     });
+    const pageLabel = `Page ${pageNumber}`;
+    if (examTemplate.key === "myanmar_matric") {
+      const width = getMeasuredText(pageLabel, 8.5, true, true);
+      drawTextLine(pageLabel, PAGE.width - PAGE.marginX - width, footerY, 8.5, {
+        bold: true,
+        serif: true,
+        color: COLORS.muted,
+      });
+      return;
+    }
+
     drawTextLine("MM Exam Studio", PAGE.marginX, footerY, 8.5, {
       color: COLORS.muted,
     });
-    const pageLabel = `Page ${pageNumber}`;
-    const width = measureText(fonts, pageLabel, 8.5, true);
+    const width = getMeasuredText(pageLabel, 8.5, true);
     drawTextLine(pageLabel, PAGE.width - PAGE.marginX - width, footerY, 8.5, {
       bold: true,
       color: COLORS.muted,
@@ -380,15 +617,25 @@ export const renderQuestionPaperPdfBytes = async (paper: QuestionPaperDetail) =>
   };
 
   const drawContinuationHeader = () => {
-    drawTextLine(paper.title, PAGE.marginX, y, 11, { bold: true });
-    const metaLine = buildMetaLine(paper);
-    if (metaLine) {
-      const width = measureText(fonts, metaLine, 9, false);
-      drawTextLine(metaLine, PAGE.width - PAGE.marginX - width, y, 9, {
-        color: COLORS.muted,
+    if (examTemplate.key === "myanmar_matric") {
+      drawTextLine(examTemplate.subjectLine, PAGE.marginX, y, 10.5, {
+        bold: true,
+        serif: true,
       });
+      y -= 14;
+    } else {
+      drawTextLine(buildAnswerEntryTitle(paper, variant), PAGE.marginX, y, 11, {
+        bold: true,
+      });
+      const metaLine = buildMetaLine(paper);
+      if (metaLine) {
+        const width = getMeasuredText(metaLine, 9, false);
+        drawTextLine(metaLine, PAGE.width - PAGE.marginX - width, y, 9, {
+          color: COLORS.muted,
+        });
+      }
+      y -= 16;
     }
-    y -= 16;
     page.drawLine({
       start: { x: PAGE.marginX, y },
       end: { x: PAGE.width - PAGE.marginX, y },
@@ -403,6 +650,7 @@ export const renderQuestionPaperPdfBytes = async (paper: QuestionPaperDetail) =>
     page = pdf.addPage([PAGE.width, PAGE.height]);
     pageNumber += 1;
     y = PAGE.height - PAGE.marginTop;
+    drawWatermark();
     drawContinuationHeader();
   };
 
@@ -413,6 +661,66 @@ export const renderQuestionPaperPdfBytes = async (paper: QuestionPaperDetail) =>
   };
 
   const drawHeader = () => {
+    if (examTemplate.key === "myanmar_matric") {
+      const centerX = PAGE.width / 2;
+      const drawCentered = (
+        text: string,
+        drawY: number,
+        size: number,
+        options?: { bold?: boolean; color?: ReturnType<typeof rgb> },
+      ) => {
+        const width = getMeasuredText(text, size, options?.bold ?? false, true);
+        drawTextLine(text, centerX - width / 2, drawY, size, {
+          bold: options?.bold,
+          serif: true,
+          color: options?.color,
+        });
+      };
+
+      if (examTemplate.yearLine) {
+        drawCentered(examTemplate.yearLine, y, 12, { bold: true });
+        y -= 20;
+      }
+      drawCentered(examTemplate.examTitleLine, y, 13.5, { bold: true });
+      y -= 19;
+      drawCentered(examTemplate.departmentLine, y, 11, { bold: true });
+      y -= 19;
+      drawCentered(examTemplate.subjectLine, y, 13, { bold: true });
+
+      const timeAllowed = `Time Allowed: ${examTemplate.timeAllowedLabel}`;
+      const timeWidth = getMeasuredText(timeAllowed, 10.4, false, true);
+      drawTextLine(timeAllowed, PAGE.width - PAGE.marginX - timeWidth, PAGE.height - PAGE.marginTop + 2, 10.4, {
+        serif: true,
+      });
+
+      y -= 24;
+      drawCentered(examTemplate.answerInstructionLine, y, 10.4, { bold: true });
+      y -= 16;
+
+      if (variant === "answer") {
+        drawCentered("ANSWER PAPER", y, 11.2, { bold: true });
+        y -= 18;
+      }
+
+      if (paper.instructions) {
+        y = drawWrapped(paper.instructions, PAGE.marginX, y, contentWidth, 9.6, {
+          serif: true,
+          color: COLORS.muted,
+          lineGap: 3,
+        });
+        y -= 6;
+      }
+
+      page.drawLine({
+        start: { x: PAGE.marginX, y },
+        end: { x: PAGE.width - PAGE.marginX, y },
+        thickness: 0.8,
+        color: COLORS.subtle,
+      });
+      y -= 18;
+      return;
+    }
+
     drawImage(logo, page, PAGE.marginX, PAGE.height - PAGE.marginTop + 8, 54, 54);
 
     const titleX = PAGE.marginX + (logo ? 68 : 0);
@@ -456,7 +764,9 @@ export const renderQuestionPaperPdfBytes = async (paper: QuestionPaperDetail) =>
     );
     const secondaryLine = paper.instructions
       ? normalizePdfText(paper.instructions)
-      : "Read all questions carefully and answer in order.";
+      : variant === "answer"
+        ? "Answer paper for the finalized question set."
+        : "Read all questions carefully and answer in order.";
     drawWrapped(secondaryLine, PAGE.marginX + 12, y - 34, contentWidth - 24, 9.2, {
       color: COLORS.muted,
       lineGap: 2,
@@ -465,9 +775,62 @@ export const renderQuestionPaperPdfBytes = async (paper: QuestionPaperDetail) =>
   };
 
   const drawQuestion = (item: QuestionPaperDetail["items"][number], index: number) => {
+    if (examTemplate.key === "myanmar_matric") {
+      const questionLabel = `(${index + 1})`;
+      const markLabel = `(${item.marks} mark${item.marks > 1 ? "s" : ""})`;
+      const markWidth = getMeasuredText(markLabel, 10, false, true);
+      const bodyWidth = contentWidth - markWidth - 18;
+      const bodyX = PAGE.marginX;
+      const bodyLines = getWrappedText(`${questionLabel} ${item.body}`, bodyWidth, 11, false, true);
+      const optionWidth = contentWidth - 18;
+      const optionLineGap = 3;
+      const optionFontSize = 10;
+      const optionHeights = item.options.map((option) => {
+        const text = `${option.label ?? "•"} ${option.text}`;
+        return Math.max(1, getWrappedText(text, optionWidth, optionFontSize, false, true).length);
+      });
+      const estimatedHeight =
+        bodyLines.length * 15 +
+        (item.options.length > 0
+          ? optionHeights.reduce((sum, count) => sum + count * (optionFontSize + optionLineGap), 0) +
+            item.options.length * 4 +
+            8
+          : 0) +
+        18;
+
+      ensureSpace(Math.max(estimatedHeight, 48));
+
+      drawWrapped(`${questionLabel} ${item.body}`, bodyX, y, bodyWidth, 11, {
+        serif: true,
+        lineGap: 4,
+      });
+      drawTextLine(markLabel, PAGE.width - PAGE.marginX - markWidth, y, 10, {
+        serif: true,
+      });
+
+      let cursorY = y - bodyLines.length * 15 - 2;
+      for (const option of item.options) {
+        cursorY = drawWrapped(
+          `${option.label ?? "•"} ${option.text}`,
+          PAGE.marginX + 18,
+          cursorY,
+          optionWidth - 18,
+          optionFontSize,
+          {
+            serif: true,
+            lineGap: optionLineGap,
+          },
+        );
+        cursorY -= 4;
+      }
+
+      y = cursorY - 10;
+      return;
+    }
+
     const questionLabel = `Q${index + 1}.`;
     const markLabel = `${item.marks} mark${item.marks > 1 ? "s" : ""}`;
-    const markWidth = Math.max(62, measureText(fonts, markLabel, 8.8, true) + 18);
+    const markWidth = Math.max(62, getMeasuredText(markLabel, 8.8, true) + 18);
     const bodyX = PAGE.marginX + 12;
     const bodyWidth = contentWidth - 24 - markWidth - 10;
     const optionsX = bodyX + 14;
@@ -510,7 +873,8 @@ export const renderQuestionPaperPdfBytes = async (paper: QuestionPaperDetail) =>
         ? (optionsWidth - optionColumnGap) / optionColumnCount
         : optionsWidth;
 
-    const bodyLines = wrapText(fonts, `${questionLabel} ${item.body}`, bodyWidth, 10.8);
+    const questionBodyText = `${questionLabel} ${item.body}`;
+    const bodyLines = getWrappedText(questionBodyText, bodyWidth, 10.8);
     const optionRowHeights = useOptionGrid
       ? Array.from({ length: Math.ceil(item.options.length / optionColumnCount) }, (_, rowIndex) => {
           let maxLines = 1;
@@ -521,7 +885,7 @@ export const renderQuestionPaperPdfBytes = async (paper: QuestionPaperDetail) =>
             const optionText = `${option.label ?? "•"} ${option.text}`;
             const lineCount = Math.max(
               1,
-              wrapText(fonts, optionText, optionColumnWidth, optionFontSize).length,
+              getWrappedText(optionText, optionColumnWidth, optionFontSize).length,
             );
             maxLines = Math.max(maxLines, lineCount);
           }
@@ -541,13 +905,13 @@ export const renderQuestionPaperPdfBytes = async (paper: QuestionPaperDetail) =>
             const leftLineCount = leftText
               ? Math.max(
                   1,
-                  wrapText(fonts, leftText, matchingColumnWidth, optionFontSize).length,
+                  getWrappedText(leftText, matchingColumnWidth, optionFontSize).length,
                 )
               : 1;
             const rightLineCount = rightText
               ? Math.max(
                   1,
-                  wrapText(fonts, rightText, matchingColumnWidth, optionFontSize).length,
+                  getWrappedText(rightText, matchingColumnWidth, optionFontSize).length,
                 )
               : 1;
             return Math.max(leftLineCount, rightLineCount) * optionUnitHeight;
@@ -568,7 +932,7 @@ export const renderQuestionPaperPdfBytes = async (paper: QuestionPaperDetail) =>
             const optionText = `${option.label ?? "•"} ${option.text}`;
             const lineCount = Math.max(
               1,
-              wrapText(fonts, optionText, optionsWidth, optionFontSize).length,
+              getWrappedText(optionText, optionsWidth, optionFontSize).length,
             );
             return (
               total +
@@ -705,19 +1069,174 @@ export const renderQuestionPaperPdfBytes = async (paper: QuestionPaperDetail) =>
     y = cursorY - 12;
   };
 
-  drawHeader();
-  paper.items.forEach((item, index) => drawQuestion(item, index));
+  const drawAnswerEntry = (item: QuestionPaperDetail["items"][number], index: number) => {
+    if (examTemplate.key === "myanmar_matric") {
+      const questionLabel = `(${index + 1})`;
+      const answerLabel = `Answer: ${normalizePdfText(item.answerText) || "No answer key"}`;
+      const bodyLines = getWrappedText(`${questionLabel} ${item.body}`, contentWidth, 10.6, false, true);
+      const answerLines = getWrappedText(answerLabel, contentWidth - 12, 10, true, true);
+      const estimatedHeight =
+        bodyLines.length * 14 +
+        answerLines.length * 13 +
+        24;
 
-  if (paper.includeAnswerKey) {
+      ensureSpace(Math.max(estimatedHeight, 52));
+
+      let cursorY = drawWrapped(
+        `${questionLabel} ${item.body}`,
+        PAGE.marginX,
+        y,
+        contentWidth,
+        10.6,
+        { serif: true, lineGap: 4 },
+      );
+      cursorY -= 6;
+      cursorY = drawWrapped(answerLabel, PAGE.marginX + 12, cursorY, contentWidth - 12, 10, {
+        bold: true,
+        serif: true,
+        color: COLORS.accent,
+        lineGap: 3,
+      });
+      y = cursorY - 12;
+      return;
+    }
+
+    const questionLabel = `Q${index + 1}.`;
+    const answerLabel = `Answer: ${normalizePdfText(item.answerText) || "No answer key"}`;
+    const answerBodyText = `${questionLabel} ${item.body}`;
+    const bodyLines = getWrappedText(answerBodyText, contentWidth, 10.4);
+    const answerLines = getWrappedText(answerLabel, contentWidth - 14, 9.6, true);
+    const estimatedHeight =
+      28 + bodyLines.length * 14 + 12 + answerLines.length * 13 + 14;
+
+    ensureSpace(Math.max(estimatedHeight, 84));
+
+    page.drawRectangle({
+      x: PAGE.marginX,
+      y: y - estimatedHeight + 10,
+      width: contentWidth,
+      height: estimatedHeight,
+      color: rgb(1, 1, 1),
+      borderColor: COLORS.subtle,
+      borderWidth: 1,
+    });
+
+    let cursorY = drawWrapped(
+      `${questionLabel} ${item.body}`,
+      PAGE.marginX + 12,
+      y - 18,
+      contentWidth - 24,
+      10.4,
+      { lineGap: 4 },
+    );
+
+    cursorY -= 2;
+    page.drawRectangle({
+      x: PAGE.marginX + 12,
+      y: cursorY - answerLines.length * 13 - 10,
+      width: contentWidth - 24,
+      height: answerLines.length * 13 + 14,
+      color: COLORS.panel,
+      borderColor: COLORS.subtle,
+      borderWidth: 1,
+    });
+
+    cursorY = drawWrapped(
+      answerLabel,
+      PAGE.marginX + 19,
+      cursorY - 12,
+      contentWidth - 38,
+      9.6,
+      {
+        bold: true,
+        color: COLORS.accent,
+        lineGap: 3,
+      },
+    );
+
+    y = cursorY - 16;
+  };
+
+  const drawSectionHeading = (
+    section:
+      | {
+          code?: string | null;
+          title?: string | null;
+        }
+      | null
+      | undefined,
+  ) => {
+    if (examTemplate.key !== "myanmar_matric") {
+      return;
+    }
+
+    const { heading, subtitle } = buildSectionHeading(section);
+    const estimatedHeight = subtitle ? 42 : 28;
+    ensureSpace(estimatedHeight);
+    drawWrapped(heading, PAGE.marginX, y, contentWidth, 11.5, {
+      bold: true,
+      serif: true,
+      lineGap: 3,
+    });
+    y -= 16;
+
+    if (subtitle) {
+      drawWrapped(subtitle, PAGE.marginX, y, contentWidth, 10.2, {
+        serif: true,
+        lineGap: 3,
+      });
+      y -= 16;
+    }
+  };
+
+  drawWatermark();
+  drawHeader();
+  const groupedItems = groupItemsBySection(paper.items);
+  if (variant === "answer") {
+    let answerIndex = 0;
+    for (const group of groupedItems) {
+      if (group.section) {
+        drawSectionHeading(group.section);
+      }
+      for (const item of group.items) {
+        drawAnswerEntry(item, answerIndex);
+        answerIndex += 1;
+      }
+    }
+  } else {
+    let questionIndex = 0;
+    for (const group of groupedItems) {
+      if (group.section) {
+        drawSectionHeading(group.section);
+      }
+      for (const item of group.items) {
+        drawQuestion(item, questionIndex);
+        questionIndex += 1;
+      }
+    }
+  }
+
+  if (variant === "combined" && paper.includeAnswerKey) {
     startNewPage();
-    drawTextLine("Answer Key", PAGE.marginX, y, 16, { bold: true });
-    y -= 24;
+    if (examTemplate.key === "myanmar_matric") {
+      const title = "ANSWER KEY";
+      const titleWidth = getMeasuredText(title, 14, true, true);
+      drawTextLine(title, PAGE.width / 2 - titleWidth / 2, y, 14, {
+        bold: true,
+        serif: true,
+      });
+      y -= 24;
+    } else {
+      drawTextLine("Answer Key", PAGE.marginX, y, 16, { bold: true });
+      y -= 24;
+    }
     for (const answerLine of buildAnswerKey(paper)) {
-      const wrapped = wrapText(fonts, answerLine, contentWidth, 9.8);
+      const wrapped = getWrappedText(answerLine, contentWidth, 9.8, false, examTemplate.key === "myanmar_matric");
       ensureSpace(wrapped.length * 14 + 8);
       y = drawWrapped(answerLine, PAGE.marginX, y, contentWidth, 9.8, {
         color: COLORS.ink,
         lineGap: 3,
+        serif: examTemplate.key === "myanmar_matric",
       });
       y -= 4;
     }

@@ -24,7 +24,6 @@ import { Route as ProtectedUsersIndexRouteImport } from './routes/_protected/use
 import { Route as ProtectedQuestionsIndexRouteImport } from './routes/_protected/questions/index'
 import { Route as ProtectedUsersSupportRouteImport } from './routes/_protected/users/support'
 import { Route as ProtectedUsersSubscriptionsRouteImport } from './routes/_protected/users/subscriptions'
-import { Route as ProtectedUsersStudentsRouteImport } from './routes/_protected/users/students'
 import { Route as ProtectedTaxonomySubjectsRouteImport } from './routes/_protected/taxonomy/subjects'
 import { Route as ProtectedTaxonomySubChaptersRouteImport } from './routes/_protected/taxonomy/sub-chapters'
 import { Route as ProtectedTaxonomyGradesRouteImport } from './routes/_protected/taxonomy/grades'
@@ -33,8 +32,12 @@ import { Route as ProtectedSettingsSecurityRouteImport } from './routes/_protect
 import { Route as ProtectedSettingsProfileRouteImport } from './routes/_protected/settings/profile'
 import { Route as ProtectedQuestionsNewRouteImport } from './routes/_protected/questions/new'
 import { Route as ProtectedQuestionsImportRouteImport } from './routes/_protected/questions/import'
+import { Route as ProtectedQuestionsBlueprintsRouteImport } from './routes/_protected/questions/blueprints'
+import { Route as ProtectedQuestionsBlueprintsIndexRouteImport } from './routes/_protected/questions/blueprints/index'
 import { Route as ProtectedQuestionsQuestionIdIndexRouteImport } from './routes/_protected/questions/$questionId/index'
+import { Route as ProtectedQuestionsBlueprintsNewRouteImport } from './routes/_protected/questions/blueprints/new'
 import { Route as ProtectedQuestionsQuestionIdEditRouteImport } from './routes/_protected/questions/$questionId/edit'
+import { Route as ProtectedQuestionsBlueprintsBlueprintIdEditRouteImport } from './routes/_protected/questions/blueprints/$blueprintId/edit'
 
 const ForbiddenRoute = ForbiddenRouteImport.update({
   id: '/forbidden',
@@ -110,11 +113,6 @@ const ProtectedUsersSubscriptionsRoute =
     path: '/subscriptions',
     getParentRoute: () => ProtectedUsersRoute,
   } as any)
-const ProtectedUsersStudentsRoute = ProtectedUsersStudentsRouteImport.update({
-  id: '/students',
-  path: '/students',
-  getParentRoute: () => ProtectedUsersRoute,
-} as any)
 const ProtectedTaxonomySubjectsRoute =
   ProtectedTaxonomySubjectsRouteImport.update({
     id: '/subjects',
@@ -161,17 +159,41 @@ const ProtectedQuestionsImportRoute =
     path: '/import',
     getParentRoute: () => ProtectedQuestionsRoute,
   } as any)
+const ProtectedQuestionsBlueprintsRoute =
+  ProtectedQuestionsBlueprintsRouteImport.update({
+    id: '/blueprints',
+    path: '/blueprints',
+    getParentRoute: () => ProtectedQuestionsRoute,
+  } as any)
+const ProtectedQuestionsBlueprintsIndexRoute =
+  ProtectedQuestionsBlueprintsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => ProtectedQuestionsBlueprintsRoute,
+  } as any)
 const ProtectedQuestionsQuestionIdIndexRoute =
   ProtectedQuestionsQuestionIdIndexRouteImport.update({
     id: '/$questionId/',
     path: '/$questionId/',
     getParentRoute: () => ProtectedQuestionsRoute,
   } as any)
+const ProtectedQuestionsBlueprintsNewRoute =
+  ProtectedQuestionsBlueprintsNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => ProtectedQuestionsBlueprintsRoute,
+  } as any)
 const ProtectedQuestionsQuestionIdEditRoute =
   ProtectedQuestionsQuestionIdEditRouteImport.update({
     id: '/$questionId/edit',
     path: '/$questionId/edit',
     getParentRoute: () => ProtectedQuestionsRoute,
+  } as any)
+const ProtectedQuestionsBlueprintsBlueprintIdEditRoute =
+  ProtectedQuestionsBlueprintsBlueprintIdEditRouteImport.update({
+    id: '/$blueprintId/edit',
+    path: '/$blueprintId/edit',
+    getParentRoute: () => ProtectedQuestionsBlueprintsRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -184,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof ProtectedSettingsRouteWithChildren
   '/taxonomy': typeof ProtectedTaxonomyRouteWithChildren
   '/users': typeof ProtectedUsersRouteWithChildren
+  '/questions/blueprints': typeof ProtectedQuestionsBlueprintsRouteWithChildren
   '/questions/import': typeof ProtectedQuestionsImportRoute
   '/questions/new': typeof ProtectedQuestionsNewRoute
   '/settings/profile': typeof ProtectedSettingsProfileRoute
@@ -192,13 +215,15 @@ export interface FileRoutesByFullPath {
   '/taxonomy/grades': typeof ProtectedTaxonomyGradesRoute
   '/taxonomy/sub-chapters': typeof ProtectedTaxonomySubChaptersRoute
   '/taxonomy/subjects': typeof ProtectedTaxonomySubjectsRoute
-  '/users/students': typeof ProtectedUsersStudentsRoute
   '/users/subscriptions': typeof ProtectedUsersSubscriptionsRoute
   '/users/support': typeof ProtectedUsersSupportRoute
   '/questions/': typeof ProtectedQuestionsIndexRoute
   '/users/': typeof ProtectedUsersIndexRoute
   '/questions/$questionId/edit': typeof ProtectedQuestionsQuestionIdEditRoute
+  '/questions/blueprints/new': typeof ProtectedQuestionsBlueprintsNewRoute
   '/questions/$questionId/': typeof ProtectedQuestionsQuestionIdIndexRoute
+  '/questions/blueprints/': typeof ProtectedQuestionsBlueprintsIndexRoute
+  '/questions/blueprints/$blueprintId/edit': typeof ProtectedQuestionsBlueprintsBlueprintIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -216,13 +241,15 @@ export interface FileRoutesByTo {
   '/taxonomy/grades': typeof ProtectedTaxonomyGradesRoute
   '/taxonomy/sub-chapters': typeof ProtectedTaxonomySubChaptersRoute
   '/taxonomy/subjects': typeof ProtectedTaxonomySubjectsRoute
-  '/users/students': typeof ProtectedUsersStudentsRoute
   '/users/subscriptions': typeof ProtectedUsersSubscriptionsRoute
   '/users/support': typeof ProtectedUsersSupportRoute
   '/questions': typeof ProtectedQuestionsIndexRoute
   '/users': typeof ProtectedUsersIndexRoute
   '/questions/$questionId/edit': typeof ProtectedQuestionsQuestionIdEditRoute
+  '/questions/blueprints/new': typeof ProtectedQuestionsBlueprintsNewRoute
   '/questions/$questionId': typeof ProtectedQuestionsQuestionIdIndexRoute
+  '/questions/blueprints': typeof ProtectedQuestionsBlueprintsIndexRoute
+  '/questions/blueprints/$blueprintId/edit': typeof ProtectedQuestionsBlueprintsBlueprintIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -237,6 +264,7 @@ export interface FileRoutesById {
   '/_protected/settings': typeof ProtectedSettingsRouteWithChildren
   '/_protected/taxonomy': typeof ProtectedTaxonomyRouteWithChildren
   '/_protected/users': typeof ProtectedUsersRouteWithChildren
+  '/_protected/questions/blueprints': typeof ProtectedQuestionsBlueprintsRouteWithChildren
   '/_protected/questions/import': typeof ProtectedQuestionsImportRoute
   '/_protected/questions/new': typeof ProtectedQuestionsNewRoute
   '/_protected/settings/profile': typeof ProtectedSettingsProfileRoute
@@ -245,13 +273,15 @@ export interface FileRoutesById {
   '/_protected/taxonomy/grades': typeof ProtectedTaxonomyGradesRoute
   '/_protected/taxonomy/sub-chapters': typeof ProtectedTaxonomySubChaptersRoute
   '/_protected/taxonomy/subjects': typeof ProtectedTaxonomySubjectsRoute
-  '/_protected/users/students': typeof ProtectedUsersStudentsRoute
   '/_protected/users/subscriptions': typeof ProtectedUsersSubscriptionsRoute
   '/_protected/users/support': typeof ProtectedUsersSupportRoute
   '/_protected/questions/': typeof ProtectedQuestionsIndexRoute
   '/_protected/users/': typeof ProtectedUsersIndexRoute
   '/_protected/questions/$questionId/edit': typeof ProtectedQuestionsQuestionIdEditRoute
+  '/_protected/questions/blueprints/new': typeof ProtectedQuestionsBlueprintsNewRoute
   '/_protected/questions/$questionId/': typeof ProtectedQuestionsQuestionIdIndexRoute
+  '/_protected/questions/blueprints/': typeof ProtectedQuestionsBlueprintsIndexRoute
+  '/_protected/questions/blueprints/$blueprintId/edit': typeof ProtectedQuestionsBlueprintsBlueprintIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -265,6 +295,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/taxonomy'
     | '/users'
+    | '/questions/blueprints'
     | '/questions/import'
     | '/questions/new'
     | '/settings/profile'
@@ -273,13 +304,15 @@ export interface FileRouteTypes {
     | '/taxonomy/grades'
     | '/taxonomy/sub-chapters'
     | '/taxonomy/subjects'
-    | '/users/students'
     | '/users/subscriptions'
     | '/users/support'
     | '/questions/'
     | '/users/'
     | '/questions/$questionId/edit'
+    | '/questions/blueprints/new'
     | '/questions/$questionId/'
+    | '/questions/blueprints/'
+    | '/questions/blueprints/$blueprintId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -297,13 +330,15 @@ export interface FileRouteTypes {
     | '/taxonomy/grades'
     | '/taxonomy/sub-chapters'
     | '/taxonomy/subjects'
-    | '/users/students'
     | '/users/subscriptions'
     | '/users/support'
     | '/questions'
     | '/users'
     | '/questions/$questionId/edit'
+    | '/questions/blueprints/new'
     | '/questions/$questionId'
+    | '/questions/blueprints'
+    | '/questions/blueprints/$blueprintId/edit'
   id:
     | '__root__'
     | '/'
@@ -317,6 +352,7 @@ export interface FileRouteTypes {
     | '/_protected/settings'
     | '/_protected/taxonomy'
     | '/_protected/users'
+    | '/_protected/questions/blueprints'
     | '/_protected/questions/import'
     | '/_protected/questions/new'
     | '/_protected/settings/profile'
@@ -325,13 +361,15 @@ export interface FileRouteTypes {
     | '/_protected/taxonomy/grades'
     | '/_protected/taxonomy/sub-chapters'
     | '/_protected/taxonomy/subjects'
-    | '/_protected/users/students'
     | '/_protected/users/subscriptions'
     | '/_protected/users/support'
     | '/_protected/questions/'
     | '/_protected/users/'
     | '/_protected/questions/$questionId/edit'
+    | '/_protected/questions/blueprints/new'
     | '/_protected/questions/$questionId/'
+    | '/_protected/questions/blueprints/'
+    | '/_protected/questions/blueprints/$blueprintId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -448,13 +486,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedUsersSubscriptionsRouteImport
       parentRoute: typeof ProtectedUsersRoute
     }
-    '/_protected/users/students': {
-      id: '/_protected/users/students'
-      path: '/students'
-      fullPath: '/users/students'
-      preLoaderRoute: typeof ProtectedUsersStudentsRouteImport
-      parentRoute: typeof ProtectedUsersRoute
-    }
     '/_protected/taxonomy/subjects': {
       id: '/_protected/taxonomy/subjects'
       path: '/subjects'
@@ -511,6 +542,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedQuestionsImportRouteImport
       parentRoute: typeof ProtectedQuestionsRoute
     }
+    '/_protected/questions/blueprints': {
+      id: '/_protected/questions/blueprints'
+      path: '/blueprints'
+      fullPath: '/questions/blueprints'
+      preLoaderRoute: typeof ProtectedQuestionsBlueprintsRouteImport
+      parentRoute: typeof ProtectedQuestionsRoute
+    }
+    '/_protected/questions/blueprints/': {
+      id: '/_protected/questions/blueprints/'
+      path: '/'
+      fullPath: '/questions/blueprints/'
+      preLoaderRoute: typeof ProtectedQuestionsBlueprintsIndexRouteImport
+      parentRoute: typeof ProtectedQuestionsBlueprintsRoute
+    }
     '/_protected/questions/$questionId/': {
       id: '/_protected/questions/$questionId/'
       path: '/$questionId'
@@ -518,12 +563,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedQuestionsQuestionIdIndexRouteImport
       parentRoute: typeof ProtectedQuestionsRoute
     }
+    '/_protected/questions/blueprints/new': {
+      id: '/_protected/questions/blueprints/new'
+      path: '/new'
+      fullPath: '/questions/blueprints/new'
+      preLoaderRoute: typeof ProtectedQuestionsBlueprintsNewRouteImport
+      parentRoute: typeof ProtectedQuestionsBlueprintsRoute
+    }
     '/_protected/questions/$questionId/edit': {
       id: '/_protected/questions/$questionId/edit'
       path: '/$questionId/edit'
       fullPath: '/questions/$questionId/edit'
       preLoaderRoute: typeof ProtectedQuestionsQuestionIdEditRouteImport
       parentRoute: typeof ProtectedQuestionsRoute
+    }
+    '/_protected/questions/blueprints/$blueprintId/edit': {
+      id: '/_protected/questions/blueprints/$blueprintId/edit'
+      path: '/$blueprintId/edit'
+      fullPath: '/questions/blueprints/$blueprintId/edit'
+      preLoaderRoute: typeof ProtectedQuestionsBlueprintsBlueprintIdEditRouteImport
+      parentRoute: typeof ProtectedQuestionsBlueprintsRoute
     }
   }
 }
@@ -540,7 +599,28 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface ProtectedQuestionsBlueprintsRouteChildren {
+  ProtectedQuestionsBlueprintsNewRoute: typeof ProtectedQuestionsBlueprintsNewRoute
+  ProtectedQuestionsBlueprintsIndexRoute: typeof ProtectedQuestionsBlueprintsIndexRoute
+  ProtectedQuestionsBlueprintsBlueprintIdEditRoute: typeof ProtectedQuestionsBlueprintsBlueprintIdEditRoute
+}
+
+const ProtectedQuestionsBlueprintsRouteChildren: ProtectedQuestionsBlueprintsRouteChildren =
+  {
+    ProtectedQuestionsBlueprintsNewRoute: ProtectedQuestionsBlueprintsNewRoute,
+    ProtectedQuestionsBlueprintsIndexRoute:
+      ProtectedQuestionsBlueprintsIndexRoute,
+    ProtectedQuestionsBlueprintsBlueprintIdEditRoute:
+      ProtectedQuestionsBlueprintsBlueprintIdEditRoute,
+  }
+
+const ProtectedQuestionsBlueprintsRouteWithChildren =
+  ProtectedQuestionsBlueprintsRoute._addFileChildren(
+    ProtectedQuestionsBlueprintsRouteChildren,
+  )
+
 interface ProtectedQuestionsRouteChildren {
+  ProtectedQuestionsBlueprintsRoute: typeof ProtectedQuestionsBlueprintsRouteWithChildren
   ProtectedQuestionsImportRoute: typeof ProtectedQuestionsImportRoute
   ProtectedQuestionsNewRoute: typeof ProtectedQuestionsNewRoute
   ProtectedQuestionsIndexRoute: typeof ProtectedQuestionsIndexRoute
@@ -549,6 +629,8 @@ interface ProtectedQuestionsRouteChildren {
 }
 
 const ProtectedQuestionsRouteChildren: ProtectedQuestionsRouteChildren = {
+  ProtectedQuestionsBlueprintsRoute:
+    ProtectedQuestionsBlueprintsRouteWithChildren,
   ProtectedQuestionsImportRoute: ProtectedQuestionsImportRoute,
   ProtectedQuestionsNewRoute: ProtectedQuestionsNewRoute,
   ProtectedQuestionsIndexRoute: ProtectedQuestionsIndexRoute,
@@ -591,14 +673,12 @@ const ProtectedTaxonomyRouteWithChildren =
   ProtectedTaxonomyRoute._addFileChildren(ProtectedTaxonomyRouteChildren)
 
 interface ProtectedUsersRouteChildren {
-  ProtectedUsersStudentsRoute: typeof ProtectedUsersStudentsRoute
   ProtectedUsersSubscriptionsRoute: typeof ProtectedUsersSubscriptionsRoute
   ProtectedUsersSupportRoute: typeof ProtectedUsersSupportRoute
   ProtectedUsersIndexRoute: typeof ProtectedUsersIndexRoute
 }
 
 const ProtectedUsersRouteChildren: ProtectedUsersRouteChildren = {
-  ProtectedUsersStudentsRoute: ProtectedUsersStudentsRoute,
   ProtectedUsersSubscriptionsRoute: ProtectedUsersSubscriptionsRoute,
   ProtectedUsersSupportRoute: ProtectedUsersSupportRoute,
   ProtectedUsersIndexRoute: ProtectedUsersIndexRoute,

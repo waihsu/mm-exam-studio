@@ -2,12 +2,14 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { setAppRuntime } from "./lib/runtime";
 import { generateQuestionPaperPdf } from "./modules/workspace/pdf/question-paper-pdf-generator.service";
+import type { QuestionPaperPdfVariant } from "./modules/workspace/pdf/question-paper-pdf-renderer.service";
 
 setAppRuntime("cloudflare-worker");
 
 type RenderRequestBody = {
   userId?: string;
   paperId?: string;
+  variant?: QuestionPaperPdfVariant;
 };
 
 type PdfWorkerBindings = {
@@ -55,6 +57,7 @@ app.post("/render", async (c) => {
   const body = (await c.req.json().catch(() => null)) as RenderRequestBody | null;
   const userId = body?.userId?.trim() ?? "";
   const paperId = body?.paperId?.trim() ?? "";
+  const variant = body?.variant ?? "combined";
 
   if (!userId || !paperId) {
     throw new HTTPException(400, {
@@ -63,7 +66,7 @@ app.post("/render", async (c) => {
   }
 
   try {
-    const result = await generateQuestionPaperPdf(userId, paperId);
+    const result = await generateQuestionPaperPdf(userId, paperId, variant);
 
     const headers = new Headers();
     headers.set("content-type", "application/pdf");

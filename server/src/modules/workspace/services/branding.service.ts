@@ -1,4 +1,4 @@
-import { and, asc, count as dbCount, eq } from "drizzle-orm";
+import { and, count as dbCount, eq } from "drizzle-orm";
 import { brandAsset, db } from "@/db";
 import { getUserSubscriptionSnapshot } from "../../subscriptions/subscription.core";
 import type { CreateBrandAssetInput } from "../branding.schema";

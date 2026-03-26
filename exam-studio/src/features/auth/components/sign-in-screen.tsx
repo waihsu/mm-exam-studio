@@ -3,7 +3,13 @@ import React, { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "@/i18n";
 import { AuthScreenShell } from "./auth-screen-shell";
-import { AuthBanner, AuthButton, AuthField, authUiStyles } from "./auth-ui";
+import {
+  AuthBanner,
+  AuthButton,
+  AuthConsent,
+  AuthField,
+  authUiStyles,
+} from "./auth-ui";
 import { useSignInEmailMutation } from "../hooks/use-sign-in-email-mutation";
 
 export const SignInScreen = () => {
@@ -11,17 +17,22 @@ export const SignInScreen = () => {
   const { t } = useTranslation("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptedPolicy, setAcceptedPolicy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const signInMutation = useSignInEmailMutation();
   const submitting = signInMutation.isPending;
 
   const canSubmit = useMemo(
-    () => email.trim().length > 0 && password.length > 0 && !submitting,
-    [email, password, submitting],
+    () => email.trim().length > 0 && password.length > 0 && acceptedPolicy && !submitting,
+    [acceptedPolicy, email, password, submitting],
   );
 
   const submit = async () => {
+    if (!acceptedPolicy) {
+      setErrorMessage(t("consent.required"));
+      return;
+    }
     if (!canSubmit) return;
 
     setErrorMessage(null);
@@ -41,10 +52,15 @@ export const SignInScreen = () => {
 
       router.replace("/practice" as RelativePathString);
     } catch (error) {
-      setErrorMessage(
+      const resolvedMessage =
         error instanceof Error && error.message.trim().length > 0
           ? error.message
-          : t("signIn.failed"),
+          : t("signIn.failed");
+
+      setErrorMessage(
+        resolvedMessage.toLowerCase().includes("verify your email")
+          ? t("signIn.emailNotVerified")
+          : resolvedMessage,
       );
     }
   };
@@ -89,6 +105,18 @@ export const SignInScreen = () => {
 
       <AuthBanner message={errorMessage} tone="error" />
       <AuthBanner message={infoMessage} tone="info" />
+      <AuthConsent
+        checked={acceptedPolicy}
+        labelPrefix={t("consent.label")}
+        linkLabel={t("consent.linkLabel")}
+        onPressLink={() => router.push("/legal" as RelativePathString)}
+        onToggle={() => {
+          setErrorMessage((current) =>
+            current === t("consent.required") ? null : current,
+          );
+          setAcceptedPolicy((current) => !current);
+        }}
+      />
 
       <View style={authUiStyles.actionStack}>
         <AuthButton

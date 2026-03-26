@@ -121,6 +121,8 @@ function buildPreviewRequests(question: QuestionRecord) {
       subjectId: question.subject.id,
       chapterId: question.chapter?.id ?? null,
       subChapterId: question.subChapter?.id ?? null,
+      questionImageUrls: question.questionImageUrls ?? [],
+      solutionImageUrls: question.solutionImageUrls ?? [],
       explanation: question.explanation ?? null,
       answerText: question.answerText ?? null,
       answerFormula: question.answerFormula ?? null,

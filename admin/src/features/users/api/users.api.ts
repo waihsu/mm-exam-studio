@@ -4,6 +4,7 @@ import type {
   AdminUserDeviceListResult,
   PaginatedAdminUserDirectoryResult,
   RevokeAdminUserDeviceResult,
+  UpdateAdminUserRoleResult,
 } from "../types";
 
 const toQueryString = (
@@ -40,5 +41,10 @@ export const usersApi = {
     api.post<RevokeAdminUserDeviceResult>(
       `/users/admin/${encodeURIComponent(userId)}/devices/${encodeURIComponent(deviceId)}/revoke`,
       {},
+    ),
+  updateUserRole: (userId: string, role: "user" | "admin") =>
+    api.patch<UpdateAdminUserRoleResult>(
+      `/users/admin/${encodeURIComponent(userId)}/role`,
+      { role },
     ),
 };
