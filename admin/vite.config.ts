@@ -45,6 +45,10 @@ const resolveVendorChunk = (id: string) => {
 };
 
 export default defineConfig({
+	server: {
+		port: 5174,
+		strictPort: true,
+	},
 	plugins: [
 		// Please make sure that '@tanstack/router-plugin' is passed before '@vitejs/plugin-react'
 		tanstackRouter({

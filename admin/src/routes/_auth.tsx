@@ -1,7 +1,7 @@
 import { Link, Outlet } from "@tanstack/react-router";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ADMIN_ROUTES } from "@/constants/routes";
-import adminLogo from "@/assets/admin-logo.svg";
+import adminLogo from "@/assets/brand-mark-compact.png";
 
 export const Route = createFileRoute("/_auth")({
   beforeLoad: ({ context }) => {

@@ -3,7 +3,6 @@ import {
   BookText,
   ChevronsLeft,
   ChevronsRight,
-  CreditCard,
   Layers3,
   LifeBuoy,
   LayoutDashboard,
@@ -62,7 +61,6 @@ const iconForRoute = (to: string) => {
     return Layers3;
   }
   if (to === ADMIN_ROUTES.taxonomy || to.startsWith("/taxonomy")) return Layers3;
-  if (to === ADMIN_ROUTES.userSubscriptions) return CreditCard;
   if (to === ADMIN_ROUTES.userSupport) return LifeBuoy;
   if (to === ADMIN_ROUTES.users) return UsersRound;
   if (to === ADMIN_ROUTES.settings || to.startsWith("/settings")) return Settings;
@@ -85,22 +83,22 @@ const renderSidebarLink = (
       to={item.to}
       title={label}
       className={cn(
-        "group flex w-full items-center text-sm font-semibold transition-all",
+        "group flex w-full items-center text-sm font-medium transition-colors",
         collapsed
-          ? "mx-auto h-10 w-10 justify-center rounded-lg border border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-900"
-          : "justify-between rounded-xl border border-transparent bg-transparent px-2.5 py-2 text-slate-700 hover:border-slate-300/90 hover:bg-white/88 hover:text-slate-900",
+          ? "mx-auto h-9 w-9 justify-center rounded-lg border border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+          : "justify-between rounded-lg border border-transparent bg-transparent px-2.5 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-950",
         isActive &&
           (collapsed
-            ? "border-indigo-500 bg-indigo-600 text-white shadow-[0_10px_20px_-16px_rgba(49,46,129,0.9)]"
-            : "border-indigo-300 bg-indigo-50 text-indigo-900 shadow-[0_10px_20px_-16px_rgba(49,46,129,0.7)]"),
+            ? "bg-slate-900 text-white shadow-sm"
+            : "border-slate-900 bg-slate-900 text-white shadow-sm"),
       )}
     >
-      <span className={cn("flex min-w-0 items-center", collapsed ? "justify-center" : "gap-2")}>
+        <span className={cn("flex min-w-0 items-center", collapsed ? "justify-center" : "gap-2.5")}>
         <ItemIcon className="h-4 w-4 shrink-0" />
         {!collapsed ? <span className="truncate">{label}</span> : null}
       </span>
       {isActive && !collapsed ? (
-        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-700" />
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
       ) : null}
     </Link>
   );
@@ -129,9 +127,9 @@ export function AdminSidebar({
   return (
     <aside
       className={cn(
-        "h-full min-h-0 overflow-x-hidden overflow-y-auto overscroll-contain [scrollbar-gutter:stable] border-r border-white/75 bg-gradient-to-b from-white/88 to-slate-50/85 pl-3 pr-2 py-4 backdrop-blur-xl",
+        "h-full min-h-0 overflow-x-hidden overflow-y-auto overscroll-contain [scrollbar-gutter:stable] bg-white pl-3 pr-2 py-4",
         collapsed &&
-          "bg-gradient-to-b from-white/80 to-slate-100/70 px-1.5 py-3",
+          "bg-white px-1.5 py-3",
         className,
       )}
     >
@@ -175,8 +173,8 @@ export function AdminSidebar({
           <section
             key={group.id}
             className={cn(
-              "rounded-2xl border border-white/75 bg-white/68 ring-1 ring-slate-900/5",
-              collapsed ? "border-0 bg-transparent p-0 ring-0" : "p-1.5",
+              "border-0 bg-transparent",
+              collapsed ? "p-0" : "py-1",
             )}
           >
             {collapsed && groupIndex > 0 ? (

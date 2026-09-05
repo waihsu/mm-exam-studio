@@ -4,6 +4,8 @@ import type {
   QuestionSubmitInput,
 } from "../schema/question.schema";
 import type {
+  QuestionParametricValueSet,
+  QuestionVariantContent,
   QuestionRecord,
   QuestionType,
   QuestionVariableDefinition,
@@ -12,6 +14,8 @@ import type {
 export type VariableDraft = {
   variablesSchema: QuestionInput["variablesSchema"];
   answerFormula: string;
+  parametricValueSets: QuestionInput["parametricValueSets"];
+  variantContents: QuestionInput["variantContents"];
   previewValues: Record<string, string>;
 };
 
@@ -116,6 +120,60 @@ export const normalizeMediaUrls = (urls: string[] | null | undefined) =>
     new Set((urls ?? []).map((url) => url.trim()).filter(Boolean)),
   ).slice(0, 4);
 
+export const normalizeParametricValueSets = (
+  valueSets: QuestionParametricValueSet[] | null | undefined,
+) =>
+  (valueSets ?? []).map((valueSet) =>
+    Object.fromEntries(
+      Object.entries(valueSet).filter(
+        ([key, value]) =>
+          key.trim().length > 0 &&
+          (typeof value === "number" || value.trim().length > 0),
+      ),
+    ),
+  );
+
+export const normalizeVariantContents = (
+  variants: QuestionVariantContent[] | null | undefined,
+) =>
+  Array.from(variants ?? [], (variant = {}) => ({
+    ...(variant.body?.trim() ? { body: variant.body } : {}),
+    ...(variant.explanation?.trim() ? { explanation: variant.explanation } : {}),
+    ...(variant.answerText?.trim() ? { answerText: variant.answerText } : {}),
+    ...(variant.answerFormula?.trim() ? { answerFormula: variant.answerFormula } : {}),
+    ...(variant.options?.length
+      ? {
+          options: variant.options.map((option) => ({
+            ...(option.label?.trim() ? { label: option.label } : {}),
+            text: option.text,
+            isCorrect: option.isCorrect,
+          })),
+        }
+      : {}),
+  }));
+
+export const sanitizeParametricValueSets = (
+  valueSets: QuestionInput["parametricValueSets"],
+  variables: QuestionInput["variablesSchema"],
+) => {
+  const validVariables = sanitizeVariables(variables);
+
+  return valueSets.map((valueSet) =>
+    validVariables.reduce<QuestionParametricValueSet>((nextValueSet, variable) => {
+      const rawValue = valueSet[variable.key];
+      if (rawValue === undefined || rawValue === "") {
+        return nextValueSet;
+      }
+
+      nextValueSet[variable.key] =
+        variable.type === "number" && typeof rawValue === "string"
+          ? Number(rawValue)
+          : rawValue;
+      return nextValueSet;
+    }, {}),
+  );
+};
+
 export const createInitialFormState = (
   initialValue?: QuestionRecord | null,
 ): QuestionInput => {
@@ -136,6 +194,8 @@ export const createInitialFormState = (
       answerText: "",
       answerFormula: "",
       variablesSchema: [],
+      parametricValueSets: [],
+      variantContents: [],
       isPublished: false,
       marks: 1,
       options: createEmptyOptions(),
@@ -158,6 +218,8 @@ export const createInitialFormState = (
     answerText: initialValue.answerText ?? "",
     answerFormula: initialValue.answerFormula ?? "",
     variablesSchema: normalizeVariableDefinitions(initialValue.variablesSchema),
+    parametricValueSets: normalizeParametricValueSets(initialValue.parametricValueSets),
+    variantContents: normalizeVariantContents(initialValue.variantContents),
     isPublished: initialValue.isPublished,
     marks: initialValue.marks,
     options:
@@ -186,6 +248,8 @@ export const createVariableDraft = (
 ): VariableDraft => ({
   variablesSchema: normalizeVariableDefinitions(initialValue?.variablesSchema),
   answerFormula: initialValue?.answerFormula ?? "",
+  parametricValueSets: normalizeParametricValueSets(initialValue?.parametricValueSets),
+  variantContents: normalizeVariantContents(initialValue?.variantContents),
   previewValues: {},
 });
 
@@ -229,6 +293,12 @@ export const createQuestionValidationPayload = (
     form.mode === "variable" ? form.answerFormula?.trim() || undefined : undefined,
   variablesSchema:
     form.mode === "variable" ? sanitizeVariables(form.variablesSchema) : [],
+  parametricValueSets:
+    form.mode === "variable"
+      ? sanitizeParametricValueSets(form.parametricValueSets, form.variablesSchema)
+      : [],
+  variantContents:
+    form.mode === "variable" ? normalizeVariantContents(form.variantContents) : [],
   options: sanitizeQuestionOptions(form.type, form.options),
 });
 
@@ -246,6 +316,12 @@ export const createQuestionSubmitPayload = (
     form.mode === "variable" ? form.answerFormula?.trim() || null : null,
   variablesSchema:
     form.mode === "variable" ? sanitizeVariables(form.variablesSchema) : [],
+  parametricValueSets:
+    form.mode === "variable"
+      ? sanitizeParametricValueSets(form.parametricValueSets, form.variablesSchema)
+      : [],
+  variantContents:
+    form.mode === "variable" ? normalizeVariantContents(form.variantContents) : [],
   options: sanitizeQuestionOptions(form.type, form.options),
 });
 
