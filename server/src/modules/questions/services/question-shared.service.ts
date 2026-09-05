@@ -3,8 +3,13 @@ import { chapter, db, gradeSubject, question, subChapter } from "@/db";
 import type {
   CreateQuestionInput,
   QuestionParametricValueSetInput,
+  QuestionVariantContentInput,
   QuestionVariableInput,
 } from "../question.schema";
+export {
+  assertQuestionPublishReady,
+  getQuestionPublishReadinessIssues,
+} from "../utils/question-publish-readiness";
 
 export type QuestionReviewStatus = "draft" | "in_review" | "needs_changes" | "approved";
 
@@ -44,6 +49,9 @@ export const toParametricValueSets = (
 
   return value as QuestionParametricValueSetInput[];
 };
+
+export const toVariantContents = (value: unknown): QuestionVariantContentInput[] | undefined =>
+  Array.isArray(value) ? (value as QuestionVariantContentInput[]) : undefined;
 
 const ensureGradeSubjectLink = async (gradeId: string, subjectId: string) => {
   const linkedGradeSubject = await db.query.gradeSubject.findFirst({
@@ -169,6 +177,7 @@ export const validateStructuredQuestionData = (
     | "swapGroupId"
     | "variationNumber"
     | "parametricValueSets"
+    | "variantContents"
     | "questionImageUrls"
     | "solutionImageUrls"
   >,
@@ -186,6 +195,10 @@ export const validateStructuredQuestionData = (
     throw new Error("Static questions cannot include parametric value sets.");
   }
 
+  if ((params.variantContents?.length ?? 0) > (params.parametricValueSets?.length ?? 0)) {
+    throw new Error("Variant content must correspond to a fixed value set.");
+  }
+
   if ((params.questionImageUrls?.length ?? 0) > 4) {
     throw new Error("Question content supports up to 4 images.");
   }
@@ -200,9 +213,8 @@ export const normalizeReviewStatus = (params: {
   reviewStatus?: QuestionReviewStatus;
   fallback: QuestionReviewStatus;
 }) => {
-  if (params.isPublished) {
-    return params.reviewStatus ?? "approved";
-  }
+  // Publishing is a separate decision from approval. Never turn a draft into an
+  // approved record implicitly just because a request includes isPublished.
   return params.reviewStatus ?? params.fallback;
 };
 

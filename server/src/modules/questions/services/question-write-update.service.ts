@@ -7,9 +7,11 @@ import { validateVariableConfiguration } from "../utils/math-engine";
 import { invalidateQuestionReadCaches } from "./question-read.service";
 import {
   assertSwapGroupVariationIntegrity,
+  assertQuestionPublishReady,
   assertPublishState,
   normalizeReviewStatus,
   toParametricValueSets,
+  toVariantContents,
   toQuestionOptionsInput,
   toQuestionImageUrls,
   toVariableDefinitions,
@@ -40,6 +42,10 @@ export const updateQuestion = async (
         : null;
   const nextMode = data.mode ?? existingQuestion.mode;
   const nextIsPublished = data.isPublished ?? existingQuestion.isPublished;
+
+  if (nextIsPublished && !existingQuestion.isPublished && existingQuestion.reviewStatus !== "approved") {
+    throw new Error("Approve this question in review before publishing.");
+  }
 
   const nextQuestion = {
     questionCode: data.questionCode ?? existingQuestion.questionCode,
@@ -104,6 +110,10 @@ export const updateQuestion = async (
       data.parametricValueSets !== undefined
         ? data.parametricValueSets
         : toParametricValueSets(existingQuestion.parametricValueSets),
+    variantContents:
+      data.variantContents !== undefined
+        ? data.variantContents
+        : toVariantContents(existingQuestion.variantContents),
     isPublished: nextIsPublished,
     marks: data.marks ?? existingQuestion.marks,
     options:
@@ -126,6 +136,9 @@ export const updateQuestion = async (
 
   validateVariableConfiguration(nextQuestion);
   validateStructuredQuestionData(nextQuestion);
+  if (nextQuestion.isPublished) {
+    assertQuestionPublishReady(nextQuestion);
+  }
   await assertSwapGroupVariationIntegrity({
     questionId: id,
     swapGroupId: nextQuestion.swapGroupId,

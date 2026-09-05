@@ -18,7 +18,15 @@ export const importQuestions = async (
 
   for (const [index, item] of items.entries()) {
     try {
-      const question = await createQuestion(item, createdBy);
+      const question = await createQuestion(
+        {
+          ...item,
+          isPublished: false,
+          reviewStatus: "draft",
+          reviewNotes: null,
+        },
+        createdBy,
+      );
       if (!question) {
         throw new Error("Question import returned no record.");
       }

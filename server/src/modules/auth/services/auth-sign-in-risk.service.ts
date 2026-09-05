@@ -1,23 +1,6 @@
 import { and, eq, gte, or, sql } from "drizzle-orm";
 import { auditLog, db } from "@/db";
-
-const readClientIp = (request: Request) => {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    const first = forwarded
-      .split(",")
-      .map((value) => value.trim())
-      .find((value) => value.length > 0);
-    if (first) return first;
-  }
-
-  const cfIp = request.headers.get("cf-connecting-ip");
-  if (cfIp && cfIp.trim().length > 0) {
-    return cfIp.trim();
-  }
-
-  return null;
-};
+import { getRequestClientIp } from "@/lib/request-client-ip";
 
 const normalizeUserAgentForRisk = (request: Request) => {
   const raw = request.headers.get("user-agent");
@@ -44,7 +27,7 @@ export const assessSignInRisk = async (params: {
   userId?: string | null;
   outcome: "success" | "failed" | "blocked" | "mfa";
 }) => {
-  const ipAddress = readClientIp(params.request);
+  const ipAddress = getRequestClientIp(params.request);
   const userAgent = normalizeUserAgentForRisk(params.request);
   const now = Date.now();
   const failedWindowStart = new Date(now - 15 * 60 * 1000);

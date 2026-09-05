@@ -10,9 +10,11 @@ import {
   currentPeriodKey,
   FALLBACK_PERIOD,
   mapPlanWithResolvedLimits,
+  OPEN_SOURCE_PLAN,
   resolveEffectivePlanEntitlements,
   resolveRemaining,
   resolveSubscriptionLimits,
+  isOpenSourceMode,
   type SubscriptionEntitlementReason,
 } from "./subscription-core-shared.service";
 import { getOrCreateFreePlan } from "./subscription-plan.service";
@@ -102,7 +104,13 @@ export const getUserSubscriptionSnapshot = async (userId: string) => {
 
   const limits = resolveSubscriptionLimits(current);
   const assignedPlan = mapPlanWithResolvedLimits(current.plan, limits);
-  const effectivePlan = resolveEffectivePlanEntitlements(current);
+  const effectivePlan = isOpenSourceMode()
+    ? {
+        plan: OPEN_SOURCE_PLAN,
+        reason: "active" as const,
+        isFallbackToFree: false,
+      }
+    : resolveEffectivePlanEntitlements(current);
 
   return {
     subscriptionId: current.id,
@@ -144,13 +152,17 @@ export const getUserSubscriptionSnapshot = async (userId: string) => {
 
 export const getUserDeviceLimit = async (userId: string) => {
   const current = await ensureCurrentSubscription(userId);
-  const effective = resolveEffectivePlanEntitlements(current);
+  const effective = isOpenSourceMode()
+    ? { plan: OPEN_SOURCE_PLAN }
+    : resolveEffectivePlanEntitlements(current);
   return Math.max(effective.plan.deviceLimit, 1);
 };
 
 export const getUserWorkspaceAccess = async (userId: string) => {
   const current = await ensureCurrentSubscription(userId);
-  const effective = resolveEffectivePlanEntitlements(current);
+  const effective = isOpenSourceMode()
+    ? { plan: OPEN_SOURCE_PLAN }
+    : resolveEffectivePlanEntitlements(current);
   return {
     planCode: effective.plan.code,
     restrictToFreePreview: effective.plan.code === "free",
