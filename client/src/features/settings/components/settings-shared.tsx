@@ -21,8 +21,8 @@ export function InfoCard({
   note: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+    <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+      <p className="field-label">
         {label}
       </p>
       <p className="mt-1 text-base font-semibold text-slate-900">{value}</p>

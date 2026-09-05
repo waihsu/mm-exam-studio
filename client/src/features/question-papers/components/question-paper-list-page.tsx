@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { FileText, FolderOpen, LoaderCircle } from "lucide-react";
+import { ArrowRight, FileText, FolderOpen, LoaderCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
-import { PageHeader, SectionCard } from "@/components/ui/page-shell";
+import { SectionCard } from "@/components/ui/page-shell";
 import { workspaceApi } from "@/features/workspace/api/workspace-api";
 import type { QuestionPaperSummary } from "@/features/workspace/types";
 
@@ -21,22 +21,25 @@ export function QuestionPaperListPage() {
   const exportedCount = exportedPapers.length;
 
   return (
-    <div className="space-y-4">
-      <PageHeader
-        eyebrow="Question Papers"
-        title={`${papers.length} saved`}
-        description="Manage drafts and exports."
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-          <StatPill label="Drafts" value={String(draftPapers.length)} />
-          <StatPill label="Finalized" value={String(finalizedPapers.length)} />
-          <StatPill label="Exported" value={String(exportedCount)} />
-          <Button asChild>
-            <Link to="/question-papers/new">New paper</Link>
-          </Button>
+    <div className="space-y-7 pb-4">
+      <section className="relative isolate overflow-hidden rounded-[26px] bg-[#121b33] px-6 py-7 text-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.85)] sm:px-8 sm:py-8">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_92%_8%,rgba(111,99,255,0.42),transparent_31%),radial-gradient(circle_at_14%_115%,rgba(15,166,184,0.18),transparent_42%)]" />
+        <div className="relative grid gap-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+          <div>
+            <p className="ui-kicker text-indigo-200">Paper studio</p>
+            <h1 className="mt-3 text-[clamp(2rem,4vw,3.45rem)] font-bold leading-[1.04] tracking-[-0.05em]">Your assessment workspace.</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">Draft, refine, finalize, and export papers without losing track of the stage each one is in.</p>
           </div>
-        }
-      />
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-white/15 bg-white/10">
+              <StudioStat label="Drafts" value={String(draftPapers.length)} />
+              <StudioStat label="Final" value={String(finalizedPapers.length)} />
+              <StudioStat label="Exported" value={String(exportedCount)} />
+            </div>
+            <Button asChild className="h-11 rounded-xl bg-white px-5 text-slate-950 hover:bg-indigo-50"><Link to="/question-papers/new"><Plus className="h-4 w-4" /> Create paper</Link></Button>
+          </div>
+        </div>
+      </section>
 
       {papersQuery.data && !papersQuery.data.ok ? (
         <Notice tone="error">
@@ -76,7 +79,7 @@ export function QuestionPaperListPage() {
       )}
 
       <SectionCard
-        title="Recent Exports"
+        title="Recent exports"
         description="Latest PDF exports."
         actions={
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
@@ -157,7 +160,7 @@ function PaperSection({
               key={paper.id}
               to="/question-papers/$paperId"
               params={{ paperId: paper.id }}
-              className="hover-lift block rounded-lg border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-900"
+            className="group block rounded-xl border border-slate-200 bg-slate-50/70 p-4 transition hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-white hover:shadow-[0_16px_30px_-25px_rgba(15,23,42,0.32)]"
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -167,7 +170,7 @@ function PaperSection({
                       Updated {new Date(paper.updatedAt).toLocaleDateString("en-US")}
                     </p>
                   </div>
-                  <h3 className="mt-2 text-xl font-semibold text-slate-900">{paper.title}</h3>
+                  <h3 className="mt-2 text-lg font-semibold text-slate-950 transition group-hover:text-indigo-700">{paper.title}</h3>
                 </div>
                 <span className="rounded-full bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-700">
                   {paper.totalQuestions} questions
@@ -188,10 +191,10 @@ function PaperSection({
                   </span>
                 ) : null}
               </div>
-              <p className="mt-3 text-sm text-slate-500">
+              <p className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-slate-500 transition group-hover:text-indigo-700">
                 {paper.exportedAt
                   ? `Exported ${new Date(paper.exportedAt).toLocaleString("en-US")}`
-                  : `Updated ${new Date(paper.updatedAt).toLocaleDateString("en-US")}`}
+                  : `Updated ${new Date(paper.updatedAt).toLocaleDateString("en-US")}`} <ArrowRight className="h-3.5 w-3.5" />
               </p>
             </Link>
           ))
@@ -227,17 +230,6 @@ function PaperStatusPill({ paper }: { paper: QuestionPaperSummary }) {
   );
 }
 
-function StatPill({ label, value }: { label: string; value: string }) {
-  const tone =
-    label === "Drafts"
-      ? "bg-amber-100 text-amber-800"
-      : label === "Finalized"
-        ? "bg-sky-100 text-sky-800"
-        : "bg-emerald-100 text-emerald-800";
-
-  return (
-    <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] ${tone}`}>
-      {label} {value}
-    </span>
-  );
+function StudioStat({ label, value }: { label: string; value: string }) {
+  return <div className="min-w-[72px] bg-slate-950/30 px-3 py-3 text-center"><p className="text-lg font-extrabold tracking-tight text-white">{value}</p><p className="mt-0.5 text-[0.625rem] font-bold uppercase tracking-[0.12em] text-indigo-200">{label}</p></div>;
 }

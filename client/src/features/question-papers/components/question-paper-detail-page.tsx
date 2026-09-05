@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
+  AlertTriangle,
   ArrowLeft,
   CheckCircle2,
+  Copy,
   LoaderCircle,
   Pencil,
   Printer,
@@ -27,14 +29,30 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [showDraftPreview, setShowDraftPreview] = useState(false);
+  const [showFinalizePrompt, setShowFinalizePrompt] = useState(false);
   const [form, setForm] = useState<QuestionPaperFormState>(buildQuestionPaperForm(null));
-  const { paperQuery, brandingQuery, pdfMutation, updateMutation, statusMutation, deleteMutation } =
+  const { paperQuery, brandingQuery, pdfMutation, updateMutation, statusMutation, duplicateMutation, deleteMutation } =
     useQuestionPaperDetail(paperId);
 
   const paper = paperQuery.data?.ok ? paperQuery.data.data : null;
   const brandAssets = brandingQuery.data?.ok ? brandingQuery.data.data.rows : [];
   const isDraft = paper?.status === "draft";
   const canReopenToDraft = paper?.status === "finalized" && !paper.exportedAt;
+  const canFinalize = Boolean(paper && paper.totalQuestions > 0);
+
+  const finalizePaper = () => {
+    setShowFinalizePrompt(false);
+    void statusMutation.mutateAsync("finalized");
+  };
+  const duplicateForEditing = () => {
+    void duplicateMutation.mutateAsync().then((response) => {
+      if (!response.ok) return;
+      void navigate({
+        to: "/question-papers/$paperId",
+        params: { paperId: response.data.id },
+      });
+    });
+  };
 
   useEffect(() => {
     if (!paper) return;
@@ -70,10 +88,10 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
             eyebrow={paper.exportedAt ? "exported" : paper.status}
             title={paper.title}
             description={
-              paper.exportedAt
+                  paper.exportedAt
                 ? `Last exported ${new Date(paper.exportedAt).toLocaleString("en-US")}`
                 : isDraft
-                  ? "Draft is editable."
+                  ? "Review the questions, then finalize when this is the version you want to print."
                   : "Ready to print/export"
             }
             chips={
@@ -103,9 +121,9 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
                   Back
                 </Link>
               </Button>
-              <Button variant="outline" className="bg-white" onClick={() => window.print()}>
+              <Button variant="outline" className="bg-white" disabled={isDraft} onClick={() => window.print()}>
                 <Printer className="h-4 w-4" />
-                Print
+                {isDraft ? "Finalize to print" : "Print"}
               </Button>
               <Button
                 disabled={pdfMutation.isPending || paper.status !== "finalized"}
@@ -120,10 +138,8 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
                 <Button
                   variant="outline"
                   className="bg-white"
-                  disabled={statusMutation.isPending}
-                  onClick={() => {
-                    void statusMutation.mutateAsync("finalized");
-                  }}
+                  disabled={statusMutation.isPending || !canFinalize}
+                  onClick={() => setShowFinalizePrompt(true)}
                 >
                   <CheckCircle2 className="h-4 w-4" />
                   {statusMutation.isPending ? "Finalizing..." : "Finalize"}
@@ -139,6 +155,17 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
                 >
                   <RotateCcw className="h-4 w-4" />
                   {statusMutation.isPending ? "Updating..." : "Back to draft"}
+                </Button>
+              ) : null}
+              {paper.exportedAt ? (
+                <Button
+                  variant="outline"
+                  className="bg-white"
+                  disabled={duplicateMutation.isPending}
+                  onClick={duplicateForEditing}
+                >
+                  <Copy className="h-4 w-4" />
+                  {duplicateMutation.isPending ? "Creating copy..." : "Duplicate to edit"}
                 </Button>
               ) : null}
               {isEditing ? (
@@ -320,7 +347,7 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
               </SectionCard>
             ) : null}
 
-            <SectionCard title="Print Summary">
+              <SectionCard title="Print Summary">
               <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
                 <MiniInfo label="Questions" value={String(paper.totalQuestions)} />
                 <MiniInfo label="Marks" value={String(paper.totalMarks)} />
@@ -341,6 +368,39 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
                 />
               </div>
             </SectionCard>
+
+            {isDraft ? (
+              <SectionCard title="Next step" description="A paper becomes printable only after final review.">
+                <p className="text-sm leading-6 text-slate-600">
+                  {canFinalize
+                    ? "Check the printable preview, make any swaps you need, then finalize this exact question set."
+                    : "Add at least one question before you can finalize this paper."}
+                </p>
+                <Button
+                  className="mt-4 w-full"
+                  disabled={statusMutation.isPending || !canFinalize}
+                  onClick={() => setShowFinalizePrompt(true)}
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  Finalize paper
+                </Button>
+              </SectionCard>
+            ) : paper.exportedAt ? (
+              <SectionCard title="Editing an exported paper" description="The exported version stays unchanged for a reliable record.">
+                <p className="text-sm leading-6 text-slate-600">
+                  Need a correction? Create an editable draft copy. Your original PDF and export date stay exactly as they are.
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-4 w-full bg-white"
+                  disabled={duplicateMutation.isPending}
+                  onClick={duplicateForEditing}
+                >
+                  <Copy className="h-4 w-4" />
+                  {duplicateMutation.isPending ? "Creating copy..." : "Duplicate to edit"}
+                </Button>
+              </SectionCard>
+            ) : null}
           </aside>
 
           <section className="space-y-4">
@@ -399,20 +459,54 @@ export function QuestionPaperDetailPage({ paperId }: { paperId: string }) {
                 <p className="text-sm font-semibold text-slate-900">{paper.title}</p>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" className="bg-white" onClick={() => window.print()}>
-                  Print
-                </Button>
-                <Button
-                  disabled={pdfMutation.isPending}
-                  onClick={() => {
-                    void pdfMutation.mutateAsync();
-                  }}
-                >
-                  {pdfMutation.isPending ? "Opening..." : "Open PDF"}
-                </Button>
+                {isDraft ? (
+                  <Button disabled={statusMutation.isPending || !canFinalize} onClick={() => setShowFinalizePrompt(true)}>
+                    <CheckCircle2 className="h-4 w-4" />
+                    Finalize
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="outline" className="bg-white" onClick={() => window.print()}>
+                      Print
+                    </Button>
+                    <Button
+                      disabled={pdfMutation.isPending}
+                      onClick={() => {
+                        void pdfMutation.mutateAsync();
+                      }}
+                    >
+                      {pdfMutation.isPending ? "Opening..." : "Open PDF"}
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
+        </div>
+      ) : null}
+
+      {duplicateMutation.data && !duplicateMutation.data.ok ? (
+        <Notice tone="error" className="print:hidden">
+          {duplicateMutation.data.message}
+        </Notice>
+      ) : null}
+
+      {showFinalizePrompt && paper ? (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 p-4 sm:items-center" role="presentation">
+          <section role="dialog" aria-modal="true" aria-labelledby="finalize-paper-title" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700"><AlertTriangle className="h-5 w-5" /></span>
+              <div>
+                <p className="ui-kicker text-indigo-700">Ready for final review?</p>
+                <h2 id="finalize-paper-title" className="mt-1 text-xl font-bold tracking-tight text-slate-950">Finalize this paper</h2>
+              </div>
+            </div>
+            <p className="mt-4 text-sm leading-6 text-slate-600">This locks question editing for <strong>{paper.title}</strong>. You can return to draft before its first PDF export; after export, make a new draft for changes.</p>
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <Button variant="outline" className="rounded-xl" onClick={() => setShowFinalizePrompt(false)}>Keep editing</Button>
+              <Button className="rounded-xl" disabled={statusMutation.isPending} onClick={finalizePaper}>{statusMutation.isPending ? "Finalizing..." : "Finalize paper"}</Button>
+            </div>
+          </section>
         </div>
       ) : null}
     </div>

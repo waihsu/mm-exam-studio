@@ -305,6 +305,32 @@ export const authApi = {
           : "If this email exists, a reset link has been sent.",
     };
   },
+  async resetPassword(input: { token: string; newPassword: string }) {
+    const response = await requestServerJson<{ status?: boolean }>(
+      "/api/auth/reset-password",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          token: input.token.trim(),
+          newPassword: input.newPassword,
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      return {
+        ok: false as const,
+        message: response.message || "Unable to reset your password.",
+      };
+    }
+
+    clearAuthToken();
+    authApi.clearMeCache();
+    return { ok: true as const };
+  },
   async listSessions() {
     return requestServerJson<AuthSessionsOverview>("/api/auth/sessions");
   },

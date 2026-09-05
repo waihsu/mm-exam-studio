@@ -17,9 +17,9 @@ import { useMySupportConversationQuery } from "../hooks/use-my-support-conversat
 
 const SUPPORT_PRESETS = [
   {
-    label: "Plan upgrade",
-    subject: "Subscription upgrade help",
-    body: "I need help with plan upgrade, payment proof, or approval status.",
+    label: "Workspace help",
+    subject: "Account or workspace help",
+    body: "I need help with my account, practice session, or question paper.",
   },
   {
     label: "Paper export",
@@ -53,7 +53,10 @@ export function SupportPage() {
   const [body, setBody] = useState("");
 
   const conversation = conversationQuery.data?.conversation ?? null;
-  const messages = conversationQuery.data?.messages ?? [];
+  const messages = useMemo(
+    () => conversationQuery.data?.messages ?? [],
+    [conversationQuery.data],
+  );
   const canReply = conversation?.allowUserReplies ?? true;
   const resolvedSubject = conversation?.subject ?? subject;
   const trimmedBody = body.trim();
@@ -96,7 +99,7 @@ export function SupportPage() {
       <PageHeader
         eyebrow="Support"
         title="Help and conversation"
-        description="Keep one support thread for account, subscription, and paper issues without leaving the workspace."
+        description="Keep one support thread for account, practice, and paper issues without leaving the workspace."
         chips={
           <>
             <span className={cn("app-chip border", statusChipClassName[conversation?.status ?? "open"])}>
@@ -138,22 +141,22 @@ export function SupportPage() {
         </Notice>
       ) : null}
 
-      <StatGrid className="xl:grid-cols-3">
+      <StatGrid className="md:grid-cols-3">
         <SectionCard
           title="Thread status"
           description="One shared thread follows your account."
         >
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="field-label">
                 Last update
               </p>
               <p className="mt-2 text-sm font-semibold text-slate-900">
                 {formatDateTime(conversation?.lastMessageAt)}
               </p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="field-label">
                 Topic
               </p>
               <p className="mt-2 text-sm font-semibold text-slate-900">
@@ -168,7 +171,7 @@ export function SupportPage() {
           description="Most recent response from support."
         >
           {latestAdminMessage ? (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
               <p className="text-sm font-semibold text-slate-900">
                 {latestAdminMessage.senderName || "Support"}
               </p>
@@ -198,7 +201,7 @@ export function SupportPage() {
                 key={preset.label}
                 type="button"
                 onClick={() => applyPreset(preset)}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-left transition hover:border-slate-900 hover:bg-slate-50"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-3 text-left transition hover:border-indigo-300 hover:bg-indigo-50/40"
               >
                 <p className="text-sm font-semibold text-slate-900">{preset.label}</p>
                 <p className="mt-1 text-sm text-slate-500">{preset.subject}</p>
@@ -230,7 +233,7 @@ export function SupportPage() {
                   <article
                     key={message.id}
                     className={cn(
-                      "max-w-[88%] rounded-2xl border px-4 py-3 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.45)]",
+                      "max-w-[88%] rounded-xl border px-4 py-3 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.34)]",
                       messageBubbleClassName[message.senderRole],
                     )}
                   >
@@ -282,7 +285,7 @@ export function SupportPage() {
 
             {!conversation?.subject ? (
               <label className="block space-y-2">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+                  <span className="field-label">
                   Subject
                 </span>
                 <input
@@ -294,7 +297,7 @@ export function SupportPage() {
               </label>
             ) : (
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+                <p className="field-label">
                   Subject
                 </p>
                 <p className="mt-1 text-sm font-semibold text-slate-900">
@@ -304,7 +307,7 @@ export function SupportPage() {
             )}
 
             <label className="block space-y-2">
-              <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+              <span className="field-label">
                 Message
               </span>
               <textarea
@@ -312,7 +315,7 @@ export function SupportPage() {
                 onChange={(event) => setBody(event.target.value)}
                 placeholder="Describe the issue, what you expected, and what happened."
                 rows={8}
-                className="w-full rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm leading-6 outline-none transition focus:border-slate-900"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm leading-6 outline-none transition focus:border-slate-900"
               />
             </label>
 

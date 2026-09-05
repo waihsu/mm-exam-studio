@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   FolderOpen,
   ImagePlus,
-  ShieldCheck,
   Trash2,
   UserRound,
 } from "lucide-react";
@@ -13,7 +12,6 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
 import { PageHeader, SectionCard, StatGrid } from "@/components/ui/page-shell";
 import { userAppRoutes } from "@/constants/routes";
-import { getPlanCatalogItem } from "@/features/subscription/subscription-catalog";
 import { useSettingsPageData } from "../hooks/use-settings-page-data";
 import { ChecklistRow, InfoCard } from "./settings-shared";
 
@@ -39,7 +37,6 @@ export function SettingsPage() {
     deleteMutation,
     onLogoFileChange,
   } = useSettingsPageData();
-  const planCatalog = getPlanCatalogItem(summary?.subscription.code ?? "free");
 
   return (
     <div className="space-y-4">
@@ -49,7 +46,7 @@ export function SettingsPage() {
         description="Manage account status and paper logos."
         chips={
           <>
-            <span className="app-chip">Plan {summary?.subscription.name ?? "Free"}</span>
+            <span className="app-chip">Open access</span>
             <span className="app-chip">{summary?.brandingCount ?? 0}/{brandingLimit || 0} saved</span>
             <span className="app-chip">{accountStatus}</span>
           </>
@@ -60,12 +57,6 @@ export function SettingsPage() {
               <Link to={userAppRoutes.profile}>
                 <UserRound className="h-4 w-4" />
                 Open profile
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="bg-white">
-              <Link to={userAppRoutes.subscription}>
-                <ShieldCheck className="h-4 w-4" />
-                Compare plans
               </Link>
             </Button>
           </>
@@ -101,48 +92,40 @@ export function SettingsPage() {
           note={user?.name ? `Signed in as ${user.name}` : "Session metadata unavailable."}
         />
         <InfoCard
-          label="Branding quota"
-          value={summary?.subscription.name ?? "Free"}
+          label="Branding access"
+          value="Open access"
           note={
             brandingLimit > 0
               ? `${remainingBrandSlots} slot(s) left out of ${brandingLimit}`
-              : "Upgrade required for saved logo branding"
+              : "No saved logo slots are currently available."
           }
         />
       </StatGrid>
 
       <SectionCard
-        title={`${summary?.subscription.name ?? "Free"} plan`}
-        description={planCatalog.tagline}
-        actions={
-          <Button asChild variant="outline" className="bg-white">
-            <Link to={userAppRoutes.subscription}>
-              Compare plans
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        }
+        title="Open access"
+        description="All core study and paper tools are available without a subscription."
       >
         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <InfoCard
-            label="Practice limit"
-            value={planCatalog.limitSummary.practice}
-            note="Per practice session"
+            label="Practice"
+            value="No session cap"
+            note="Create practice sessions freely"
           />
           <InfoCard
-            label="Paper limit"
-            value={planCatalog.limitSummary.paper}
-            note="Per generated paper"
+            label="Papers"
+            value="No paper cap"
+            note="Generate and edit papers freely"
           />
           <InfoCard
             label="Exports"
-            value={planCatalog.limitSummary.exports}
-            note="Monthly PDF export allowance"
+            value="No monthly cap"
+            note="Export PDFs when you need them"
           />
           <InfoCard
             label="Devices"
-            value={planCatalog.limitSummary.devices}
-            note="Concurrent device allowance"
+            value={`Up to ${summary?.subscription.limits.deviceLimit ?? 25}`}
+            note="Operational device safety limit"
           />
         </div>
       </SectionCard>
@@ -189,7 +172,7 @@ export function SettingsPage() {
               ok={Boolean(user?.email)}
             />
             <ChecklistRow label="Email verification" ok={isEmailVerified} />
-            <ChecklistRow label="Branding available for this plan" ok={brandingLimit > 0} />
+            <ChecklistRow label="Branding available in open access" ok={brandingLimit > 0} />
             <ChecklistRow label="At least one logo saved" ok={brandAssets.length > 0} />
           </div>
           <p className="mt-3 text-xs text-slate-500">Keep these ready before printing papers.</p>
@@ -249,11 +232,6 @@ export function SettingsPage() {
             {createMutation.data && !createMutation.data.ok ? (
               <Notice tone="error">
                 {createMutation.data.message}
-              </Notice>
-            ) : null}
-            {brandingLimit <= 0 ? (
-              <Notice tone="warning">
-                This plan does not include saved logos. Upgrade subscription to enable branding.
               </Notice>
             ) : null}
             <Button
