@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { AuthScreenShell } from "./auth-screen-shell";
-import { authUiStyles } from "./auth-ui";
+import { authUiStyles } from "./auth-ui.styles";
 import { useTranslation } from "@/i18n";
 
 export const AuthLegalScreen = () => {
@@ -52,7 +52,7 @@ export const AuthLegalScreen = () => {
         <Text style={styles.noticeBody}>{t("legal.noticeBody")}</Text>
       </View>
 
-      {sections.map((section) => (
+      {sections.map(section => (
         <View key={section.title} style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>{section.title}</Text>
           <Text style={styles.sectionBody}>{section.body}</Text>

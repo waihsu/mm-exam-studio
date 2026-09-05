@@ -131,6 +131,11 @@ export const PaperSetupSection = ({
   includeAnswerKeyLabel,
   includeAnswerKey,
   onToggleAnswerKey,
+  gradeLabel,
+  selectedGrade,
+  gradeHint,
+  selectGradeLabel,
+  onSelectGrade,
   templatesLabel,
   onOpenTemplates,
 }: {
@@ -144,6 +149,11 @@ export const PaperSetupSection = ({
   includeAnswerKeyLabel: string;
   includeAnswerKey: boolean;
   onToggleAnswerKey: () => void;
+  gradeLabel: string;
+  selectedGrade?: string | null;
+  gradeHint: string;
+  selectGradeLabel: string;
+  onSelectGrade: () => void;
   templatesLabel: string;
   onOpenTemplates: () => void;
 }) => (
@@ -163,6 +173,21 @@ export const PaperSetupSection = ({
 
     {loadingLabel ? <InlineLoadingState label={loadingLabel} /> : null}
     {errorMessage ? <InlineErrorState message={errorMessage} /> : null}
+
+    <View style={styles.requiredScopeCard}>
+      <View style={styles.requiredScopeCopy}>
+        <Text style={styles.label}>{gradeLabel}</Text>
+        <Text style={styles.requiredScopeHint}>
+          {selectedGrade ?? gradeHint}
+        </Text>
+      </View>
+      <Pressable
+        style={({ pressed }) => [styles.linkButton, pressed && styles.buttonPressed]}
+        onPress={onSelectGrade}
+      >
+        <Text style={styles.linkButtonLabel}>{selectGradeLabel}</Text>
+      </Pressable>
+    </View>
 
     <Pressable
       style={({ pressed }) => [
@@ -189,6 +214,11 @@ export const PaperSetupSection = ({
 
 export const PaperBuilderSection = ({
   title,
+  collapsedHint,
+  expandLabel,
+  collapseLabel,
+  isExpanded,
+  onToggleExpanded,
   scopeTitle,
   clearLabel,
   onClear,
@@ -209,6 +239,11 @@ export const PaperBuilderSection = ({
   onSubmit,
 }: {
   title: string;
+  collapsedHint: string;
+  expandLabel: string;
+  collapseLabel: string;
+  isExpanded: boolean;
+  onToggleExpanded: () => void;
   scopeTitle: string;
   clearLabel: string;
   onClear: () => void;
@@ -236,36 +271,53 @@ export const PaperBuilderSection = ({
   onSubmit: () => void;
 }) => (
   <View style={styles.card}>
-    <Text style={styles.cardTitle}>{title}</Text>
-
     <View style={styles.scopeHeaderRow}>
-      <Text style={styles.label}>{scopeTitle}</Text>
-      <Pressable style={({ pressed }) => [styles.linkButton, pressed && styles.buttonPressed]} onPress={onClear}>
-        <Text style={styles.linkButtonLabel}>{clearLabel}</Text>
+      <Text style={styles.cardTitle}>{title}</Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: isExpanded }}
+        style={({ pressed }) => [styles.linkButton, pressed && styles.buttonPressed]}
+        onPress={onToggleExpanded}
+      >
+        <Text style={styles.linkButtonLabel}>{isExpanded ? collapseLabel : expandLabel}</Text>
       </Pressable>
     </View>
 
-    <ScopeSummaryGrid items={scopeItems} onPress={(key) => onScopePress(key as ScopePickerKey)} />
+    {!isExpanded ? <Text style={styles.builderCollapsedHint}>{collapsedHint}</Text> : null}
 
-    <QuestionMixBuilder
-      title={mixTitle}
-      hint={mixHint}
-      totalLabel={mixTotalLabel}
-      items={mixItems}
-    />
+    {isExpanded ? (
+      <>
 
-    {showCount ? (
-      <View style={styles.countRow}>
-        <Text style={styles.label}>{countLabel}</Text>
-        <TextInput
-          keyboardType="number-pad"
-          placeholder={countPlaceholder}
-          placeholderTextColor="#94A3B8"
-          style={[styles.input, styles.countInput]}
-          value={countValue}
-          onChangeText={onCountChange}
+        <View style={styles.scopeHeaderRow}>
+          <Text style={styles.label}>{scopeTitle}</Text>
+          <Pressable style={({ pressed }) => [styles.linkButton, pressed && styles.buttonPressed]} onPress={onClear}>
+            <Text style={styles.linkButtonLabel}>{clearLabel}</Text>
+          </Pressable>
+        </View>
+
+        <ScopeSummaryGrid items={scopeItems} onPress={(key) => onScopePress(key as ScopePickerKey)} />
+
+        <QuestionMixBuilder
+          title={mixTitle}
+          hint={mixHint}
+          totalLabel={mixTotalLabel}
+          items={mixItems}
         />
-      </View>
+
+        {showCount ? (
+          <View style={styles.countRow}>
+            <Text style={styles.label}>{countLabel}</Text>
+            <TextInput
+              keyboardType="number-pad"
+              placeholder={countPlaceholder}
+              placeholderTextColor="#94A3B8"
+              style={[styles.input, styles.countInput]}
+              value={countValue}
+              onChangeText={onCountChange}
+            />
+          </View>
+        ) : null}
+      </>
     ) : null}
 
     {errorMessage ? <InlineErrorState message={errorMessage} /> : null}
@@ -558,6 +610,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  requiredScopeCard: {
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    borderColor: "#D8DEE9",
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 12,
+    justifyContent: "space-between",
+    padding: 12,
+  },
+  requiredScopeCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  requiredScopeHint: {
+    color: "#64748B",
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  builderCollapsedHint: {
+    color: "#64748B",
+    fontSize: 14,
+    lineHeight: 20,
   },
   linkButton: {
     borderColor: "#CBD5E1",

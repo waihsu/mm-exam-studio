@@ -1,10 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, type RelativePathString } from "expo-router";
-import React, { useEffect, useState } from "react";
 import { Pressable, RefreshControl, Text, View } from "react-native";
 import { useTranslation } from "@/i18n";
 import { useAuthSessionQuery } from "@/features/auth/hooks/use-auth-session-query";
-import { hasSeenAppOnboarding } from "@/features/onboarding/services/app-onboarding-store";
 import {
   getStoredPracticeDraftCount,
 } from "@/features/practice/services/practice-draft-store";
@@ -22,7 +20,6 @@ export const SettingsScreen = () => {
   const authSessionQuery = useAuthSessionQuery();
   const workspaceSummaryQuery = useWorkspaceSummaryQuery(Boolean(authSessionQuery.data));
   const appSettingsQuery = useAppSettingsQuery();
-  const [showHelpGuideEntry, setShowHelpGuideEntry] = useState(false);
   const draftsQuery = useQuery({
     queryKey: SETTINGS_QUERY_KEYS.practiceDrafts,
     queryFn: getStoredPracticeDraftCount,
@@ -35,11 +32,9 @@ export const SettingsScreen = () => {
     authSessionQuery.data?.user.email ||
     t("settings:home.defaultUserName");
   const userEmail = authSessionQuery.data?.user.email ?? "";
-  const currentSubscription = workspaceSummaryQuery.data?.subscription;
   const notificationSummary = workspaceSummaryQuery.data?.notifications;
   const supportUnreadCount = notificationSummary?.supportUnreadCount ?? 0;
   const reminderState = settings.practiceReminderEnabled ? t("common:states.on") : t("common:states.off");
-  const planValue = currentSubscription?.name ?? "-";
   const draftCountValue = `${draftsQuery.data ?? 0}`;
   const supportValue =
     supportUnreadCount > 0
@@ -67,38 +62,7 @@ export const SettingsScreen = () => {
     ]);
   });
 
-  useEffect(() => {
-    let cancelled = false;
-    const userId = authSessionQuery.data?.user.id;
-
-    if (!userId) {
-      setShowHelpGuideEntry(false);
-      return;
-    }
-
-    const loadGuideVisibility = async () => {
-      const seen = await hasSeenAppOnboarding(userId);
-      if (!cancelled) {
-        setShowHelpGuideEntry(!seen);
-      }
-    };
-
-    void loadGuideVisibility();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [authSessionQuery.data?.user.id]);
-
   const accountRows: SettingsHomeLinkItem[] = [
-    {
-      title: t("settings:home.subscriptionTitle"),
-      hint: t("settings:home.subscriptionHint"),
-      value: planValue,
-      badge: "PLAN",
-      tone: "blue",
-      href: "/settings/subscription" as RelativePathString,
-    },
     {
       title: t("settings:home.accountTitle"),
       hint: t("settings:home.accountHint"),
@@ -117,16 +81,40 @@ export const SettingsScreen = () => {
     },
   ];
 
-  if (showHelpGuideEntry) {
-    accountRows.push({
+  const supportRows: SettingsHomeLinkItem[] = [
+    {
       title: t("settings:home.helpTitle"),
       hint: t("settings:home.helpHint"),
-      value: t("settings:home.helpNew"),
+      value: t("common:actions.open"),
       badge: "GUIDE",
       tone: "amber",
       href: "/settings/help" as RelativePathString,
-    });
-  }
+    },
+    {
+      title: t("settings:home.supportTitle"),
+      hint: t("settings:home.supportHint"),
+      value: supportValue,
+      badge: "HELP",
+      tone: "green",
+      href: "/settings/support" as RelativePathString,
+    },
+    {
+      title: t("settings:home.aboutTitle"),
+      hint: t("settings:home.aboutHint"),
+      value: t("common:actions.open"),
+      badge: "APP",
+      tone: "blue",
+      href: "/settings/about" as RelativePathString,
+    },
+    {
+      title: t("settings:home.legalTitle"),
+      hint: t("settings:home.legalHint"),
+      value: t("common:actions.open"),
+      badge: "RULE",
+      tone: "amber",
+      href: "/settings/legal" as RelativePathString,
+    },
+  ];
 
   const experienceRows: SettingsHomeLinkItem[] = [
     {
@@ -155,33 +143,6 @@ export const SettingsScreen = () => {
     },
   ];
 
-  const supportRows: SettingsHomeLinkItem[] = [
-    {
-      title: t("settings:home.supportTitle"),
-      hint: t("settings:home.supportHint"),
-      value: supportValue,
-      badge: "HELP",
-      tone: "green",
-      href: "/settings/support" as RelativePathString,
-    },
-    {
-      title: t("settings:home.aboutTitle"),
-      hint: t("settings:home.aboutHint"),
-      value: t("common:actions.open"),
-      badge: "APP",
-      tone: "blue",
-      href: "/settings/about" as RelativePathString,
-    },
-    {
-      title: t("settings:home.legalTitle"),
-      hint: t("settings:home.legalHint"),
-      value: t("common:actions.open"),
-      badge: "RULE",
-      tone: "amber",
-      href: "/settings/legal" as RelativePathString,
-    },
-  ];
-
   return (
     <SettingsPage
       title={t("settings:home.title")}
@@ -205,7 +166,6 @@ export const SettingsScreen = () => {
               {userEmail || t("settings:home.subtitle")}
             </Text>
           </View>
-          <Text style={settingsUiStyles.homeSummaryPlanPill}>{planValue}</Text>
         </View>
 
         <View style={settingsUiStyles.homeSummaryMetaRow}>

@@ -12,6 +12,7 @@ Expo + React Native app for the mobile client.
    ```bash
    cp .env.example .env
    ```
+   The checked-in `.env` already targets the Android emulator (`10.0.2.2`) and includes the Expo project id used for push registration.
 3. Start backend API (from repo root)
    ```bash
    cd ../server
@@ -28,6 +29,7 @@ For production Android builds in this repo, use:
 
 ```env
 EXPO_PUBLIC_API_BASE_URL=https://examapi.hsuwai.space
+EXPO_PUBLIC_EAS_PROJECT_ID=a6eedfa6-45ca-41cb-b73c-aab81bb8ad6f
 ```
 
 Then run:
@@ -82,6 +84,7 @@ npm run lint
 - `EXPO_PUBLIC_API_BASE_URL` is validated at runtime:
   - dev: local/non-https allowed
   - production build: must be `https://...` and not local/private host
+- `EXPO_PUBLIC_EAS_PROJECT_ID` is optional but, when provided, must be a valid UUID.
 - API client uses request timeout (15s default) and normalized error messages.
 - Auth transitions clear TanStack cache to avoid stale/cross-user data.
 - Auth session is auto-refreshed when app returns to foreground.
@@ -92,6 +95,7 @@ npm run lint
 
 1. Set production env:
    - copy `.env.production.example` and set real API URL
+   - or update the checked-in `.env.production` if you are building locally for this workspace
 2. Run checks:
    ```bash
    npm install

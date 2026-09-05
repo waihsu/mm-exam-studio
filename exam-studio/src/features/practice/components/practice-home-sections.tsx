@@ -42,7 +42,10 @@ export const PracticeHomeHeader = ({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={openHelpLabel}
-        style={({ pressed }) => [styles.helpIconButton, pressed && styles.buttonPressed]}
+        style={({ pressed }) => [
+          styles.helpIconButton,
+          pressed && styles.buttonPressed,
+        ]}
         onPress={onOpenHelp}
       >
         <SymbolView
@@ -88,13 +91,19 @@ export const PracticeQuickGuideSheet = ({
     footer={
       <View style={styles.buttonRow}>
         <Pressable
-          style={({ pressed }) => [styles.ghostButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.ghostButton,
+            pressed && styles.buttonPressed,
+          ]}
           onPress={onClose}
         >
           <Text style={styles.ghostButtonLabel}>{closeLabel}</Text>
         </Pressable>
         <Pressable
-          style={({ pressed }) => [styles.primaryButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.primaryButton,
+            pressed && styles.buttonPressed,
+          ]}
           onPress={onOpenFullGuide}
         >
           <Text style={styles.primaryButtonLabel}>{fullGuideLabel}</Text>
@@ -109,14 +118,25 @@ export const PracticeQuickGuideSheet = ({
     >
       {steps.map((step, index) => (
         <View key={`guide-${step.title}`} style={styles.helpSheetStepRow}>
-          <View style={[styles.helpSheetNumber, { backgroundColor: step.accentSoft }]}>
-            <Text style={[styles.helpSheetNumberLabel, { color: step.accentColor }]}>
+          <View
+            style={[
+              styles.helpSheetNumber,
+              { backgroundColor: step.accentSoft },
+            ]}
+          >
+            <Text
+              style={[styles.helpSheetNumberLabel, { color: step.accentColor }]}
+            >
               {index + 1}
             </Text>
           </View>
           <View style={styles.helpSheetStepTextWrap}>
             <View style={styles.helpSheetStepHeader}>
-              <SymbolView name={step.icon} size={16} tintColor={step.accentColor} />
+              <SymbolView
+                name={step.icon}
+                size={16}
+                tintColor={step.accentColor}
+              />
               <Text style={styles.helpSheetStepTitle}>{step.title}</Text>
             </View>
             <Text style={styles.helpStepHint}>{step.hint}</Text>
@@ -167,13 +187,19 @@ export const PracticeOnboardingSheet = ({
     footer={
       <View style={styles.buttonRow}>
         <Pressable
-          style={({ pressed }) => [styles.ghostButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.ghostButton,
+            pressed && styles.buttonPressed,
+          ]}
           onPress={onSkip}
         >
           <Text style={styles.ghostButtonLabel}>{skipLabel}</Text>
         </Pressable>
         <Pressable
-          style={({ pressed }) => [styles.primaryButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.primaryButton,
+            pressed && styles.buttonPressed,
+          ]}
           onPress={onShowGuide}
         >
           <Text style={styles.primaryButtonLabel}>{showGuideLabel}</Text>
@@ -194,14 +220,25 @@ export const PracticeOnboardingSheet = ({
 
       {steps.map((step, index) => (
         <View key={`onboarding-${step.title}`} style={styles.helpSheetStepRow}>
-          <View style={[styles.helpSheetNumber, { backgroundColor: step.accentSoft }]}>
-            <Text style={[styles.helpSheetNumberLabel, { color: step.accentColor }]}>
+          <View
+            style={[
+              styles.helpSheetNumber,
+              { backgroundColor: step.accentSoft },
+            ]}
+          >
+            <Text
+              style={[styles.helpSheetNumberLabel, { color: step.accentColor }]}
+            >
               {index + 1}
             </Text>
           </View>
           <View style={styles.helpSheetStepTextWrap}>
             <View style={styles.helpSheetStepHeader}>
-              <SymbolView name={step.icon} size={16} tintColor={step.accentColor} />
+              <SymbolView
+                name={step.icon}
+                size={16}
+                tintColor={step.accentColor}
+              />
               <Text style={styles.helpSheetStepTitle}>{step.title}</Text>
             </View>
             <Text style={styles.helpStepHint}>{step.hint}</Text>
@@ -216,6 +253,11 @@ export const PracticeOnboardingSheet = ({
 
 export const PracticeBuilderSection = ({
   title,
+  collapsedHint,
+  expandLabel,
+  collapseLabel,
+  isExpanded,
+  onToggleExpanded,
   mixTitle,
   mixHint,
   mixTotalLabel,
@@ -240,6 +282,11 @@ export const PracticeBuilderSection = ({
   workspaceErrorMessage,
 }: {
   title: string;
+  collapsedHint: string;
+  expandLabel: string;
+  collapseLabel: string;
+  isExpanded: boolean;
+  onToggleExpanded: () => void;
   mixTitle: string;
   mixHint: string;
   mixTotalLabel: string;
@@ -275,63 +322,103 @@ export const PracticeBuilderSection = ({
       <View style={styles.scopeHeaderTextWrap}>
         <Text style={styles.cardTitle}>{title}</Text>
       </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: isExpanded }}
+        style={({ pressed }) => [
+          styles.linkButton,
+          pressed && styles.buttonPressed,
+        ]}
+        onPress={onToggleExpanded}
+      >
+        <Text style={styles.linkButtonLabel}>
+          {isExpanded ? collapseLabel : expandLabel}
+        </Text>
+      </Pressable>
     </View>
 
-    <ScopeSummaryGrid items={scopeItems} onPress={(key) => onScopePress(key as ScopePickerKey)} />
+    {!isExpanded ? (
+      <Text style={styles.builderCollapsedHint}>{collapsedHint}</Text>
+    ) : null}
 
-    <QuestionMixBuilder
-      title={mixTitle}
-      hint={mixHint}
-      totalLabel={mixTotalLabel}
-      items={mixItems}
-    />
+    {isExpanded ? (
+      <>
+        <ScopeSummaryGrid
+          items={scopeItems}
+          onPress={key => onScopePress(key as ScopePickerKey)}
+        />
 
-    <View style={styles.mixPresetBlock}>
-      <View style={styles.mixPresetHeader}>
-        <Text style={styles.filterTitle}>{presetTitle}</Text>
-        <Pressable
-          style={({ pressed }) => [styles.linkButton, pressed && styles.buttonPressed]}
-          onPress={onResetPresets}
-        >
-          <Text style={styles.linkButtonLabel}>{presetResetLabel}</Text>
-        </Pressable>
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.mixPresetRow}>
-        {presets.map((preset) => (
-          <Pressable
-            key={preset.key}
-            style={({ pressed }) => [styles.mixPresetChip, pressed && styles.buttonPressed]}
-            onPress={preset.onPress}
+        <QuestionMixBuilder
+          title={mixTitle}
+          hint={mixHint}
+          totalLabel={mixTotalLabel}
+          items={mixItems}
+        />
+
+        <View style={styles.mixPresetBlock}>
+          <View style={styles.mixPresetHeader}>
+            <Text style={styles.filterTitle}>{presetTitle}</Text>
+            <Pressable
+              style={({ pressed }) => [
+                styles.linkButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={onResetPresets}
+            >
+              <Text style={styles.linkButtonLabel}>{presetResetLabel}</Text>
+            </Pressable>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.mixPresetRow}
           >
-            <Text style={styles.mixPresetChipLabel}>{preset.label}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </View>
+            {presets.map(preset => (
+              <Pressable
+                key={preset.key}
+                style={({ pressed }) => [
+                  styles.mixPresetChip,
+                  pressed && styles.buttonPressed,
+                ]}
+                onPress={preset.onPress}
+              >
+                <Text style={styles.mixPresetChipLabel}>{preset.label}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
 
-    <View style={styles.mixSummaryCard}>
-      <Text style={styles.cardTitle}>{mixSummaryTitle}</Text>
-      <View style={styles.mixSummaryRow}>
-        <View style={styles.mixMetric}>
-          <Text style={styles.mixMetricValue}>{configuredMixCount}</Text>
-          <Text style={styles.mixMetricLabel}>{questionsLabel}</Text>
+        <View style={styles.mixSummaryCard}>
+          <Text style={styles.cardTitle}>{mixSummaryTitle}</Text>
+          <View style={styles.mixSummaryRow}>
+            <View style={styles.mixMetric}>
+              <Text style={styles.mixMetricValue}>{configuredMixCount}</Text>
+              <Text style={styles.mixMetricLabel}>{questionsLabel}</Text>
+            </View>
+            <View style={styles.mixMetric}>
+              <Text style={styles.mixMetricValue}>{activeMixTypes}</Text>
+              <Text style={styles.mixMetricLabel}>{typesLabel}</Text>
+            </View>
+            <View style={styles.mixMetricWide}>
+              <Text style={styles.mixMetricCopy}>
+                {configuredMixCount > 0 ? readyCopy : fallbackCopy}
+              </Text>
+            </View>
+          </View>
+          {tooLargeError ? <InlineErrorState message={tooLargeError} /> : null}
+          {unavailableError ? (
+            <InlineErrorState message={unavailableError} />
+          ) : null}
         </View>
-        <View style={styles.mixMetric}>
-          <Text style={styles.mixMetricValue}>{activeMixTypes}</Text>
-          <Text style={styles.mixMetricLabel}>{typesLabel}</Text>
-        </View>
-        <View style={styles.mixMetricWide}>
-          <Text style={styles.mixMetricCopy}>
-            {configuredMixCount > 0 ? readyCopy : fallbackCopy}
-          </Text>
-        </View>
-      </View>
-      {tooLargeError ? <InlineErrorState message={tooLargeError} /> : null}
-      {unavailableError ? <InlineErrorState message={unavailableError} /> : null}
-    </View>
 
-    {isLoadingWorkspace ? <InlineLoadingState label={loadingWorkspaceLabel} /> : null}
-    {workspaceErrorMessage ? <InlineErrorState message={workspaceErrorMessage} /> : null}
+        {isLoadingWorkspace ? (
+          <InlineLoadingState label={loadingWorkspaceLabel} />
+        ) : null}
+        {workspaceErrorMessage ? (
+          <InlineErrorState message={workspaceErrorMessage} />
+        ) : null}
+      </>
+    ) : null}
   </View>
 );
 
@@ -375,7 +462,10 @@ export const RecentPracticeSessionsSection = ({
       <View style={styles.recentHeadingRow}>
         <Text style={styles.cardTitle}>{title}</Text>
         <Pressable
-          style={({ pressed }) => [styles.linkButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.linkButton,
+            pressed && styles.buttonPressed,
+          ]}
           onPress={onViewAll}
         >
           <Text style={styles.linkButtonLabel}>{viewAllLabel}</Text>
@@ -389,11 +479,16 @@ export const RecentPracticeSessionsSection = ({
         <EmptyStateCard title={emptyTitle} hint={emptyHint} />
       ) : null}
 
-      {rows.map((session) => (
+      {rows.map(session => (
         <Pressable
           key={session.id}
-          style={({ pressed }) => [styles.sessionCard, pressed && styles.buttonPressed]}
-          onPress={() => router.push(`/practice/${session.id}` as RelativePathString)}
+          style={({ pressed }) => [
+            styles.sessionCard,
+            pressed && styles.buttonPressed,
+          ]}
+          onPress={() =>
+            router.push(`/practice/${session.id}` as RelativePathString)
+          }
         >
           <View style={styles.sessionHeadingRow}>
             <Text style={styles.sessionTitle}>{session.title}</Text>
@@ -401,7 +496,9 @@ export const RecentPracticeSessionsSection = ({
               <Text
                 style={[
                   styles.sessionStatus,
-                  session.status === "completed" ? styles.sessionStatusDone : styles.sessionStatusLive,
+                  session.status === "completed"
+                    ? styles.sessionStatusDone
+                    : styles.sessionStatusLive,
                 ]}
               >
                 {toStatusLabel(session.status)}
@@ -415,19 +512,25 @@ export const RecentPracticeSessionsSection = ({
                   pressed && styles.buttonPressed,
                   deletingSessionId === session.id && styles.buttonDisabled,
                 ]}
-                onPress={(event) => {
+                onPress={event => {
                   event.stopPropagation();
                   onDeleteSession(session.id);
                 }}
               >
                 <Text style={styles.sessionDeleteLabel}>
-                  {deletingSessionId === session.id ? deletingLabel : deleteActionLabel}
+                  {deletingSessionId === session.id
+                    ? deletingLabel
+                    : deleteActionLabel}
                 </Text>
               </Pressable>
             </View>
           </View>
-          <Text style={styles.sessionMeta}>{scoreMeta(session.scorePercent, session.totalQuestions)}</Text>
-          <Text style={styles.sessionMeta}>{startedMetaLabel(session.startedAt)}</Text>
+          <Text style={styles.sessionMeta}>
+            {scoreMeta(session.scorePercent, session.totalQuestions)}
+          </Text>
+          <Text style={styles.sessionMeta}>
+            {startedMetaLabel(session.startedAt)}
+          </Text>
         </Pressable>
       ))}
     </View>
@@ -439,16 +542,38 @@ export const PracticeStartSection = ({
   errorMessage,
   actionLabel,
   actionDisabled,
+  needsGrade,
+  gradeHint,
+  selectGradeLabel,
+  onSelectGrade,
   onStart,
 }: {
   title: string;
   errorMessage?: string | null;
   actionLabel: string;
   actionDisabled: boolean;
+  needsGrade: boolean;
+  gradeHint: string;
+  selectGradeLabel: string;
+  onSelectGrade: () => void;
   onStart: () => void;
 }) => (
   <View style={styles.card}>
     <Text style={styles.cardTitle}>{title}</Text>
+    {needsGrade ? (
+      <View style={styles.startRequirementCard}>
+        <Text style={styles.startRequirementText}>{gradeHint}</Text>
+        <Pressable
+          style={({ pressed }) => [
+            styles.primaryButton,
+            pressed && styles.buttonPressed,
+          ]}
+          onPress={onSelectGrade}
+        >
+          <Text style={styles.primaryButtonLabel}>{selectGradeLabel}</Text>
+        </Pressable>
+      </View>
+    ) : null}
     {errorMessage ? <InlineErrorState message={errorMessage} /> : null}
     <View style={styles.buttonColumn}>
       <Pressable
@@ -511,6 +636,11 @@ const styles = StyleSheet.create({
   },
   scopeHeaderTextWrap: {
     flex: 1,
+  },
+  builderCollapsedHint: {
+    color: "#64748B",
+    fontSize: 14,
+    lineHeight: 20,
   },
   mixPresetBlock: {
     gap: 8,
@@ -638,6 +768,20 @@ const styles = StyleSheet.create({
   },
   buttonColumn: {
     gap: 8,
+  },
+  startRequirementCard: {
+    backgroundColor: "#EFF6FF",
+    borderColor: "#BFDBFE",
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 10,
+    padding: 12,
+  },
+  startRequirementText: {
+    color: "#1E3A8A",
+    fontSize: 13,
+    fontWeight: "600",
+    lineHeight: 19,
   },
   buttonDisabled: {
     opacity: 0.6,

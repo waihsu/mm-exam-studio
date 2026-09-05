@@ -3,7 +3,8 @@ import React from "react";
 import { Text, View } from "react-native";
 import { useTranslation } from "@/i18n";
 import { AuthScreenShell } from "./auth-screen-shell";
-import { AuthButton, authUiStyles } from "./auth-ui";
+import { AuthButton } from "./auth-ui";
+import { authUiStyles } from "./auth-ui.styles";
 
 export const EmailVerifiedScreen = () => {
   const router = useRouter();
@@ -16,8 +17,12 @@ export const EmailVerifiedScreen = () => {
       title={t("emailVerified.title")}
     >
       <View style={authUiStyles.sectionHeader}>
-        <Text style={authUiStyles.sectionKicker}>{t("emailVerified.kicker")}</Text>
-        <Text style={authUiStyles.sectionTitle}>{t("emailVerified.sectionTitle")}</Text>
+        <Text style={authUiStyles.sectionKicker}>
+          {t("emailVerified.kicker")}
+        </Text>
+        <Text style={authUiStyles.sectionTitle}>
+          {t("emailVerified.sectionTitle")}
+        </Text>
       </View>
 
       <Text style={authUiStyles.sectionDescription}>

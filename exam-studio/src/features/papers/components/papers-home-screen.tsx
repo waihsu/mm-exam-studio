@@ -25,6 +25,7 @@ export const PapersHomeScreen = () => {
   const router = useRouter();
   const { t } = useTranslation(["papers", "common"]);
   const { formatDateTime } = useAppDateTimeFormatter();
+  const [builderExpanded, setBuilderExpanded] = React.useState(false);
 
   const {
     papersQuery,
@@ -55,6 +56,7 @@ export const PapersHomeScreen = () => {
     activeScopePickerOptions,
     activeScopePickerValue,
     configuredMixCount,
+    hasSelectedGrade,
     quickTypeCountsQuery,
     papersRefresh,
     filteredSavedPapers,
@@ -74,6 +76,7 @@ export const PapersHomeScreen = () => {
       allLessons: t("home.scopeAllLessons"),
     },
     createFailedMessage: t("home.failedCreate"),
+    gradeRequiredMessage: t("home.gradeRequiredError"),
     onPaperCreated: (paperId) => {
       router.push(`/papers/${paperId}` as RelativePathString);
     },
@@ -117,12 +120,22 @@ export const PapersHomeScreen = () => {
           includeAnswerKeyLabel={t("home.includeAnswerKey")}
           includeAnswerKey={includeAnswerKey}
           onToggleAnswerKey={() => setIncludeAnswerKey((value) => !value)}
+          gradeLabel={t("filters.grade")}
+          selectedGrade={hasSelectedGrade ? scopeSummary.grade : null}
+          gradeHint={t("home.gradeRequiredHint")}
+          selectGradeLabel={t("home.selectGrade")}
+          onSelectGrade={() => setActiveScopePicker("grade")}
           templatesLabel={t("templates.openCatalog")}
           onOpenTemplates={() => router.push("/papers/templates" as RelativePathString)}
         />
 
         <PaperBuilderSection
           title={t("home.quickGenerate")}
+          collapsedHint={t("home.customizeCollapsedHint")}
+          expandLabel={t("home.customizeOpen")}
+          collapseLabel={t("home.customizeClose")}
+          isExpanded={builderExpanded}
+          onToggleExpanded={() => setBuilderExpanded((current) => !current)}
           scopeTitle={t("home.scopeTitle")}
           clearLabel={t("common:actions.clear")}
           onClear={clearFilters}
@@ -163,7 +176,7 @@ export const PapersHomeScreen = () => {
               ? t("home.generatePlannedDraft")
               : t("home.quickGenerateDraft")
           }
-          actionDisabled={!title.trim() || createMutation.isPending}
+          actionDisabled={!title.trim() || !hasSelectedGrade || createMutation.isPending}
           onSubmit={createQuickGeneratedPaper}
         />
 

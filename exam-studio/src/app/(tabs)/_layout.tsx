@@ -1,18 +1,26 @@
 import { Redirect, Tabs } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import React from "react";
-import { Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FullscreenLoading } from "@/features/app-shell/components/fullscreen-loading";
 import { useAuthSessionAutoRefresh } from "@/features/auth/hooks/use-auth-session-auto-refresh";
 import { useAuthSessionQuery } from "@/features/auth/hooks/use-auth-session-query";
 import { useSyncPushRegistration } from "@/features/notifications/hooks/use-sync-push-registration";
 import { useMySupportConversationRealtime } from "@/features/support/hooks/use-my-support-conversation-realtime";
+import { useTranslation } from "@/i18n";
 
-const TabIcon = ({ icon, color }: { icon: string; color: string }) => (
-  <Text style={{ color, fontSize: 15 }}>{icon}</Text>
+const TabIcon = ({
+  icon,
+  color,
+}: {
+  icon: React.ComponentProps<typeof SymbolView>["name"];
+  color: string;
+}) => (
+  <SymbolView name={icon} size={20} tintColor={color} weight="semibold" />
 );
 
 export default function TabsLayout() {
+  const { t } = useTranslation("common");
   const sessionQuery = useAuthSessionQuery();
   const insets = useSafeAreaInsets();
   useAuthSessionAutoRefresh();
@@ -43,34 +51,70 @@ export default function TabsLayout() {
           paddingBottom: Math.max(insets.bottom, 8),
           paddingTop: 6,
         },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "700",
+        },
       }}
     >
       <Tabs.Screen
         name="home"
         options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => <TabIcon icon="🏠" color={color} />,
+          title: t("navigation.home"),
+          tabBarIcon: ({ color }) => (
+            <TabIcon
+              icon={{ ios: "house.fill", android: "home", web: "home" }}
+              color={color}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="practice"
         options={{
-          title: "Practice",
-          tabBarIcon: ({ color }) => <TabIcon icon="✍️" color={color} />,
+          title: t("navigation.practice"),
+          tabBarIcon: ({ color }) => (
+            <TabIcon
+              icon={{
+                ios: "square.and.pencil",
+                android: "edit_square",
+                web: "edit_square",
+              }}
+              color={color}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="papers"
         options={{
-          title: "Papers",
-          tabBarIcon: ({ color }) => <TabIcon icon="📝" color={color} />,
+          title: t("navigation.papers"),
+          tabBarIcon: ({ color }) => (
+            <TabIcon
+              icon={{
+                ios: "doc.text.fill",
+                android: "description",
+                web: "description",
+              }}
+              color={color}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
-          tabBarIcon: ({ color }) => <TabIcon icon="⚙️" color={color} />,
+          title: t("navigation.settings"),
+          tabBarIcon: ({ color }) => (
+            <TabIcon
+              icon={{
+                ios: "gearshape.fill",
+                android: "settings",
+                web: "settings",
+              }}
+              color={color}
+            />
+          ),
         }}
       />
     </Tabs>

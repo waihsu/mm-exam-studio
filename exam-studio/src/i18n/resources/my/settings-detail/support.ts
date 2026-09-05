@@ -1,11 +1,8 @@
 const support = {
   title: "Support",
-  subtitle: "Admin နဲ့စကားပြော သို့မဟုတ် support channel ကိုဖွင့်ပါ။",
+  subtitle: "Account, content သို့မဟုတ် app ပြဿနာအတွက် admin ကိုစာပို့ပါ။",
   quickHelp: "အမြန်အကူအညီ",
-  supportDetailsFailed: "Support details မရယူနိုင်ပါ။",
-  fallbackSupportLabel: "Support",
-  openLabel: "{{label}} ကိုဖွင့်ရန်",
-  paymentHelp: "Payment Help",
+  quickHelpBody: "ဘာဖြစ်သွားလဲ၊ ဘာဖြစ်ရမယ်လို့မျှော်လင့်လဲ၊ ပြန်ဖြစ်အောင်လုပ်ခဲ့တဲ့အဆင့်တွေကို အောက်မှာရှင်းရှင်းလင်းလင်းရေးပို့ပါ။",
   chat: "Chat",
   supportChatFailed: "Support chat မရယူနိုင်ပါ။",
   supportSendFailed: "Message မပို့နိုင်ပါ။",
@@ -40,9 +37,9 @@ const support = {
   repliesBlocked: "Replies ပိတ်ထားသည်",
   presets: [
     {
-      label: "Payment",
-      subject: "Payment issue",
-      draft: "Payment ပြဿနာအတွက် အကူအညီလိုပါသည်။ Reference:",
+      label: "Content",
+      subject: "Content issue",
+      draft: "Question content မှာ ပြဿနာတစ်ခုတွေ့ပါသည်။ အသေးစိတ်:",
     },
     {
       label: "Login",
@@ -55,9 +52,9 @@ const support = {
       draft: "App bug တစ်ခုတွေ့ပါသည်။ ပြန်ဖြစ်စေမည့်အဆင့်များ:",
     },
     {
-      label: "Subscription",
-      subject: "Subscription help",
-      draft: "Subscription status အတွက် အကူအညီလိုပါသည်။ အသေးစိတ်:",
+      label: "Account",
+      subject: "Account help",
+      draft: "Account အတွက် အကူအညီလိုပါသည်။ အသေးစိတ်:",
     },
   ],
 } as const;

@@ -3,7 +3,8 @@ import React, { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "@/i18n";
 import { AuthScreenShell } from "./auth-screen-shell";
-import { AuthBanner, AuthButton, AuthField, authUiStyles } from "./auth-ui";
+import { AuthBanner, AuthButton, AuthField } from "./auth-ui";
+import { authUiStyles } from "./auth-ui.styles";
 import { useRequestPasswordResetMutation } from "../hooks/use-request-password-reset-mutation";
 
 export const ForgotPasswordScreen = () => {
@@ -16,7 +17,7 @@ export const ForgotPasswordScreen = () => {
 
   const canSubmit = useMemo(
     () => email.trim().length >= 3 && !resetMutation.isPending,
-    [email, resetMutation.isPending],
+    [email, resetMutation.isPending]
   );
 
   const submit = async () => {
@@ -36,7 +37,7 @@ export const ForgotPasswordScreen = () => {
       setErrorMessage(
         error instanceof Error && error.message.trim().length > 0
           ? error.message
-          : t("forgotPassword.failed"),
+          : t("forgotPassword.failed")
       );
     }
   };
@@ -48,8 +49,12 @@ export const ForgotPasswordScreen = () => {
       title={t("forgotPassword.title")}
     >
       <View style={authUiStyles.sectionHeader}>
-        <Text style={authUiStyles.sectionKicker}>{t("forgotPassword.kicker")}</Text>
-        <Text style={authUiStyles.sectionTitle}>{t("forgotPassword.sectionTitle")}</Text>
+        <Text style={authUiStyles.sectionKicker}>
+          {t("forgotPassword.kicker")}
+        </Text>
+        <Text style={authUiStyles.sectionTitle}>
+          {t("forgotPassword.sectionTitle")}
+        </Text>
       </View>
 
       <AuthField
@@ -61,7 +66,7 @@ export const ForgotPasswordScreen = () => {
         placeholder={t("forgotPassword.emailPlaceholder")}
         textContentType="emailAddress"
         value={email}
-        onChangeText={(value) => {
+        onChangeText={value => {
           setEmail(value);
           if (errorMessage) {
             setErrorMessage(null);
@@ -86,7 +91,9 @@ export const ForgotPasswordScreen = () => {
           onPress={() => router.replace("/sign-in" as RelativePathString)}
           style={authUiStyles.textLink}
         >
-          <Text style={authUiStyles.textLinkLabel}>{t("forgotPassword.backToSignIn")}</Text>
+          <Text style={authUiStyles.textLinkLabel}>
+            {t("forgotPassword.backToSignIn")}
+          </Text>
         </Pressable>
       </View>
     </AuthScreenShell>

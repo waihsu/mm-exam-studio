@@ -20,13 +20,15 @@ const practice = {
     search: "Search",
   },
   home: {
-    title: "Practice Builder",
-    subtitle: "Select questions and start a practice session.",
+    title: "Practice",
+    subtitle: "Choose your grade and start learning.",
     openHelp: "Open practice help",
     searchFiltersTitle: "Scope",
-    searchFiltersHint: "Choose the syllabus scope once, then use the mini blueprint below to set exact question counts.",
+    searchFiltersHint:
+      "Choose the syllabus scope once, then use the mini blueprint below to set exact question counts.",
     scopeSheetTitle: "Choose Practice Scope",
-    scopeSheetSubtitle: "Keep the main screen clean by selecting your scope here.",
+    scopeSheetSubtitle:
+      "Keep the main screen clean by selecting your scope here.",
     scopeAllGrades: "All grades",
     scopeAllSubjects: "All subjects",
     scopeAllChapters: "All chapters",
@@ -34,24 +36,28 @@ const practice = {
     quickType: "Quick Type",
     loadingWorkspaceFilters: "Loading workspace filters...",
     failedWorkspaceFilters: "Failed to load workspace filters.",
-    noFiltersApplied: "No filters applied. Catalog is showing all matching questions.",
+    noFiltersApplied:
+      "No filters applied. Catalog is showing all matching questions.",
     quickGuideTitle: "Practice Quick Guide",
     quickGuideSubtitle: "Quick help without leaving the screen.",
     fullGuide: "Full Guide",
     guideBestPattern:
       "Use this guide for a quick reminder, or open the full help page for more detail.",
-    guideFilterTitle: "Choose Scope",
-    guideFilterHint: "Pick grade, subject, chapter, and lesson from the scope picker first.",
-    guideSelectTitle: "Set Mini Blueprint",
-    guideSelectHint: "Enter exact counts by question type so the next session follows your planned mix.",
-    guideQuickStartTitle: "Start From Mix",
-    guideQuickStartHint: "Use Start Planned Mix when you filled the blueprint, or Quick Start when every row stays at 0.",
+    guideFilterTitle: "Choose Your Grade",
+    guideFilterHint:
+      "Choose your grade first. It keeps every question relevant to your curriculum.",
+    guideSelectTitle: "Customize Only If Needed",
+    guideSelectHint:
+      "Open Customize only when you want a specific subject, chapter, question type, or count.",
+    guideQuickStartTitle: "Start Practice",
+    guideQuickStartHint:
+      "Quick Start uses 10 questions. Your custom mix is used only when you set one.",
     guideResumeTitle: "Resume Sessions",
     guideResumeHint: "Continue unfinished work from Recent Sessions anytime.",
     onboardingEyebrow: "First-Time Setup",
     onboardingTitle: "Start in Practice, then branch out.",
     onboardingBody:
-      "Most users begin with Practice, use Papers when they need printable exams, and visit Settings only for plan, security, or preferences.",
+      "Begin with Practice, use Papers when you need a printable exam, and visit Settings for preferences, help, and security.",
     onboardingSheetTitle: "Welcome to Exam Studio",
     onboardingSheetSubtitle:
       "A quick first-time walkthrough so new users can get to real work faster.",
@@ -59,11 +65,21 @@ const practice = {
     onboardingShowGuide: "Show Quick Guide",
     onboardingHintTitle: "Good Start",
     onboardingHint:
-      "If you are unsure what to do first, use Quick Start once. It helps users understand the session flow immediately.",
+      "Choose your grade, then use Quick Start once to understand the session flow immediately.",
     generatorTitle: "Start",
+    gradeRequiredHint:
+      "Choose your grade first. This keeps practice questions relevant to your curriculum.",
+    selectGradeToStart: "Choose grade",
+    customizeTitle: "Customize your practice (optional)",
+    customizeCollapsedHint:
+      "Choose subject, chapter, question type, and exact counts only when you need a focused session.",
+    customizeOpen: "Customize",
+    customizeClose: "Hide options",
+    gradeRequiredError: "Choose your grade before starting practice.",
     generatorHint:
-      "Manual question picking is hidden here. Use one mini blueprint flow for both scope and question mix.",
-    longAnswerExcludedHint: "Practice keeps long-answer questions on the Papers side, so totals can be lower here.",
+      "Start with your grade. Extra options stay out of the way until you need a focused practice set.",
+    longAnswerExcludedHint:
+      "Practice keeps long-answer questions on the Papers side, so totals can be lower here.",
     quickStart: "Quick Start (10 Random)",
     mixTitle: "Mini Blueprint",
     mixHint:
@@ -82,17 +98,19 @@ const practice = {
     mixSummaryQuestions: "Questions",
     mixSummaryTypes: "Types",
     mixSummaryReady: "This mix will be used for the next generated session.",
-    mixSummaryFallback: "Leave all rows at 0 to fall back to Quick Start random mode.",
-    mixSummaryTooLarge: "Planned mix cannot exceed 50 questions in one session.",
+    mixSummaryFallback:
+      "Leave all rows at 0 to fall back to Quick Start random mode.",
+    mixSummaryTooLarge:
+      "Planned mix cannot exceed 50 questions in one session.",
     mixSummaryUnavailable:
       "One or more requested counts are higher than the currently available questions.",
     startPlannedMix: "Start Planned Mix",
     recentSessionsTitle: "Recent Sessions",
     loadingSessions: "Loading sessions...",
     failedSessions: "Failed to load sessions.",
-    noSessions: "No sessions yet. Start one from Practice Builder.",
+    noSessions: "No sessions yet. Choose your grade and start one.",
     noSessionsHint:
-      "Choose your scope, set a mini blueprint if needed, then start a new session from the builder above.",
+      "Use Customize only when you want to narrow the syllabus or plan an exact question mix.",
     createFailed: "Failed to create practice session.",
     selectedPracticeTitle: "Selected Practice",
     quickPracticeTitle: "Quick Practice",
@@ -132,12 +150,14 @@ const practice = {
     completedScoreMeta: " • Score: {{correct}}/{{total}} ({{percent}}%)",
     elapsedMeta: " • Elapsed: {{elapsed}}",
     completedAt: "Completed: {{date}}",
-    progressMeta: "Answered: {{answered}}/{{total}} ({{percent}}%) • Unanswered: {{unanswered}}",
+    progressMeta:
+      "Answered: {{answered}}/{{total}} ({{percent}}%) • Unanswered: {{unanswered}}",
     submittedTitle: "Practice submitted",
     submittedHint:
       "You can review results now. Use the navigator to revisit each question.",
     resultByType: "Result By Question Type",
     questionNavigator: "Question Navigator",
+    currentQuestion: "Current",
     previous: "Previous",
     next: "Next",
     questionProgress: "Question {{current}} / {{total}}",
@@ -153,7 +173,8 @@ const practice = {
       "After submit, answers cannot be edited. You still have {{count}} unanswered question(s).",
     submitHintPending:
       "If you are unsure, use the navigator to review unanswered items before submitting.",
-    submitHintDone: "If everything is answered, you can submit and review the result immediately.",
+    submitHintDone:
+      "If everything is answered, you can submit and review the result immediately.",
     typeYourAnswer: "Type your answer here...",
     correct: "Correct",
     incorrect: "Incorrect",
@@ -169,7 +190,8 @@ const practice = {
     chooseFromBank: "Choose from the answer bank below",
     answerBank: "Answer bank",
     selectPromptToStart: "Select a prompt to start matching",
-    answerBankHint: "Tap any choice. If it is already paired, it will move here.",
+    answerBankHint:
+      "Tap any choice. If it is already paired, it will move here.",
     failedSubmit: "Failed to submit session.",
     questionTypes: {
       mcq: "MCQ",

@@ -392,6 +392,25 @@ export const settingsUiStyles = StyleSheet.create({
     gap: 6,
     padding: 12,
   },
+  subscriptionFeatureList: {
+    gap: 10,
+  },
+  subscriptionFeatureRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 9,
+  },
+  subscriptionFeatureBullet: {
+    color: "#4F46E5",
+    fontSize: 15,
+    fontWeight: "900",
+  },
+  subscriptionFeatureText: {
+    color: "#334155",
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+  },
   subscriptionSummaryCardApproved: {
     backgroundColor: "#ECFDF5",
     borderColor: "#6EE7B7",
