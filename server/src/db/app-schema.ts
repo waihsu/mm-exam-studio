@@ -228,6 +228,7 @@ export const question = pgTable(
     answerFormula: text("answerFormula"),
     variablesSchema: json("variablesSchema"),
     parametricValueSets: json("parametricValueSets"),
+    variantContents: json("variantContents"),
     reviewStatus: questionReviewStatusEnum("reviewStatus")
       .default("draft")
       .notNull(),

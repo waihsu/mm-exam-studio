@@ -43,6 +43,7 @@ export const toStoredQuestionData = (
     | "answerFormula"
     | "variablesSchema"
     | "parametricValueSets"
+    | "variantContents"
     | "isPublished"
     | "marks"
   >,
@@ -79,6 +80,10 @@ export const toStoredQuestionData = (
   parametricValueSets:
     data.mode === "variable" && data.parametricValueSets?.length
       ? data.parametricValueSets
+      : null,
+  variantContents:
+    data.mode === "variable" && data.variantContents?.length
+      ? data.variantContents
       : null,
   isPublished: data.isPublished ?? false,
   marks: data.marks ?? 1,

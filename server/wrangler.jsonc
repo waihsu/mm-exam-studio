@@ -54,6 +54,7 @@
   },
   "vars": {
     "NODE_ENV": "production",
+    "OPEN_SOURCE_MODE": "true",
     "BETTER_AUTH_URL": "https://examstudio.hsuwai.space",
     "AUTH_MFA_ISSUER": "Study Admin",
     "CORS_ALLOWED_ORIGINS": "https://examstudio.hsuwai.space,https://adminstudio.hsuwai.space",

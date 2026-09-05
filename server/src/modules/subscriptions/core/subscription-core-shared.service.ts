@@ -83,6 +83,32 @@ export const FALLBACK_PREMIUM_PLAN = {
   printAllowed: true,
 } as const satisfies PlanEntitlements;
 
+// The project ships as a free, self-hostable edition. We retain the existing
+// subscription tables for compatibility with older databases, but do not use
+// them to restrict access while this mode is enabled.
+export const isOpenSourceMode = () =>
+  !["0", "false", "no", "off"].includes(
+    (process.env.OPEN_SOURCE_MODE ?? "true").trim().toLowerCase(),
+  );
+
+export const OPEN_SOURCE_PLAN = {
+  code: "premium" as const,
+  name: "Open access",
+  description: "All core MM Exam Studio learning and paper tools are available.",
+  deviceLimit: 25,
+  maxQuestionsPerPractice: null,
+  maxQuestionsPerPaper: null,
+  monthlyPdfExportLimit: null,
+  monthlyPaperGenerationLimit: null,
+  monthlyPaperSwapLimit: null,
+  chatEnabled: true,
+  generatorEnabled: true,
+  brandingLogoLimit: 10,
+  offlineDrmEnabled: false,
+  screenshotBlockEnabled: false,
+  printAllowed: true,
+} as const satisfies PlanEntitlements;
+
 export const limitMessageFor = {
   pdfExportsUsed:
     "You have reached the monthly PDF export limit for your plan.",

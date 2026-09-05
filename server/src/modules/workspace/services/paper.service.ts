@@ -36,6 +36,92 @@ export {
   swapQuestionPaperItem,
 };
 
+const duplicateTitle = (title: string) => {
+  const prefix = "Copy of ";
+  return `${prefix}${title}`.slice(0, 160);
+};
+
+export const duplicateQuestionPaper = async (userId: string, paperId: string) => {
+  const source = await db.query.questionPaper.findFirst({
+    where: and(eq(questionPaper.id, paperId), eq(questionPaper.userId, userId)),
+    with: {
+      items: {
+        orderBy: (table, { asc: orderAsc }) => [orderAsc(table.position)],
+      },
+    },
+  });
+
+  if (!source) {
+    throw new Error("Question paper not found.");
+  }
+
+  const copyValues = {
+    userId,
+    blueprintId: null,
+    brandAssetId: source.brandAssetId,
+    title: duplicateTitle(source.title),
+    instructions: source.instructions,
+    schoolName: source.schoolName,
+    academicYear: source.academicYear,
+    pdfTemplateKey: source.pdfTemplateKey,
+    examYearLabel: source.examYearLabel,
+    timeAllowedLabel: source.timeAllowedLabel,
+    departmentLine: source.departmentLine,
+    answerInstructionLine: source.answerInstructionLine,
+    status: "draft" as const,
+    includeAnswerKey: source.includeAnswerKey,
+    gradeId: source.gradeId,
+    subjectId: source.subjectId,
+    chapterId: source.chapterId,
+    subChapterId: source.subChapterId,
+    totalQuestions: source.totalQuestions,
+    totalMarks: source.totalMarks,
+  };
+
+  const copyItems = (newPaperId: string) =>
+    source.items.map((item) => ({
+      paperId: newPaperId,
+      position: item.position,
+      questionId: item.questionId,
+      blueprintSectionId: null,
+      blueprintSlotId: null,
+      questionCode: item.questionCode,
+      questionType: item.questionType,
+      marks: item.marks,
+      swapCount: 0,
+      swapLimit: 3,
+      renderedBody: item.renderedBody,
+      renderedAnswerText: item.renderedAnswerText,
+      renderedOptions: item.renderedOptions,
+    }));
+
+  try {
+    return await db.transaction(async (tx) => {
+      const [copy] = await tx.insert(questionPaper).values(copyValues).returning();
+      if (source.items.length > 0) {
+        await tx.insert(questionPaperItem).values(copyItems(copy.id));
+      }
+      return { id: copy.id, title: copy.title };
+    });
+  } catch (error) {
+    if (!isUnsupportedTransactionError(error)) {
+      throw error;
+    }
+  }
+
+  const [copy] = await db.insert(questionPaper).values(copyValues).returning();
+  try {
+    if (source.items.length > 0) {
+      await db.insert(questionPaperItem).values(copyItems(copy.id));
+    }
+  } catch (error) {
+    await db.delete(questionPaper).where(eq(questionPaper.id, copy.id));
+    throw error;
+  }
+
+  return { id: copy.id, title: copy.title };
+};
+
 export const createQuestionPaper = async (
   userId: string,
   input: CreateQuestionPaperInput & {

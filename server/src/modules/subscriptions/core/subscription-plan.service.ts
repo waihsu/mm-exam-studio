@@ -3,6 +3,8 @@ import { db, plan } from "@/db";
 import {
   FALLBACK_FREE_PLAN,
   FALLBACK_PREMIUM_PLAN,
+  OPEN_SOURCE_PLAN,
+  isOpenSourceMode,
 } from "./subscription-core-shared.service";
 
 export const getOrCreateFreePlan = async () => {
@@ -16,6 +18,10 @@ export const getOrCreateFreePlan = async () => {
 };
 
 export const getPlanCatalog = async () => {
+  if (isOpenSourceMode()) {
+    return [OPEN_SOURCE_PLAN];
+  }
+
   const rows = await db.query.plan.findMany({
     orderBy: (table, { asc }) => [asc(table.createdAt)],
   });

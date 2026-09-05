@@ -6,6 +6,7 @@ import { validateVariableConfiguration } from "../utils/math-engine";
 import { invalidateQuestionReadCaches } from "./question-read.service";
 import {
   assertSwapGroupVariationIntegrity,
+  assertQuestionPublishReady,
   assertPublishState,
   normalizeReviewStatus,
   validateStructuredQuestionData,
@@ -17,6 +18,16 @@ export const createQuestion = async (
   data: CreateQuestionInput,
   createdBy?: string,
 ) => {
+  if (
+    data.isPublished ||
+    (data.reviewStatus !== undefined && data.reviewStatus !== "draft") ||
+    data.reviewNotes?.trim()
+  ) {
+    throw new Error(
+      "New questions must start as clean drafts. Review and approve the question before publishing.",
+    );
+  }
+
   const reviewStatus = normalizeReviewStatus({
     isPublished: data.isPublished ?? false,
     reviewStatus: data.reviewStatus,
@@ -47,6 +58,9 @@ export const createQuestion = async (
   });
 
   validateStructuredQuestionData(data);
+  if (data.isPublished) {
+    assertQuestionPublishReady(data);
+  }
   await assertSwapGroupVariationIntegrity({
     swapGroupId: data.swapGroupId,
     variationNumber: data.variationNumber,

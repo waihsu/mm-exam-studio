@@ -1,6 +1,7 @@
 import type { MiddlewareHandler } from "hono";
 import type { AppBindings } from "@/core/types/app";
 import { securityStore } from "@/lib/security-store";
+import { getRequestClientIpKey } from "@/lib/request-client-ip";
 
 type RateLimitWindow = {
   windowMs: number;
@@ -12,18 +13,6 @@ type EndpointRateLimitOptions = {
   keyId: string;
   windows: readonly RateLimitWindow[];
   message: string;
-};
-
-const getClientIp = (request: Request) => {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0]?.trim() || "unknown";
-  }
-  return (
-    request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-real-ip") ??
-    "unknown"
-  );
 };
 
 const getOptionalUserId = (c: {
@@ -49,7 +38,7 @@ export const createEndpointRateLimitMiddleware = (
     }
 
     const now = Date.now();
-    const ip = getClientIp(c.req.raw);
+    const ip = getRequestClientIpKey(c.req.raw);
     const userId = getOptionalUserId(c);
 
     for (const window of options.windows) {
