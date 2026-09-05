@@ -42,14 +42,14 @@ function SettingsLayout() {
         title="Account settings"
         description="Keep admin identity details and session security in one place so operations stay consistent, auditable, and safe."
         chips={
-          <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700">
+          <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600">
             <ShieldCheck className="h-4 w-4 text-slate-500" />
             Security-aware admin controls
           </span>
         }
       />
 
-      <PagePanel className="space-y-5 bg-white/88">
+      <PagePanel className="space-y-5">
         <div className="space-y-5">
           <div className="grid gap-3 sm:grid-cols-2">
             {settingsTabs.map((tab) => {
@@ -61,10 +61,10 @@ function SettingsLayout() {
                   key={`${tab.to}-summary`}
                   to={tab.to}
                   className={cn(
-                    "group rounded-2xl border px-4 py-3 transition-colors",
+                    "group rounded-lg border px-4 py-3 transition-colors",
                     isActive
-                      ? "border-slate-900 bg-slate-900 text-white shadow-[0_16px_34px_-24px_rgba(15,23,42,0.9)]"
-                      : "border-slate-200 bg-slate-50/70 text-slate-900 hover:border-slate-300 hover:bg-white",
+                      ? "border-slate-900 bg-slate-900 text-white shadow-sm"
+                      : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300 hover:bg-white",
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">

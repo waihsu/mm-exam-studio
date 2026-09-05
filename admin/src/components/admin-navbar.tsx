@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   BookText,
-  CreditCard,
   ExternalLink,
   Layers3,
   LifeBuoy,
@@ -22,7 +21,7 @@ import {
 } from "@/constants/routes";
 import { useAuthFlow } from "@/features/auth/hooks/use-auth-flow";
 import { useLanguage } from "@/i18n";
-import adminLogo from "@/assets/admin-logo.svg";
+import adminLogo from "@/assets/brand-mark-compact.png";
 import { cn } from "@/lib/utils";
 
 import {
@@ -77,7 +76,6 @@ const iconForRoute = (to: string) => {
   }
   if (to === ADMIN_ROUTES.taxonomy || to.startsWith("/taxonomy"))
     return Layers3;
-  if (to === ADMIN_ROUTES.userSubscriptions) return CreditCard;
   if (to === ADMIN_ROUTES.userSupport) return LifeBuoy;
   if (to === ADMIN_ROUTES.users) return UsersRound;
   if (to === ADMIN_ROUTES.settings || to.startsWith("/settings"))
@@ -202,12 +200,12 @@ export function AdminNavbar({
 
   return (
     <>
-      <header className="sticky top-0 z-[180] min-h-[var(--admin-header-height,4rem)] border-b border-white/70 bg-gradient-to-b from-white/94 to-white/82 backdrop-blur-xl">
+      <header className="sticky top-0 z-[180] min-h-[var(--admin-header-height,4rem)] border-b border-slate-200 bg-white/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[var(--admin-header-height,4rem)] w-full max-w-none items-center justify-between gap-3 px-3 md:px-4 lg:px-6">
         <div className="flex min-w-0 items-center gap-2">
           <Link
             to={ADMIN_ROUTES.dashboard}
-            className="group inline-flex items-center gap-2 rounded-2xl border border-white/75 bg-white/92 px-3 py-1.5 shadow-[0_10px_22px_-18px_rgba(15,23,42,0.75)] ring-1 ring-slate-900/5 transition hover:-translate-y-0.5"
+            className="group inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 transition hover:bg-slate-50"
           >
             <img
               src={adminLogo}

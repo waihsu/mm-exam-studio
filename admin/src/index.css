@@ -223,7 +223,7 @@
   --font-sans: "MMExam Sans", "Segoe UI", sans-serif;
   --font-heading: "MMExam Display", "MMExam Sans", "Segoe UI", sans-serif;
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --background: oklch(0.978 0.004 250);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -307,7 +307,8 @@
     @apply bg-background text-foreground;
     min-height: 100dvh;
     font-family: var(--font-sans);
-    line-height: 1.5;
+    line-height: 1.55;
+    font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -318,9 +319,18 @@
   h3,
   h4 {
     font-family: var(--font-heading);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.018em;
     font-weight: 700;
   }
+}
+
+/* Admin is an operations surface: quiet planes and typography carry hierarchy. */
+.admin-kicker {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
 ::selection {

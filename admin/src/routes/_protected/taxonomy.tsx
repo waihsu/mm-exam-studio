@@ -29,20 +29,20 @@ function TaxonomyLayout() {
 
   return (
     <PageContainer className="space-y-4 sm:space-y-5">
-      <PagePanel className="space-y-5 bg-white/88">
+      <PagePanel className="space-y-5">
         <div className="space-y-4 lg:flex lg:items-end lg:justify-between lg:space-y-0">
           <div className="space-y-2">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white">
+            <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white">
               <Layers3 className="h-5 w-5" />
             </div>
             <div className="space-y-2">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+              <p className="admin-kicker text-slate-500">
                 Taxonomy Control
               </p>
-              <h1 className="text-2xl font-black text-slate-900 sm:text-3xl">
+              <h1 className="text-2xl font-bold text-slate-950 sm:text-3xl">
                 Grade, subject, chapter, and sub chapter routes
               </h1>
-              <p className="max-w-3xl text-sm leading-7 text-slate-600">
+              <p className="max-w-3xl text-sm leading-6 text-slate-600">
                 The database centers the question bank around taxonomy. These
                 nested admin routes match that structure directly so control
                 panels stay aligned with `Grade`, `Subject`, `Chapter`, and

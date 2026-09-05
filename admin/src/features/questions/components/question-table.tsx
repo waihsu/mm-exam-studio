@@ -81,7 +81,7 @@ export function QuestionTable({
 
   return (
     <>
-      <div className="overflow-x-auto rounded-2xl border border-white/70 bg-white/92 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)]">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-[0_10px_28px_-24px_rgba(15,23,42,0.42)]">
         <Table>
           <TableHeader>
             <TableRow>
@@ -90,8 +90,8 @@ export function QuestionTable({
               <TableHead className="w-[210px]">Taxonomy</TableHead>
               <TableHead className="w-[120px]">Type</TableHead>
               <TableHead className="w-[120px]">Difficulty</TableHead>
-              <TableHead className="w-[140px]">Status</TableHead>
-              <TableHead className="w-[180px]">Actions</TableHead>
+              <TableHead className="w-[130px]">Status</TableHead>
+              <TableHead className="w-[76px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -102,7 +102,7 @@ export function QuestionTable({
 
               return (
                 <TableRow key={question.id}>
-                  <TableCell className="font-semibold text-slate-800">
+                  <TableCell className="font-mono text-xs font-semibold text-slate-700">
                     {question.questionCode}
                   </TableCell>
                   <TableCell className="max-w-xl whitespace-normal">
@@ -159,42 +159,34 @@ export function QuestionTable({
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={question.isPublished ? "default" : "secondary"}>
-                      {question.isPublished ? "Published" : "Draft"}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={question.isPublished}
+                        disabled={isPublishing || isDeleting}
+                        onCheckedChange={() => {
+                          void onTogglePublish(question);
+                        }}
+                        aria-label={question.isPublished ? "Move to draft" : "Publish question"}
+                      />
+                      <span className="text-xs font-medium text-slate-600">
+                        {isPublishing
+                          ? "Saving"
+                          : question.isPublished
+                            ? "Live"
+                            : "Draft"}
+                      </span>
+                    </div>
                   </TableCell>
-                  <TableCell>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                        <Switch
-                          checked={question.isPublished}
-                          disabled={isPublishing || isDeleting}
-                          onCheckedChange={() => {
-                            void onTogglePublish(question);
-                          }}
-                        />
-                        <span className="text-sm text-slate-700">
-                          {isPublishing
-                            ? "Saving..."
-                            : question.isPublished
-                              ? "Published"
-                              : "Draft"}
-                        </span>
-                      </div>
-                      {!question.isPublished ? (
-                        <p className="text-xs text-slate-500">
-                          Publishing will auto-mark this question as approved.
-                        </p>
-                      ) : null}
-
+                  <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="outline"
-                            className="w-full justify-between border-slate-300/80 bg-white"
+                            size="icon"
+                            className="h-8 w-8 border-slate-300 bg-white"
                             disabled={isDeleting || isPublishing}
+                            aria-label={`Open actions for ${question.questionCode}`}
                           >
-                            <span>Actions</span>
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -243,7 +235,6 @@ export function QuestionTable({
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </div>
                   </TableCell>
                 </TableRow>
               );
