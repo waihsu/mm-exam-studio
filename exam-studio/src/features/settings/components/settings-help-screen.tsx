@@ -15,7 +15,7 @@ type HelpSection = {
   accentColor: string;
   accentSoft: string;
   steps: string[];
-  preview: "practice" | "papers" | "subscription";
+  preview: "practice" | "papers" | "support";
 };
 
 const HELP_SECTIONS_META = [
@@ -41,13 +41,13 @@ const HELP_SECTIONS_META = [
   },
   {
     icon: {
-      ios: "creditcard.fill",
-      android: "credit_card",
-      web: "credit_card",
+      ios: "checkmark.seal.fill",
+      android: "verified",
+      web: "verified",
     },
     accentColor: "#047857",
     accentSoft: "#DCFCE7",
-    preview: "subscription",
+    preview: "support",
   },
 ];
 
@@ -75,7 +75,7 @@ export const SettingsHelpScreen = () => {
   const quickActions = [
     { href: "/practice", ...quickActionsCopy[0] },
     { href: "/papers", ...quickActionsCopy[1] },
-    { href: "/settings/subscription", ...quickActionsCopy[2] },
+    { href: "/settings/support", ...quickActionsCopy[2] },
   ] as const;
 
   useEffect(() => {

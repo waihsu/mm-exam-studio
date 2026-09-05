@@ -16,6 +16,12 @@ type PracticeReminderRecord = {
 
 type PracticeReminderStore = Record<string, PracticeReminderRecord>;
 
+type PermissionSnapshot = {
+  granted: boolean;
+  canAskAgain: boolean;
+  status: string;
+};
+
 let notificationsInitialized = false;
 
 const isNotificationsSupported = () => Platform.OS !== "web";
@@ -177,7 +183,7 @@ export const getLocalNotificationPermissionState =
       };
     }
 
-    const permission = await Notifications.getPermissionsAsync();
+    const permission = (await Notifications.getPermissionsAsync()) as PermissionSnapshot;
     return {
       supported: true,
       granted: permission.granted,
@@ -194,7 +200,7 @@ export const ensureLocalNotificationPermission = async () => {
     return current;
   }
 
-  const requested = await Notifications.requestPermissionsAsync();
+  const requested = (await Notifications.requestPermissionsAsync()) as PermissionSnapshot;
   return {
     supported: true,
     granted: requested.granted,

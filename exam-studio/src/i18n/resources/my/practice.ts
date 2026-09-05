@@ -20,13 +20,15 @@ const practice = {
     search: "ရှာရန်",
   },
   home: {
-    title: "Practice Builder",
-    subtitle: "မေးခွန်းရွေးပြီး practice session စတင်ပါ။",
+    title: "Practice",
+    subtitle: "အတန်းရွေးပြီး စတင်လေ့ကျင့်ပါ။",
     openHelp: "Practice help ဖွင့်မည်",
     searchFiltersTitle: "Scope",
-    searchFiltersHint: "Syllabus scope ကိုတစ်ခါရွေးပြီး အောက်က mini blueprint နဲ့ question counts ကိုတိတိကျကျသတ်မှတ်ပါ။",
+    searchFiltersHint:
+      "Syllabus scope ကိုတစ်ခါရွေးပြီး အောက်က mini blueprint နဲ့ question counts ကိုတိတိကျကျသတ်မှတ်ပါ။",
     scopeSheetTitle: "Practice Scope ရွေးပါ",
-    scopeSheetSubtitle: "Main screen မရှုပ်အောင် scope ကိုဒီ sheet ထဲမှာရွေးနိုင်ပါတယ်။",
+    scopeSheetSubtitle:
+      "Main screen မရှုပ်အောင် scope ကိုဒီ sheet ထဲမှာရွေးနိုင်ပါတယ်။",
     scopeAllGrades: "အတန်းအားလုံး",
     scopeAllSubjects: "ဘာသာအားလုံး",
     scopeAllChapters: "Chapter အားလုံး",
@@ -34,25 +36,29 @@ const practice = {
     quickType: "Quick Type",
     loadingWorkspaceFilters: "Workspace filters တင်နေသည်...",
     failedWorkspaceFilters: "Workspace filters မရယူနိုင်ပါ။",
-    noFiltersApplied: "Filters မသုံးထားသေးပါ။ လက်ရှိ catalog က ကိုက်ညီသမျှမေးခွန်းအားလုံးကိုပြနေပါတယ်။",
+    noFiltersApplied:
+      "Filters မသုံးထားသေးပါ။ လက်ရှိ catalog က ကိုက်ညီသမျှမေးခွန်းအားလုံးကိုပြနေပါတယ်။",
     quickGuideTitle: "Practice Quick Guide",
     quickGuideSubtitle: "Screen မထွက်ဘဲ အမြန် help ကြည့်နိုင်ပါတယ်။",
     fullGuide: "Guide အပြည့်အစုံ",
     guideBestPattern:
       "ဒီ guide ကို မြန်မြန်ပြန်ကြည့်ပြီး ပိုအသေးစိတ်လိုရင် full help page ကိုဖွင့်နိုင်ပါတယ်။",
-    guideFilterTitle: "Scope ကိုရွေးပါ",
-    guideFilterHint: "အရင်ဆုံး grade, subject, chapter, lesson ကို scope picker ကနေရွေးပါ။",
-    guideSelectTitle: "Mini Blueprint သတ်မှတ်ပါ",
-    guideSelectHint: "Question type အလိုက် exact counts ထည့်ပြီး နောက်စမယ့် session ကို ဒီ mix အတိုင်းရွေးခိုင်းပါ။",
-    guideQuickStartTitle: "Mix ကနေစပါ",
+    guideFilterTitle: "မိမိအတန်းကိုရွေးပါ",
+    guideFilterHint:
+      "သင့် syllabus နဲ့ကိုက်ညီတဲ့မေးခွန်းတွေရရန် အရင်ဆုံး Grade ကိုရွေးပါ။",
+    guideSelectTitle: "လိုအပ်မှသာ စိတ်ကြိုက်ပြင်ပါ",
+    guideSelectHint:
+      "Subject၊ chapter၊ မေးခွန်းအမျိုးအစား သို့မဟုတ် အရေအတွက် တိတိကျကျလိုမှ Customize ကိုဖွင့်ပါ။",
+    guideQuickStartTitle: "Practice စတင်ပါ",
     guideQuickStartHint:
-      "Blueprint ဖြည့်ထားရင် Start Planned Mix သုံးပါ။ Row အားလုံး 0 ဖြစ်နေရင် Quick Start ကိုသုံးနိုင်ပါတယ်။",
+      "Quick Start မှာ မေးခွန်း ၁၀ ခုပါမည်။ စိတ်ကြိုက် mix သတ်မှတ်ထားလျှင်သာ ထို mix ကိုသုံးပါမည်။",
     guideResumeTitle: "Sessions ကိုဆက်လုပ်ပါ",
-    guideResumeHint: "Recent Sessions ကနေ မပြီးသေးတာတွေကို အချိန်မရွေးပြန်ဆက်လုပ်နိုင်ပါတယ်။",
+    guideResumeHint:
+      "Recent Sessions ကနေ မပြီးသေးတာတွေကို အချိန်မရွေးပြန်ဆက်လုပ်နိုင်ပါတယ်။",
     onboardingEyebrow: "ပထမအသုံးပြုမှု",
     onboardingTitle: "Practice ကစပြီး လိုသလိုတိုးသုံးပါ။",
     onboardingBody:
-      "User အများစုက Practice ကစပြီး၊ printable exam လိုချိန်မှာ Papers သုံးပြီး၊ plan/security/preferences အတွက်ပဲ Settings ကိုသွားကြပါတယ်။",
+      "Practice ကစပါ၊ printable exam လိုချိန်မှာ Papers ကိုသုံးပါ၊ preferences၊ help နဲ့ security အတွက် Settings ကိုသွားပါ။",
     onboardingSheetTitle: "Exam Studio မှကြိုဆိုပါတယ်",
     onboardingSheetSubtitle:
       "ပထမအသုံးပြုသူအတွက် အမြန် walkthrough တစ်ခုဖြစ်ပြီး တကယ်အလုပ်စဖို့ မြန်စေပါတယ်။",
@@ -60,11 +66,21 @@ const practice = {
     onboardingShowGuide: "Quick Guide ပြမည်",
     onboardingHintTitle: "စတင်ရန်ကောင်း",
     onboardingHint:
-      "ဘာကစရမလဲမသေချာရင် Quick Start ကိုတစ်ခါသုံးကြည့်ပါ။ Session flow ကိုချက်ချင်းနားလည်စေပါတယ်။",
+      "ဘာကစရမလဲမသေချာရင် အတန်းရွေးပြီး Quick Start ကိုတစ်ခါသုံးကြည့်ပါ။ Session flow ကိုချက်ချင်းနားလည်စေပါတယ်။",
     generatorTitle: "Start",
+    gradeRequiredHint:
+      "အရင်ဆုံး မိမိအတန်းကိုရွေးပါ။ သင့် syllabus နဲ့ကိုက်ညီတဲ့ မေးခွန်းတွေပဲ ရလာစေပါတယ်။",
+    selectGradeToStart: "အတန်းရွေးမည်",
+    customizeTitle: "Practice ကိုလိုသလိုစီမံမည် (ရွေးချယ်နိုင်)",
+    customizeCollapsedHint:
+      "Focused session လိုတဲ့အခါမှ ဘာသာ၊ chapter၊ မေးခွန်းအမျိုးအစားနဲ့ အရေအတွက်ကို တိတိကျကျရွေးပါ။",
+    customizeOpen: "လိုသလိုစီမံမည်",
+    customizeClose: "ရွေးချယ်စရာများဖျောက်မည်",
+    gradeRequiredError: "Practice စတင်ရန် အရင်ဆုံး မိမိအတန်းကိုရွေးပါ။",
     generatorHint:
-      "ဒီနေရာမှာ manual question picking ကိုဖျောက်ထားပါတယ်။ Scope နဲ့ question mix ကို mini blueprint flow တစ်ခုတည်းနဲ့စီနိုင်ပါတယ်။",
-    longAnswerExcludedHint: "Practice ဘက်မှာ long answer မေးခွန်းတွေကို မပြထားဘဲ Papers ဘက်မှာပဲထားတာမို့ totals ဒီမှာနည်းနေနိုင်ပါတယ်။",
+      "အတန်းရွေးပြီးစတင်ပါ။ Focused practice လိုမှသာ အပိုရွေးချယ်စရာများကိုဖွင့်သုံးပါ။",
+    longAnswerExcludedHint:
+      "Practice ဘက်မှာ long answer မေးခွန်းတွေကို မပြထားဘဲ Papers ဘက်မှာပဲထားတာမို့ totals ဒီမှာနည်းနေနိုင်ပါတယ်။",
     quickStart: "Quick Start (10 Random)",
     mixTitle: "Mini Blueprint",
     mixHint:
@@ -83,17 +99,19 @@ const practice = {
     mixSummaryQuestions: "မေးခွန်း",
     mixSummaryTypes: "အမျိုးအစား",
     mixSummaryReady: "နောက်ထုတ်မယ့် session မှာ ဒီ mix ကိုသုံးပါမယ်။",
-    mixSummaryFallback: "အားလုံးကို 0 ထားရင် Quick Start random mode ကိုပြန်သုံးပါမယ်။",
-    mixSummaryTooLarge: "Session တစ်ခုထဲမှာ planned mix က 50 မေးခွန်းထက်မပိုရပါ။",
+    mixSummaryFallback:
+      "အားလုံးကို 0 ထားရင် Quick Start random mode ကိုပြန်သုံးပါမယ်။",
+    mixSummaryTooLarge:
+      "Session တစ်ခုထဲမှာ planned mix က 50 မေးခွန်းထက်မပိုရပါ။",
     mixSummaryUnavailable:
       "တချို့ requested counts တွေက လက်ရှိ filter နဲ့ရနိုင်တဲ့ question အရေအတွက်ထက်ပိုနေပါတယ်။",
     startPlannedMix: "စီထားတဲ့ Mix နဲ့စမည်",
     recentSessionsTitle: "Recent Sessions",
     loadingSessions: "Sessions တင်နေသည်...",
     failedSessions: "Sessions မရယူနိုင်ပါ။",
-    noSessions: "Session မရှိသေးပါ။ Practice Builder ကနေစတင်ပါ။",
+    noSessions: "Session မရှိသေးပါ။ အတန်းရွေးပြီး စတင်ပါ။",
     noSessionsHint:
-      "Scope ကိုရွေး၊ လိုရင် mini blueprint သတ်မှတ်ပြီး အပေါ်က builder ကနေ session အသစ်စတင်ပါ။",
+      "Syllabus ကိုကန့်သတ်ချင်သည့်အခါ သို့မဟုတ် question mix တိတိကျကျလိုသည့်အခါမှ Customize ကိုသုံးပါ။",
     createFailed: "Practice session မဖန်တီးနိုင်ပါ။",
     selectedPracticeTitle: "ရွေးထားသော Practice",
     quickPracticeTitle: "အမြန် Practice",
@@ -105,7 +123,8 @@ const practice = {
   sessions: {
     back: "နောက်ပြန်",
     title: "Recent Sessions",
-    subtitle: "မပြီးသေးတဲ့ sessions ကိုဆက်လုပ်ပါ သို့မဟုတ် completed results ကိုပြန်ကြည့်ပါ။",
+    subtitle:
+      "မပြီးသေးတဲ့ sessions ကိုဆက်လုပ်ပါ သို့မဟုတ် completed results ကိုပြန်ကြည့်ပါ။",
     started: "စတင်ထား",
     completed: "ပြီးဆုံး",
     loading: "Sessions တင်နေသည်...",
@@ -113,7 +132,8 @@ const practice = {
     deleteAction: "ဖျက်မည်",
     deleting: "ဖျက်နေသည်...",
     deleteTitle: "ဒီ session ကိုဖျက်မလား",
-    deleteBody: "Recent list ကနေဖြုတ်ပြီး ဒီဖုန်းပေါ်က saved answers တွေကိုလည်းရှင်းပါမယ်။",
+    deleteBody:
+      "Recent list ကနေဖြုတ်ပြီး ဒီဖုန်းပေါ်က saved answers တွေကိုလည်းရှင်းပါမယ်။",
     deleteFailedTitle: "Session ကိုမဖျက်နိုင်ပါ",
     deleteFailed: "Practice session ကိုမဖျက်နိုင်ပါ။",
     empty: "Session မရှိသေးပါ။ Practice tab ကနေစပါ။",
@@ -132,12 +152,14 @@ const practice = {
     completedScoreMeta: " • ရမှတ်: {{correct}}/{{total}} ({{percent}}%)",
     elapsedMeta: " • ကြာချိန်: {{elapsed}}",
     completedAt: "ပြီးဆုံးချိန်: {{date}}",
-    progressMeta: "ဖြေပြီး: {{answered}}/{{total}} ({{percent}}%) • မဖြေရသေး: {{unanswered}}",
+    progressMeta:
+      "ဖြေပြီး: {{answered}}/{{total}} ({{percent}}%) • မဖြေရသေး: {{unanswered}}",
     submittedTitle: "Practice တင်ပြီးပါပြီ",
     submittedHint:
       "Result ကိုအခုတန်းကြည့်လို့ရပြီ။ Navigator နဲ့ question တစ်ခုချင်းစီပြန်စစ်လို့ရပါတယ်။",
     resultByType: "မေးခွန်းအမျိုးအစားအလိုက်ရလဒ်",
     questionNavigator: "Question Navigator",
+    currentQuestion: "လက်ရှိ",
     previous: "ရှေ့မေးခွန်း",
     next: "နောက်မေးခွန်း",
     questionProgress: "မေးခွန်း {{current}} / {{total}}",
@@ -169,7 +191,8 @@ const practice = {
     chooseFromBank: "အောက်က answer bank ထဲကရွေးပါ",
     answerBank: "Answer bank",
     selectPromptToStart: "Matching စဖို့ prompt တစ်ခုရွေးပါ",
-    answerBankHint: "Choice တစ်ခုနှိပ်ပါ။ အခြားနေရာမှာ paired ဖြစ်နေရင် ဒီနေရာကိုရွှေ့မယ်။",
+    answerBankHint:
+      "Choice တစ်ခုနှိပ်ပါ။ အခြားနေရာမှာ paired ဖြစ်နေရင် ဒီနေရာကိုရွှေ့မယ်။",
     failedSubmit: "Session မတင်နိုင်ပါ။",
     questionTypes: {
       mcq: "MCQ",

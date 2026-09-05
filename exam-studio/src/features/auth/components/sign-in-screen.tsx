@@ -3,13 +3,8 @@ import React, { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "@/i18n";
 import { AuthScreenShell } from "./auth-screen-shell";
-import {
-  AuthBanner,
-  AuthButton,
-  AuthConsent,
-  AuthField,
-  authUiStyles,
-} from "./auth-ui";
+import { AuthBanner, AuthButton, AuthConsent, AuthField } from "./auth-ui";
+import { authUiStyles } from "./auth-ui.styles";
 import { useSignInEmailMutation } from "../hooks/use-sign-in-email-mutation";
 
 export const SignInScreen = () => {
@@ -24,8 +19,12 @@ export const SignInScreen = () => {
   const submitting = signInMutation.isPending;
 
   const canSubmit = useMemo(
-    () => email.trim().length > 0 && password.length > 0 && acceptedPolicy && !submitting,
-    [acceptedPolicy, email, password, submitting],
+    () =>
+      email.trim().length > 0 &&
+      password.length > 0 &&
+      acceptedPolicy &&
+      !submitting,
+    [acceptedPolicy, email, password, submitting]
   );
 
   const submit = async () => {
@@ -60,7 +59,7 @@ export const SignInScreen = () => {
       setErrorMessage(
         resolvedMessage.toLowerCase().includes("verify your email")
           ? t("signIn.emailNotVerified")
-          : resolvedMessage,
+          : resolvedMessage
       );
     }
   };
@@ -74,7 +73,9 @@ export const SignInScreen = () => {
     >
       <View style={authUiStyles.sectionHeader}>
         <Text style={authUiStyles.sectionKicker}>{t("signIn.kicker")}</Text>
-        <Text style={authUiStyles.sectionTitle}>{t("signIn.sectionTitle")}</Text>
+        <Text style={authUiStyles.sectionTitle}>
+          {t("signIn.sectionTitle")}
+        </Text>
       </View>
 
       <AuthField
@@ -111,10 +112,10 @@ export const SignInScreen = () => {
         linkLabel={t("consent.linkLabel")}
         onPressLink={() => router.push("/legal" as RelativePathString)}
         onToggle={() => {
-          setErrorMessage((current) =>
-            current === t("consent.required") ? null : current,
+          setErrorMessage(current =>
+            current === t("consent.required") ? null : current
           );
-          setAcceptedPolicy((current) => !current);
+          setAcceptedPolicy(current => !current);
         }}
       />
 
@@ -129,13 +130,17 @@ export const SignInScreen = () => {
           onPress={() => router.push("/forgot-password" as RelativePathString)}
           style={authUiStyles.textLink}
         >
-          <Text style={authUiStyles.textLinkLabel}>{t("signIn.forgotPassword")}</Text>
+          <Text style={authUiStyles.textLinkLabel}>
+            {t("signIn.forgotPassword")}
+          </Text>
         </Pressable>
         <Pressable
           onPress={() => router.replace("/sign-up" as RelativePathString)}
           style={authUiStyles.textLink}
         >
-          <Text style={authUiStyles.textLinkLabel}>{t("signIn.createAccount")}</Text>
+          <Text style={authUiStyles.textLinkLabel}>
+            {t("signIn.createAccount")}
+          </Text>
         </Pressable>
       </View>
     </AuthScreenShell>

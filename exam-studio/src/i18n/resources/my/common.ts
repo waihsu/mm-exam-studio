@@ -23,6 +23,12 @@ const common = {
     launchTagline: "လေ့ကျင့်၊ ပြင်ဆင်၊ ထုတ်ယူ",
     launchingWorkspace: "သင်၏ လုံခြုံ workspace ကိုဖွင့်နေသည်...",
   },
+  navigation: {
+    home: "ပင်မ",
+    practice: "လေ့ကျင့်",
+    papers: "စာမေးပွဲ",
+    settings: "ပြင်ဆင်မှု",
+  },
 } as const;
 
 export default common;

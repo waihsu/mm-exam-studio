@@ -1,11 +1,8 @@
 const support = {
   title: "Support",
-  subtitle: "Chat with admin or open a support channel.",
+  subtitle: "Chat with an admin about an account, content, or app issue.",
   quickHelp: "Quick Help",
-  supportDetailsFailed: "Failed to load support details.",
-  fallbackSupportLabel: "Support",
-  openLabel: "Open {{label}}",
-  paymentHelp: "Payment Help",
+  quickHelpBody: "Send a message below and include what happened, what you expected, and the steps to reproduce it.",
   chat: "Chat",
   supportChatFailed: "Failed to load support chat.",
   supportSendFailed: "Failed to send message.",
@@ -40,9 +37,9 @@ const support = {
   repliesBlocked: "Replies Blocked",
   presets: [
     {
-      label: "Payment",
-      subject: "Payment issue",
-      draft: "I need help with a payment issue. Reference:",
+      label: "Content",
+      subject: "Content issue",
+      draft: "I found an issue with question content. Details:",
     },
     {
       label: "Login",
@@ -55,9 +52,9 @@ const support = {
       draft: "I found an app issue. Steps to reproduce:",
     },
     {
-      label: "Subscription",
-      subject: "Subscription help",
-      draft: "I need help with my subscription status. Details:",
+      label: "Account",
+      subject: "Account help",
+      draft: "I need help with my account. Details:",
     },
   ],
 } as const;

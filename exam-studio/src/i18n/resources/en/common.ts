@@ -23,6 +23,12 @@ const common = {
     launchTagline: "Practice, Build, Print",
     launchingWorkspace: "Launching your protected workspace...",
   },
+  navigation: {
+    home: "Home",
+    practice: "Practice",
+    papers: "Papers",
+    settings: "Settings",
+  },
 } as const;
 
 export default common;

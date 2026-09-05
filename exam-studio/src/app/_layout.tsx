@@ -7,9 +7,7 @@ import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as Notifications from "expo-notifications";
-import { SUBSCRIPTION_QUERY_KEYS } from "@/features/subscriptions/constants/query-keys";
 import { SUPPORT_QUERY_KEYS } from "@/features/support/constants/query-keys";
-import { WORKSPACE_QUERY_KEYS } from "@/features/workspace/constants/query-keys";
 import { LaunchSplashScreen } from "@/features/app-shell/components/launch-splash-screen";
 import { initializeAppNotifications } from "@/features/practice/services/practice-reminder-notification.service";
 import { AppLanguageSync } from "@/i18n";
@@ -30,19 +28,6 @@ const syncNotificationSideEffects = (data: unknown) => {
     return;
   }
 
-  if (data.kind === "subscription-request-reviewed") {
-    void Promise.allSettled([
-      appQueryClient.invalidateQueries({
-        queryKey: WORKSPACE_QUERY_KEYS.summary(),
-      }),
-      appQueryClient.invalidateQueries({
-        queryKey: SUBSCRIPTION_QUERY_KEYS.currentRequest(),
-      }),
-      appQueryClient.invalidateQueries({
-        queryKey: SUBSCRIPTION_QUERY_KEYS.requests(),
-      }),
-    ]);
-  }
 };
 
 const navigateFromNotification = (data: unknown) => {
@@ -65,9 +50,6 @@ const navigateFromNotification = (data: unknown) => {
     return;
   }
 
-  if (data.kind === "subscription-request-reviewed") {
-    router.push("/settings/subscription");
-  }
 };
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {

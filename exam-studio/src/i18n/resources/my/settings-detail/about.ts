@@ -10,7 +10,7 @@ const about = {
   papers:
     "Papers က မေးခွန်းရွေးပြီး drafts တည်ဆောက်ကာ printable exam sheets ပြင်ဆင်နိုင်ပါတယ်။",
   settings:
-    "Settings က subscription, security, notifications, support နဲ့ account controls တွေကိုမြန်မြန်ဝင်နိုင်စေပါတယ်။",
+    "Settings က preferences, security, notifications, support နဲ့ account controls တွေကိုမြန်မြန်ဝင်နိုင်စေပါတယ်။",
 } as const;
 
 export default about;

@@ -28,10 +28,12 @@ type ScopeLabels = {
 export const usePapersHomeController = ({
   scopeLabels,
   createFailedMessage,
+  gradeRequiredMessage,
   onPaperCreated,
 }: {
   scopeLabels: ScopeLabels;
   createFailedMessage: string;
+  gradeRequiredMessage: string;
   onPaperCreated: (paperId: string) => void;
 }) => {
   const papersQuery = useQuestionPapersQuery();
@@ -39,7 +41,7 @@ export const usePapersHomeController = ({
   const workspaceMetaQuery = useWorkspaceMetaQuery();
   const createMutation = useCreateQuestionPaperMutation();
 
-  const [title, setTitle] = useState("Monthly Test Paper");
+  const [title, setTitle] = useState("");
   const [count, setCount] = useState("10");
   const [gradeId, setGradeId] = useState<ScopeFilterValue>("all");
   const [subjectId, setSubjectId] = useState<ScopeFilterValue>("all");
@@ -198,7 +200,16 @@ export const usePapersHomeController = ({
   };
 
   const createQuickGeneratedPaper = async () => {
-    if (!title.trim() || createMutation.isPending) {
+    if (createMutation.isPending) {
+      return;
+    }
+
+    if (gradeId === "all") {
+      setCreateError(gradeRequiredMessage);
+      return;
+    }
+
+    if (!title.trim()) {
       return;
     }
 
@@ -260,6 +271,7 @@ export const usePapersHomeController = ({
     activeScopePickerOptions,
     activeScopePickerValue,
     configuredMixCount,
+    hasSelectedGrade: gradeId !== "all",
     quickTypeCountsQuery,
     papersRefresh,
     filteredSavedPapers,

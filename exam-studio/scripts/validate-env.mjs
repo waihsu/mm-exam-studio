@@ -35,6 +35,9 @@ const readDotEnvValue = (key) => {
 const rawBaseUrl = String(
   process.env.EXPO_PUBLIC_API_BASE_URL || readDotEnvValue("EXPO_PUBLIC_API_BASE_URL") || "",
 ).trim();
+const rawProjectId = String(
+  process.env.EXPO_PUBLIC_EAS_PROJECT_ID || readDotEnvValue("EXPO_PUBLIC_EAS_PROJECT_ID") || "",
+).trim();
 
 if (!rawBaseUrl) {
   console.error("Missing EXPO_PUBLIC_API_BASE_URL.");
@@ -67,6 +70,17 @@ if (mode === "production") {
   }
   if (isLocalHost || isPrivateIpv4) {
     console.error("Production EXPO_PUBLIC_API_BASE_URL must be publicly reachable.");
+    process.exit(1);
+  }
+}
+
+if (rawProjectId) {
+  const isUuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    rawProjectId,
+  );
+
+  if (!isUuidLike) {
+    console.error("EXPO_PUBLIC_EAS_PROJECT_ID must be a valid UUID when provided.");
     process.exit(1);
   }
 }

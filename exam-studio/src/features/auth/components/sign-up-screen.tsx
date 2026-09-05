@@ -3,13 +3,8 @@ import React, { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "@/i18n";
 import { AuthScreenShell } from "./auth-screen-shell";
-import {
-  AuthBanner,
-  AuthButton,
-  AuthConsent,
-  AuthField,
-  authUiStyles,
-} from "./auth-ui";
+import { AuthBanner, AuthButton, AuthConsent, AuthField } from "./auth-ui";
+import { authUiStyles } from "./auth-ui.styles";
 import { useSignUpEmailMutation } from "../hooks/use-sign-up-email-mutation";
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -49,7 +44,7 @@ export const SignUpScreen = () => {
       confirmPassword === password &&
       acceptedPolicy &&
       !submitting,
-    [acceptedPolicy, confirmPassword, email, name, password, submitting],
+    [acceptedPolicy, confirmPassword, email, name, password, submitting]
   );
 
   const submit = async () => {
@@ -80,7 +75,7 @@ export const SignUpScreen = () => {
       setErrorMessage(
         error instanceof Error && error.message.trim().length > 0
           ? error.message
-          : t("signUp.failed"),
+          : t("signUp.failed")
       );
     }
   };
@@ -94,7 +89,9 @@ export const SignUpScreen = () => {
     >
       <View style={authUiStyles.sectionHeader}>
         <Text style={authUiStyles.sectionKicker}>{t("signUp.kicker")}</Text>
-        <Text style={authUiStyles.sectionTitle}>{t("signUp.sectionTitle")}</Text>
+        <Text style={authUiStyles.sectionTitle}>
+          {t("signUp.sectionTitle")}
+        </Text>
       </View>
 
       <AuthField
@@ -155,10 +152,10 @@ export const SignUpScreen = () => {
         linkLabel={t("consent.linkLabel")}
         onPressLink={() => router.push("/legal" as RelativePathString)}
         onToggle={() => {
-          setErrorMessage((current) =>
-            current === t("consent.required") ? null : current,
+          setErrorMessage(current =>
+            current === t("consent.required") ? null : current
           );
-          setAcceptedPolicy((current) => !current);
+          setAcceptedPolicy(current => !current);
         }}
       />
 
@@ -173,7 +170,9 @@ export const SignUpScreen = () => {
           onPress={() => router.replace("/sign-in" as RelativePathString)}
           style={authUiStyles.textLink}
         >
-          <Text style={authUiStyles.textLinkLabel}>{t("signUp.haveAccount")}</Text>
+          <Text style={authUiStyles.textLinkLabel}>
+            {t("signUp.haveAccount")}
+          </Text>
         </Pressable>
       </View>
     </AuthScreenShell>
