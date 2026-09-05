@@ -1,10 +1,9 @@
 {
   "name": "mm-exam-studio",
   "version": "0.5.1",
-  "description": "A monorepo template built with Bun, Hono, Vite, and React",
-  "author": "Steve Simkins",
+  "description": "Open-source exam practice and question-paper workspace for Myanmar learners.",
+  "author": "MM Exam Studio contributors",
   "license": "MIT",
-  "homepage": "https://github.com/stevedylandev/bhvr",
   "packageManager": "bun@1.2.4",
   "workspaces": [
     "./server",
@@ -30,15 +29,15 @@
     "lint": "turbo lint",
     "type-check": "turbo type-check",
     "test": "turbo test",
+    "verify:release": "bun run build && bun run lint && turbo run test --filter=admin --filter=server --filter=shared && cd server && bun run pdf:smoke",
     "postinstall": "turbo build --filter=shared --filter=server"
   },
   "keywords": [
-    "bun",
-    "hono",
-    "react",
-    "vite",
-    "monorepo",
-    "turbo"
+    "education",
+    "exam-practice",
+    "question-papers",
+    "myanmar",
+    "open-source"
   ],
   "devDependencies": {
     "bun-types": "latest",

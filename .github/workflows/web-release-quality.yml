@@ -1,0 +1,48 @@
+name: Web release quality
+
+on:
+  pull_request:
+    paths:
+      - "admin/**"
+      - "client/**"
+      - "server/**"
+      - "shared/**"
+      - "package.json"
+      - "bun.lock"
+      - "turbo.json"
+      - ".github/workflows/web-release-quality.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "admin/**"
+      - "client/**"
+      - "server/**"
+      - "shared/**"
+      - "package.json"
+      - "bun.lock"
+      - "turbo.json"
+      - ".github/workflows/web-release-quality.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build, lint, test, and render PDF
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2.4"
+
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify release quality
+        run: bun run verify:release
