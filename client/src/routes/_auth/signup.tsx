@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, BadgeCheck, BookOpenCheck, FileOutput } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,36 +36,21 @@ function SignUpPage() {
   };
 
   return (
-    <div className="min-w-0 space-y-6 sm:space-y-7">
+    <div className="min-w-0 space-y-7 sm:space-y-8">
       <div className="min-w-0 space-y-3">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+        <p className="ink-kicker text-indigo-700">
           Account setup
         </p>
-        <h2 className="text-2xl font-semibold leading-tight tracking-tight text-slate-900 [text-wrap:balance] sm:text-[2rem]">
-          Start your exam workflow
-        </h2>
-        <p className="text-sm leading-7 text-slate-600 sm:text-[15px]">
-          Create an account to unlock focused practice, question paper builder,
-          and clean PDF export from your personal workspace.
+        <h1 className="text-[2.25rem] font-extrabold leading-[1.08] tracking-[-0.04em] text-[#202536] [text-wrap:balance] sm:text-[2.75rem]">
+          Start with a clearer study system.
+        </h1>
+        <p className="max-w-sm text-[0.9375rem] leading-7 text-slate-600">
+          Your workspace keeps practice, question papers, and progress together without adding unnecessary steps.
         </p>
-        <div className="grid gap-2 sm:grid-cols-3">
-          <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600">
-            <BookOpenCheck className="h-3.5 w-3.5 text-sky-600" />
-            Guided practice
-          </div>
-          <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600">
-            <FileOutput className="h-3.5 w-3.5 text-emerald-600" />
-            PDF export ready
-          </div>
-          <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600">
-            <BadgeCheck className="h-3.5 w-3.5 text-indigo-600" />
-            One secure account
-          </div>
-        </div>
       </div>
 
       <form
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5"
+        className="space-y-5 border-t border-[#d8d5ca] pt-7"
         onSubmit={async (event) => {
           event.preventDefault();
           setIsPending(true);
@@ -91,7 +76,7 @@ function SignUpPage() {
             type="text"
             value={name}
             onChange={(event) => onNameChange(event.target.value)}
-            className="h-12 px-4"
+            className="h-12 rounded-lg border-[#cfcbbf] bg-white px-4 shadow-none focus-visible:ring-indigo-500/20"
             placeholder="Aye Aye Khine"
             autoComplete="name"
             required
@@ -106,7 +91,7 @@ function SignUpPage() {
             type="email"
             value={email}
             onChange={(event) => onEmailChange(event.target.value)}
-            className="h-12 px-4"
+            className="h-12 rounded-lg border-[#cfcbbf] bg-white px-4 shadow-none focus-visible:ring-indigo-500/20"
             placeholder="user@example.com"
             autoComplete="email"
             autoCapitalize="none"
@@ -124,7 +109,7 @@ function SignUpPage() {
             type="password"
             value={password}
             onChange={(event) => onPasswordChange(event.target.value)}
-            className="h-12 px-4"
+            className="h-12 rounded-lg border-[#cfcbbf] bg-white px-4 shadow-none focus-visible:ring-indigo-500/20"
             placeholder="Choose a secure password"
             autoComplete="new-password"
             required
@@ -142,7 +127,7 @@ function SignUpPage() {
 
         <Button
           type="submit"
-          className="h-12 w-full"
+          className="h-12 w-full rounded-lg bg-[#202536] text-white hover:bg-[#30364d]"
           disabled={isPending}
         >
           {isPending ? "Creating account..." : "Create account"}

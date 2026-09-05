@@ -25,4 +25,4 @@ bun run build
 - Question swap / replace / reorder
 - Finalize and PDF export
 - Branding
-- Subscription request with transaction ID and payment proof
+- Open access for core study and paper tools

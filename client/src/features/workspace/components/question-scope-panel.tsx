@@ -12,21 +12,23 @@ type QuestionScopePanelProps = {
   planCode?: "free" | "pro" | "premium";
   title?: string;
   hint?: string;
+  requiredFields?: Array<"grade" | "subject">;
+  surface?: "card" | "plain";
 };
 
 const inputClassName =
-  "h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-900";
+  "h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-[0.9375rem] text-slate-900 outline-none transition focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400";
 
 function FieldBlock({
   label,
   children,
 }: {
-  label: string;
+  label: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <label className="space-y-2">
-      <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+      <span className="text-xs font-semibold text-slate-600">
         {label}
       </span>
       {children}
@@ -41,22 +43,26 @@ export function QuestionScopePanel({
   planCode,
   title = "Scope",
   hint = "Choose the syllabus scope once, then set the exact mix below.",
+  requiredFields = [],
+  surface = "card",
 }: QuestionScopePanelProps) {
   const subjects = getSubjectsForGrade(meta, value.gradeId);
   const chapters = getChaptersForSelection(meta, value.gradeId, value.subjectId);
   const subChapters = getSubChaptersForChapter(meta, value.chapterId);
   const isFreePlan = planCode === "free";
+  const gradeRequired = requiredFields.includes("grade");
+  const subjectRequired = requiredFields.includes("subject");
 
   const update = (patch: Partial<WorkspaceFilters>) => {
     onChange({ ...value, ...patch });
   };
 
   return (
-    <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+    <div className={surface === "card" ? "space-y-4 rounded-xl border border-slate-200 bg-white p-4" : "space-y-5"}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-slate-900">{title}</p>
-          <p className="mt-1 text-sm text-slate-500">{hint}</p>
+          <p className="text-[1.0625rem] font-bold text-slate-950">{title}</p>
+          <p className="mt-1.5 text-sm leading-6 text-slate-500">{hint}</p>
           {isFreePlan ? (
             <p className="mt-2 text-xs text-slate-500">
               Free plan can use free preview chapters and lessons only.
@@ -74,14 +80,14 @@ export function QuestionScopePanel({
               subChapterId: "",
             })
           }
-          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
         >
           Clear
         </button>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <FieldBlock label="Grade">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <FieldBlock label={<>{"Grade"}{gradeRequired ? <span className="ml-1 text-rose-600">*</span> : null}</>}>
           <select
             value={value.gradeId}
             onChange={(event) =>
@@ -93,8 +99,9 @@ export function QuestionScopePanel({
               })
             }
             className={inputClassName}
+            required={gradeRequired}
           >
-            <option value="">All grades</option>
+            <option value="">{gradeRequired ? "Select grade" : "All grades"}</option>
             {meta?.grades.map((grade) => (
               <option key={grade.id} value={grade.id}>
                 {grade.name}
@@ -103,7 +110,7 @@ export function QuestionScopePanel({
           </select>
         </FieldBlock>
 
-        <FieldBlock label="Subject">
+        <FieldBlock label={<>{"Subject"}{subjectRequired ? <span className="ml-1 text-rose-600">*</span> : null}</>}>
           <select
             value={value.subjectId}
             onChange={(event) =>
@@ -114,8 +121,16 @@ export function QuestionScopePanel({
               })
             }
             className={inputClassName}
+            disabled={!value.gradeId}
+            required={subjectRequired}
           >
-            <option value="">All subjects</option>
+            <option value="">
+              {!value.gradeId
+                ? "Choose grade first"
+                : subjectRequired
+                  ? "Select subject"
+                  : "All subjects"}
+            </option>
             {subjects.map((subject) => (
               <option key={subject.id} value={subject.id}>
                 {subject.name}
@@ -134,8 +149,9 @@ export function QuestionScopePanel({
               })
             }
             className={inputClassName}
+            disabled={!value.subjectId}
           >
-            <option value="">All chapters</option>
+            <option value="">{value.subjectId ? "All chapters" : "Choose subject first"}</option>
             {chapters.map((chapter) => (
               <option
                 key={chapter.id}
@@ -154,8 +170,9 @@ export function QuestionScopePanel({
             value={value.subChapterId}
             onChange={(event) => update({ subChapterId: event.target.value })}
             className={inputClassName}
+            disabled={!value.chapterId}
           >
-            <option value="">All lessons</option>
+            <option value="">{value.chapterId ? "All lessons" : "Choose chapter first"}</option>
             {subChapters.map((subChapter) => (
               <option
                 key={subChapter.id}

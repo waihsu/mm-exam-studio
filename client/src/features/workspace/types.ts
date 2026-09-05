@@ -32,7 +32,13 @@ export type WorkspaceCatalogQuestion = {
   questionCode: string;
   title?: string | null;
   bodyPreview: string;
-  type: "mcq" | "true_false" | "short_answer" | "fill_blank" | "matching";
+  type:
+    | "mcq"
+    | "true_false"
+    | "short_answer"
+    | "long_answer"
+    | "fill_blank"
+    | "matching";
   difficulty: "easy" | "medium" | "hard";
   mode: "static" | "variable";
   marks: number;
@@ -218,7 +224,13 @@ export type QuestionPaperItem = {
   questionId: string;
   position: number;
   questionCode: string;
-  questionType: "mcq" | "true_false" | "short_answer" | "fill_blank" | "matching";
+  questionType:
+    | "mcq"
+    | "true_false"
+    | "short_answer"
+    | "long_answer"
+    | "fill_blank"
+    | "matching";
   marks: number;
   body: string;
   answerText?: string | null;

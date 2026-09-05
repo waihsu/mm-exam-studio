@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Clock3, ShieldCheck, Sparkles, X } from "lucide-react";
+import { ArrowRight, Clock3, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,32 +56,21 @@ function SignInPage() {
   };
 
   return (
-    <div className="min-w-0 space-y-6 sm:space-y-7">
+    <div className="min-w-0 space-y-7 sm:space-y-8">
       <div className="min-w-0 space-y-3">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-          Welcome back
+        <p className="ink-kicker text-indigo-700">
+          Secure account access
         </p>
-        <h2 className="text-2xl font-semibold leading-tight tracking-tight text-slate-900 [text-wrap:balance] sm:text-[2rem]">
-          Continue your learning workspace
-        </h2>
-        <p className="text-sm leading-7 text-slate-600 sm:text-[15px]">
-          Sign in to access your dashboard, focused practice flow, and paper
-          export tools in one place.
+        <h1 className="text-[2.25rem] font-extrabold leading-[1.08] tracking-[-0.04em] text-[#202536] [text-wrap:balance] sm:text-[2.75rem]">
+          Pick up where you left off.
+        </h1>
+        <p className="max-w-sm text-[0.9375rem] leading-7 text-slate-600">
+          Your saved practice, paper drafts, and exports are ready in one place.
         </p>
-        <div className="flex flex-wrap gap-2 pt-1">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600">
-            <Sparkles className="h-3.5 w-3.5 text-sky-600" />
-            Fast daily practice
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-            Secure account
-          </span>
-        </div>
       </div>
 
       <form
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5"
+        className="space-y-5 border-t border-[#d8d5ca] pt-7"
         onSubmit={async (event) => {
           event.preventDefault();
           setIsPending(true);
@@ -115,7 +104,7 @@ function SignInPage() {
             type="email"
             value={email}
             onChange={(event) => onEmailChange(event.target.value)}
-            className="h-12 px-4"
+          className="h-12 rounded-lg border-[#cfcbbf] bg-white px-4 shadow-none focus-visible:ring-indigo-500/20"
             placeholder="user@example.com"
             autoComplete="email"
             autoCapitalize="none"
@@ -133,7 +122,7 @@ function SignInPage() {
             type="password"
             value={password}
             onChange={(event) => onPasswordChange(event.target.value)}
-            className="h-12 px-4"
+          className="h-12 rounded-lg border-[#cfcbbf] bg-white px-4 shadow-none focus-visible:ring-indigo-500/20"
             placeholder="Enter your password"
             autoComplete="current-password"
             required
@@ -148,7 +137,7 @@ function SignInPage() {
 
         <Button
           type="submit"
-          className="h-12 w-full"
+          className="h-12 w-full rounded-lg bg-[#202536] text-white shadow-[0_12px_24px_-16px_rgba(32,37,54,0.7)] hover:bg-[#30364d]"
           disabled={isPending}
         >
           {isPending ? "Signing in..." : "Sign in"}
@@ -220,10 +209,10 @@ function SignInPage() {
       </form>
 
       {recentAccounts.length > 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="border-y border-[#d8d5ca] py-5">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+              <p className="ink-kicker text-slate-500">
                 Recent accounts
               </p>
               <p className="mt-1 text-sm text-slate-500 leading-6">
@@ -235,7 +224,7 @@ function SignInPage() {
             {recentAccounts.map((account) => (
               <div
                 key={account.email}
-                className="hover-lift flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"
+                className="flex items-center justify-between gap-3 rounded-lg border border-[#dfdcd2] bg-[#f7f6f0] px-4 py-3 transition hover:border-[#bbb7aa] hover:bg-white"
               >
                 <button
                   type="button"

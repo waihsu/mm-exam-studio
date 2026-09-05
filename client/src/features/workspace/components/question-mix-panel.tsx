@@ -103,13 +103,13 @@ export function QuestionMixPanel<TType extends WorkspaceQuestionType>({
 
       <div className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+          <p className="text-xs font-semibold text-slate-500">
             Planned questions
           </p>
           <p className="mt-1 text-xl font-semibold text-slate-900">{totalPlanned}</p>
         </div>
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+          <p className="text-xs font-semibold text-slate-500">
             Active types
           </p>
           <p className="mt-1 text-xl font-semibold text-slate-900">
@@ -117,7 +117,7 @@ export function QuestionMixPanel<TType extends WorkspaceQuestionType>({
           </p>
         </div>
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+          <p className="text-xs font-semibold text-slate-500">
             Mode
           </p>
           <p className="mt-1 text-sm font-semibold text-slate-900">

@@ -16,17 +16,15 @@ export function UsageCard({
   note: string;
   tone: "emerald" | "sky" | "amber" | "slate";
 }) {
-  const toneClass =
-    tone === "emerald"
-      ? "border-emerald-200"
-      : tone === "sky"
-        ? "border-sky-200"
-        : tone === "amber"
-          ? "border-amber-200"
-          : "border-slate-200";
+  const toneClass = {
+    emerald: "border-emerald-100 bg-emerald-50/50",
+    sky: "border-sky-100 bg-sky-50/50",
+    amber: "border-amber-100 bg-amber-50/60",
+    slate: "border-slate-200 bg-white",
+  }[tone];
 
   return (
-    <div className={`rounded-xl border bg-white/95 p-4 ${toneClass}`}>
+    <div className={`rounded-xl border p-4 shadow-[0_14px_30px_-28px_rgba(15,23,42,0.3)] ${toneClass}`}>
       <div className="flex items-center gap-2">
         <span className="app-icon-chip">
           <Icon className="h-4 w-4 text-slate-700" />
@@ -160,9 +158,9 @@ export function PlanCatalogCard({
 }) {
   const toneClass =
     item.code === "premium"
-      ? "border-amber-300 bg-amber-50/70"
+      ? "border-indigo-300 bg-[linear-gradient(145deg,#eff1ff_0%,#f8f8ff_56%,#eef7ff_100%)]"
       : item.code === "pro"
-        ? "border-sky-300 bg-sky-50/70"
+        ? "border-sky-200 bg-[linear-gradient(145deg,#effaff_0%,#ffffff_70%)]"
         : "border-slate-200 bg-white";
 
   const icon =
@@ -176,10 +174,10 @@ export function PlanCatalogCard({
   return (
     <article
       className={[
-        "rounded-2xl border p-4 transition",
+        "rounded-2xl border p-5 transition",
         toneClass,
-        isCurrent ? "ring-2 ring-slate-900/10" : "",
-        isSelected ? "shadow-[0_20px_60px_-35px_rgba(15,23,42,0.45)]" : "",
+        isCurrent ? "border-slate-900 ring-1 ring-slate-900/10" : "",
+        isSelected ? "border-indigo-500 shadow-[0_22px_46px_-32px_rgba(15,23,42,0.44)]" : "",
       ].join(" ")}
     >
       <div className="flex items-start justify-between gap-3">
@@ -188,7 +186,7 @@ export function PlanCatalogCard({
             <span className="app-icon-chip">
               <Icon className="h-4 w-4 text-slate-700" />
             </span>
-            <h3 className="text-lg font-semibold text-slate-900">{item.name}</h3>
+            <h3 className="text-xl font-bold tracking-tight text-slate-950">{item.name}</h3>
           </div>
           <p className="mt-2 text-sm font-medium text-slate-700">{item.tagline}</p>
           <p className="mt-2 text-sm leading-6 text-slate-600">{item.description}</p>
@@ -207,7 +205,7 @@ export function PlanCatalogCard({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+      <div className="mt-5 grid gap-2 sm:grid-cols-2">
         <PlanMetric label="Practice" value={item.limitSummary.practice} />
         <PlanMetric label="Paper" value={item.limitSummary.paper} />
         <PlanMetric label="Exports" value={item.limitSummary.exports} />
@@ -216,7 +214,7 @@ export function PlanCatalogCard({
         <PlanMetric label="Devices" value={item.limitSummary.devices} />
       </div>
 
-      <div className="mt-3 rounded-xl border border-white/70 bg-white/70 p-3">
+      <div className="mt-4 rounded-xl border border-white/90 bg-white/75 p-3 backdrop-blur-sm">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Included</p>
         <ul className="mt-2 space-y-2 text-sm text-slate-700">
           {item.highlights.map((highlight) => (
@@ -236,7 +234,7 @@ export function PlanCatalogCard({
         <Button
           type="button"
           variant={isCurrent ? "outline" : "default"}
-          className={isCurrent ? "w-full bg-white" : "w-full"}
+          className={isCurrent ? "w-full rounded-xl bg-white" : "w-full rounded-xl"}
           disabled={!isSelectable}
           onClick={onSelect}
         >
@@ -249,7 +247,7 @@ export function PlanCatalogCard({
 
 function PlanMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/70 bg-white/85 px-3 py-2">
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
       <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">{label}</p>
       <p className="mt-1 text-sm font-semibold text-slate-900">{value}</p>
     </div>

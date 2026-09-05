@@ -16,19 +16,6 @@
 
 @font-face {
   font-family: "MMExam Sans";
-  src: url("/fonts/NotoSans-SemiBold.ttf") format("truetype");
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  unicode-range:
-    U+0000-00FF,
-    U+0100-024F,
-    U+1E00-1EFF,
-    U+2000-206F;
-}
-
-@font-face {
-  font-family: "MMExam Sans";
   src: url("/fonts/NotoSans-Medium.ttf") format("truetype");
   font-style: normal;
   font-weight: 500;
@@ -306,24 +293,34 @@
     @apply bg-background text-foreground;
     min-height: 100dvh;
     font-family: var(--font-sans);
-    line-height: 1.5;
+    line-height: 1.55;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: "ss01" 1, "cv11" 1;
-    background-image:
-      radial-gradient(circle at 0% 0%, color-mix(in oklab, var(--color-primary) 15%, transparent) 0%, transparent 36%),
-      radial-gradient(circle at 100% 0%, color-mix(in oklab, var(--color-accent) 18%, transparent) 0%, transparent 34%),
-      linear-gradient(180deg, #f8fbff 0%, #f4f8ff 46%, #fffaf1 100%);
-    background-attachment: fixed;
+    font-synthesis: none;
+    background: #f7f8fa;
   }
   h1,
   h2,
   h3,
   h4 {
     font-family: var(--font-heading);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.022em;
     font-weight: 700;
+    text-wrap: balance;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--color-primary) 72%, white);
+    outline-offset: 2px;
   }
 }
 
@@ -443,6 +440,102 @@
   color: var(--color-foreground);
 }
 
+/* Client product surface: deliberate and quiet, so study actions carry the emphasis. */
+:root {
+  --background: oklch(0.958 0.008 88);
+  --foreground: oklch(0.205 0.018 268);
+  --primary: oklch(0.45 0.18 277);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.925 0.018 270);
+  --secondary-foreground: oklch(0.26 0.055 277);
+  --muted: oklch(0.935 0.006 88);
+  --muted-foreground: oklch(0.46 0.016 268);
+  --border: oklch(0.84 0.009 88);
+  --ring: oklch(0.54 0.16 277);
+  --radius: 0.625rem;
+}
+
+body {
+  background: #f7f8fa;
+  letter-spacing: -0.006em;
+}
+
+/* Burmese glyphs are more legible with natural tracking and a little more breathing room. */
+:lang(my) {
+  letter-spacing: 0 !important;
+  line-height: 1.7;
+}
+
+.ui-kicker {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.ink-kicker {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.paper-surface {
+  border: 1px solid #e1e5eb;
+  background: #ffffff;
+  box-shadow: 0 16px 42px -36px rgba(21, 27, 43, 0.38);
+}
+
+.ink-rule {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(33, 38, 56, 0.45), rgba(33, 38, 56, 0.08), transparent);
+}
+
+:lang(my) .ui-kicker {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.app-hero {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  animation: none;
+  background: transparent;
+}
+
+.app-chip {
+  border-color: #e2e5ec;
+  background: #fff;
+  color: #4b5565;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+
+.field-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.app-icon-chip {
+  border-color: #e2e5ec;
+  background: #f8f9fc;
+}
+
+.route-transition,
+.reveal-up,
+.stagger-children > * {
+  animation: none;
+}
+
 @media print {
   body {
     background: white !important;
@@ -450,6 +543,7 @@
 
   header,
   aside,
+  nav,
   .print\:hidden {
     display: none !important;
   }
