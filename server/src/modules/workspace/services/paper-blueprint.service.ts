@@ -641,21 +641,21 @@ export const updatePaperBlueprint = async (
     throw new Error("Paper blueprint not found.");
   }
 
+  const existingInput = mapBlueprintToInputShape(existing);
   const merged = createPaperBlueprintSchema.parse({
-    ...mapBlueprintToInputShape(existing),
+    ...existingInput,
     ...patch,
-    includeAnswerPaper:
-      patch.includeAnswerPaper ?? mapBlueprintToInputShape(existing).includeAnswerPaper,
+    includeAnswerPaper: patch.includeAnswerPaper ?? existingInput.includeAnswerPaper,
     presetConfig:
       patch.presetConfig === undefined
-        ? mapBlueprintToInputShape(existing).presetConfig
+        ? existingInput.presetConfig
         : patch.presetConfig,
     templateConfig:
       patch.templateConfig === undefined
-        ? mapBlueprintToInputShape(existing).templateConfig
+        ? existingInput.templateConfig
         : patch.templateConfig,
-    sections: patch.sections ?? mapBlueprintToInputShape(existing).sections,
-    slots: patch.slots ?? mapBlueprintToInputShape(existing).slots,
+    sections: patch.sections ?? existingInput.sections,
+    slots: patch.slots ?? existingInput.slots,
   });
 
   assertBlueprintMath(merged);
