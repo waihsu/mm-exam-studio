@@ -1,12 +1,10 @@
 import { and, eq, inArray } from "drizzle-orm";
-import type { AppRole } from "@/core/types/app";
 import {
   chapter,
   db,
   grade,
   gradeSubject,
   paperBlueprint,
-  paperBlueprintSection,
   paperBlueprintSlot,
   question,
   subChapter,
@@ -39,16 +37,14 @@ import {
   assertBlueprintReferences,
   replaceBlueprintChildren,
 } from "./paper-blueprint.validation";
+import {
+  canAccessAllBlueprints,
+  loadAccessibleBlueprint,
+  loadPublishedTemplateById,
+  type BlueprintActor,
+  type BlueprintRecord,
+} from "./paper-blueprint.repository";
 import { getUserWorkspaceAccess } from "../../subscriptions/subscription.core";
-
-type BlueprintActor = {
-  userId: string;
-  roles: AppRole[];
-};
-
-type BlueprintRecord = Awaited<ReturnType<typeof loadAccessibleBlueprint>>;
-const canAccessAllBlueprints = (actor: BlueprintActor) =>
-  actor.roles.includes("superadmin");
 
 const mapBlueprintToResponse = (blueprint: NonNullable<BlueprintRecord>) => ({
   id: blueprint.id,
@@ -187,136 +183,6 @@ const mapBlueprintToInputShape = (blueprint: NonNullable<BlueprintRecord>): Crea
     slotConfig: (slot.slotConfig as Record<string, unknown> | null) ?? undefined,
   })),
 });
-
-const loadAccessibleBlueprint = async (actor: BlueprintActor, blueprintId: string) =>
-  db.query.paperBlueprint.findFirst({
-    where: canAccessAllBlueprints(actor)
-      ? eq(paperBlueprint.id, blueprintId)
-      : and(eq(paperBlueprint.id, blueprintId), eq(paperBlueprint.userId, actor.userId)),
-    with: {
-      user: {
-        columns: { id: true, name: true, email: true },
-      },
-      grade: {
-        columns: { id: true, code: true, name: true },
-      },
-      subject: {
-        columns: { id: true, code: true, name: true },
-      },
-      generatedPapers: {
-        orderBy: (table, { desc }) => [desc(table.updatedAt)],
-        columns: {
-          id: true,
-          title: true,
-          status: true,
-          totalQuestions: true,
-          totalMarks: true,
-          exportedAt: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      },
-      sections: {
-        orderBy: (table, { asc }) => [asc(table.sortOrder), asc(table.code)],
-      },
-      slots: {
-        orderBy: (table, { asc }) => [asc(table.slotNumber)],
-        with: {
-          section: {
-            columns: { id: true, code: true, title: true },
-          },
-          chapter: {
-            columns: { id: true, code: true, name: true },
-          },
-          subChapter: {
-            columns: { id: true, code: true, name: true },
-          },
-          lockedQuestion: {
-            columns: {
-              id: true,
-              questionCode: true,
-              type: true,
-              marks: true,
-              title: true,
-            },
-          },
-          generatedQuestion: {
-            columns: {
-              id: true,
-              questionCode: true,
-              type: true,
-              marks: true,
-              title: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-const loadPublishedTemplateById = async (blueprintId: string) =>
-  db.query.paperBlueprint.findFirst({
-    where: eq(paperBlueprint.id, blueprintId),
-    with: {
-      user: {
-        columns: { id: true, name: true, email: true },
-      },
-      grade: {
-        columns: { id: true, code: true, name: true },
-      },
-      subject: {
-        columns: { id: true, code: true, name: true },
-      },
-      generatedPapers: {
-        orderBy: (table, { desc }) => [desc(table.updatedAt)],
-        columns: {
-          id: true,
-          title: true,
-          status: true,
-          totalQuestions: true,
-          totalMarks: true,
-          exportedAt: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      },
-      sections: {
-        orderBy: (table, { asc }) => [asc(table.sortOrder), asc(table.code)],
-      },
-      slots: {
-        orderBy: (table, { asc }) => [asc(table.slotNumber)],
-        with: {
-          section: {
-            columns: { id: true, code: true, title: true },
-          },
-          chapter: {
-            columns: { id: true, code: true, name: true },
-          },
-          subChapter: {
-            columns: { id: true, code: true, name: true },
-          },
-          lockedQuestion: {
-            columns: {
-              id: true,
-              questionCode: true,
-              type: true,
-              marks: true,
-              title: true,
-            },
-          },
-          generatedQuestion: {
-            columns: {
-              id: true,
-              questionCode: true,
-              type: true,
-              marks: true,
-              title: true,
-            },
-          },
-        },
-      },
-    },
-  });
 
 export const listPaperBlueprints = async (actor: BlueprintActor) => {
   const rows = await db.query.paperBlueprint.findMany({
