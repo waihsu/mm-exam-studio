@@ -42,6 +42,7 @@ import {
   loadAccessibleBlueprint,
   loadPublishedTemplateById,
   type BlueprintActor,
+  type BlueprintRecord,
 } from "./paper-blueprint.repository";
 import { mapBlueprintToInputShape, mapBlueprintToResponse } from "./paper-blueprint.mapper";
 import { getUserWorkspaceAccess } from "../../subscriptions/subscription.core";
