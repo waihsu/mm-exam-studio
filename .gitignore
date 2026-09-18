@@ -42,6 +42,7 @@ lerna-debug.log*
 # Secrets / credentials / signing files
 **/*firebase-adminsdk*.json
 **/service-account*.json
+**/google-services.json
 **/google-service.json
 **/google-services\ (*.json
 **/*.jks
