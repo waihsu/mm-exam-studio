@@ -114,11 +114,11 @@ export function PracticeSessionLoadingState({
 
 const styles = StyleSheet.create({
   content: { gap: 12, paddingBottom: 20 },
-  skeleton: { backgroundColor: "#DBEAFE", borderRadius: 999 },
-  title: { color: "#2563EB", fontSize: 13, fontWeight: "800" },
+  skeleton: { backgroundColor: "#DDEBE4", borderRadius: 999 },
+  title: { color: "#48766B", fontSize: 13, fontWeight: "800" },
   headerCard: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#D8DEE9",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 16,
     borderWidth: 1,
     gap: 10,
@@ -130,8 +130,8 @@ const styles = StyleSheet.create({
   headerStatsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   statPill: { height: 30, width: 94 },
   navigatorCard: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#D8DEE9",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 16,
     borderWidth: 1,
     gap: 8,
@@ -147,8 +147,8 @@ const styles = StyleSheet.create({
   navigatorRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   navigatorChip: { height: 34, width: 34 },
   questionCard: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#D8DEE9",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 16,
     borderWidth: 1,
     gap: 10,
@@ -167,8 +167,8 @@ const styles = StyleSheet.create({
   lineMedium: { height: 14, width: "66%" },
   option: { borderRadius: 12, height: 54, width: "100%" },
   footerCard: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#D8DEE9",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 16,
     borderWidth: 1,
     padding: 12,

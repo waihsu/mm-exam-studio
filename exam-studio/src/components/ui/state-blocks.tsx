@@ -11,7 +11,7 @@ import {
 
 export const InlineLoadingState = ({ label }: { label: string }) => (
   <View style={styles.loadingRow}>
-    <ActivityIndicator color="#2563EB" />
+    <ActivityIndicator color="#48766B" />
     <Text style={styles.metaText}>{label}</Text>
   </View>
 );
@@ -138,25 +138,25 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   metaText: {
-    color: "#475569",
+    color: "#4F514B",
     fontSize: 14,
     lineHeight: 20,
   },
   metaMuted: {
-    color: "#64748B",
+    color: "#6E706B",
     fontSize: 13,
     lineHeight: 20,
   },
   errorText: {
-    color: "#B91C1C",
+    color: "#B6473A",
     fontSize: 13,
     fontWeight: "600",
     lineHeight: 20,
   },
   emptyStateBlock: {
     alignItems: "flex-start",
-    backgroundColor: "#F8FAFC",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#F8F5EE",
+    borderColor: "#D8D4C9",
     borderRadius: 14,
     borderWidth: 1,
     gap: 6,
@@ -170,8 +170,8 @@ const styles = StyleSheet.create({
   pageStateCard: {
     alignItems: "center",
     alignSelf: "stretch",
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 24,
     borderWidth: 1,
     gap: 10,
@@ -179,27 +179,27 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   pageStateTitle: {
-    color: "#0F172A",
+    color: "#202321",
     fontSize: 16,
     fontWeight: "700",
     textAlign: "center",
   },
   pageStateHint: {
-    color: "#64748B",
+    color: "#6E706B",
     fontSize: 13,
     lineHeight: 20,
     textAlign: "center",
   },
   skeletonBar: {
-    backgroundColor: "#DBEAFE",
+    backgroundColor: "#DDEBE4",
     borderRadius: 999,
   },
   skeletonList: {
     gap: 10,
   },
   skeletonCard: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#F8F5EE",
+    borderColor: "#D8D4C9",
     borderRadius: 16,
     borderWidth: 1,
     gap: 10,
@@ -229,8 +229,8 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderColor: "#CBD5E1",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#CFC9BD",
     borderRadius: 12,
     borderWidth: 1,
     justifyContent: "center",
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   secondaryButtonLabel: {
-    color: "#334155",
+    color: "#4F514B",
     fontSize: 14,
     fontWeight: "700",
   },

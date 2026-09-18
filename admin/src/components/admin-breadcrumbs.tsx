@@ -133,13 +133,13 @@ export function AdminBreadcrumbs() {
     <div className="sticky top-[var(--admin-header-height,4rem)] z-30 w-full px-4 pt-2.5 sm:px-5 md:px-6 lg:top-0 xl:px-7">
       <nav
         aria-label="Breadcrumb"
-        className="rounded-xl border border-white/70 bg-white/88 px-3 py-2 text-sm text-slate-600 shadow-[0_10px_24px_-20px_rgba(15,23,42,0.75)] ring-1 ring-slate-900/5 backdrop-blur-md"
+        className="rounded-xl border border-[#d8d4c9]/80 bg-[#fffdf8]/92 px-3 py-2 text-sm text-[#6e706b] shadow-[0_10px_24px_-20px_rgba(32,35,33,0.45)] ring-1 ring-[#202321]/5 backdrop-blur-md"
       >
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
             <Link
               to={ADMIN_ROUTES.dashboard}
-              className="font-medium hover:text-slate-900"
+              className="font-medium transition-colors hover:text-[#48766b]"
             >
               {tr({ en: "Dashboard", my: "ဒက်ရှ်ဘုတ်" })}
             </Link>
@@ -148,18 +148,18 @@ export function AdminBreadcrumbs() {
             const isLast = index === crumbs.length - 1;
             return (
               <Fragment key={crumb.to}>
-                <li aria-hidden="true" className="text-slate-400">
+                <li aria-hidden="true" className="text-[#9a9d96]">
                   <ChevronRight className="h-3.5 w-3.5" />
                 </li>
                 <li>
                   {isLast ? (
-                    <span className="font-semibold text-slate-900">
+                      <span className="font-semibold text-[#202321]">
                       {crumb.label}
                     </span>
                   ) : (
                     <Link
                       to={crumb.to}
-                      className="font-medium hover:text-slate-900"
+                      className="font-medium transition-colors hover:text-[#48766b]"
                     >
                       {crumb.label}
                     </Link>

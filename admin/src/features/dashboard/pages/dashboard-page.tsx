@@ -14,8 +14,8 @@ import { usersApi } from "@/features/users/api/users.api";
 
 const relativeTone = (count: number) =>
   count > 0
-    ? "border-amber-200 bg-amber-50 text-amber-800"
-    : "border-emerald-200 bg-emerald-50 text-emerald-800";
+    ? "border-[#ead1c3] bg-[#f5e4da] text-[#8f4437]"
+    : "border-[#c9dcd3] bg-[#e7efe9] text-[#2b554d]";
 
 export function DashboardPage() {
   const { user, isSuperAdmin } = useAuthFlow();
@@ -61,7 +61,7 @@ export function DashboardPage() {
       title: "Users",
       value: usersQuery.data?.total ?? 0,
       caption: "Accounts in the admin directory",
-      tone: "border-slate-200 bg-white text-slate-900",
+      tone: "border-[#d8d4c9] bg-[#fffdf8] text-[#202321]",
       to: ADMIN_ROUTES.users,
       icon: UsersRound,
     },
@@ -69,7 +69,7 @@ export function DashboardPage() {
       title: "Open support threads",
       value: supportQuery.data?.total ?? 0,
       caption: "Waiting in the inbox",
-      tone: "border-slate-200 bg-white text-slate-900",
+      tone: "border-[#d8d4c9] bg-[#fffdf8] text-[#202321]",
       to: ADMIN_ROUTES.userSupport,
       icon: LifeBuoy,
     },
@@ -83,10 +83,10 @@ export function DashboardPage() {
         description="Start with content, learners, and support work waiting for a decision."
         chips={
           <>
-            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600">
+            <span className="rounded-full border border-[#d8d4c9] bg-[#f8f5ee] px-3 py-1.5 text-xs font-medium text-[#6e706b]">
               Signed in as {user?.name || user?.email || "Admin"}
             </span>
-            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600">
+            <span className="rounded-full border border-[#d8d4c9] bg-[#f8f5ee] px-3 py-1.5 text-xs font-medium text-[#6e706b]">
               Access: {isSuperAdmin ? "Superadmin" : "Admin"}
             </span>
           </>
@@ -120,15 +120,15 @@ export function DashboardPage() {
                     {item.value}
                   </p>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-slate-500">
+                <div className="rounded-xl border border-[#d8d4c9] bg-[#e7efe9] p-2.5 text-[#48766b]">
                   <Icon className="h-4 w-4" />
                 </div>
               </div>
-              <p className="text-sm leading-5 text-slate-600">{item.caption}</p>
+              <p className="text-sm leading-5 text-[#6e706b]">{item.caption}</p>
               <Button
                 asChild
                 variant="outline"
-                className="w-full border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                className="w-full border-[#d8d4c9] bg-[#fffdf8] text-[#202321] hover:bg-[#f8f5ee]"
               >
                 <Link to={item.to}>
                   Open section

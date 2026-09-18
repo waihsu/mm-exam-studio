@@ -73,7 +73,7 @@ export const PaperDetailExportSection = ({
           onPress={onRequestExport}
         >
           {exportIsPending ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color="#FFFDF8" />
           ) : (
             <Text style={styles.primaryButtonLabel}>
               {paper.exportedAt
@@ -113,17 +113,17 @@ export const PaperDetailExportSection = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#D8DEE9",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 12,
     borderWidth: 1,
     gap: 10,
     padding: 14,
   },
-  cardTitle: { color: "#0F172A", fontSize: 16, fontWeight: "700" },
+  cardTitle: { color: "#202321", fontSize: 16, fontWeight: "700" },
   statusCard: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#F8F5EE",
+    borderColor: "#D8D4C9",
     borderRadius: 12,
     borderWidth: 1,
     gap: 6,
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     gap: 8,
     justifyContent: "space-between",
   },
-  statusTitle: { color: "#0F172A", flex: 1, fontSize: 14, fontWeight: "700" },
+  statusTitle: { color: "#202321", flex: 1, fontSize: 14, fontWeight: "700" },
   statusPill: {
     borderRadius: 999,
     fontSize: 11,
@@ -145,40 +145,40 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     textTransform: "capitalize",
   },
-  statusPillReady: { backgroundColor: "#DCFCE7", color: "#047857" },
-  statusPillPending: { backgroundColor: "#DBEAFE", color: "#1D4ED8" },
-  statusPillDraft: { backgroundColor: "#E2E8F0", color: "#475569" },
-  hint: { color: "#64748B", fontSize: 12 },
-  metaText: { color: "#475569", fontSize: 12 },
+  statusPillReady: { backgroundColor: "#E7EFE9", color: "#48766B" },
+  statusPillPending: { backgroundColor: "#F5E4DA", color: "#D76F55" },
+  statusPillDraft: { backgroundColor: "#D8D4C9", color: "#6E706B" },
+  hint: { color: "#6E706B", fontSize: 12 },
+  metaText: { color: "#6E706B", fontSize: 12 },
   buttonColumn: { gap: 8 },
   primaryButton: {
     alignItems: "center",
-    backgroundColor: "#2563EB",
+    backgroundColor: "#D76F55",
     borderRadius: 10,
     justifyContent: "center",
     minHeight: 42,
     paddingHorizontal: 10,
   },
-  primaryButtonLabel: { color: "#FFFFFF", fontSize: 13, fontWeight: "700" },
+  primaryButtonLabel: { color: "#FFFDF8", fontSize: 13, fontWeight: "700" },
   previewCard: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#F8F5EE",
+    borderColor: "#D8D4C9",
     borderRadius: 12,
     borderWidth: 1,
     gap: 8,
     padding: 12,
   },
-  previewTitle: { color: "#0F172A", fontSize: 14, fontWeight: "700" },
+  previewTitle: { color: "#202321", fontSize: 14, fontWeight: "700" },
   secondaryButton: {
     alignItems: "center",
-    borderColor: "#CBD5E1",
+    borderColor: "#CFC9BD",
     borderRadius: 10,
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 42,
     paddingHorizontal: 10,
   },
-  secondaryButtonLabel: { color: "#334155", fontSize: 13, fontWeight: "700" },
+  secondaryButtonLabel: { color: "#4F514B", fontSize: 13, fontWeight: "700" },
   buttonDisabled: { opacity: 0.6 },
   buttonPressed: { opacity: 0.85 },
 });

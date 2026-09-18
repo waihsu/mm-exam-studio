@@ -32,17 +32,17 @@ function TaxonomyLayout() {
       <PagePanel className="space-y-5">
         <div className="space-y-4 lg:flex lg:items-end lg:justify-between lg:space-y-0">
           <div className="space-y-2">
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white">
+            <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#202321] text-[#c8f27a]">
               <Layers3 className="h-5 w-5" />
             </div>
             <div className="space-y-2">
-              <p className="admin-kicker text-slate-500">
+              <p className="admin-kicker text-[#48766b]">
                 Taxonomy Control
               </p>
-              <h1 className="text-2xl font-bold text-slate-950 sm:text-3xl">
+              <h1 className="text-2xl font-bold text-[#202321] sm:text-3xl">
                 Grade, subject, chapter, and sub chapter routes
               </h1>
-              <p className="max-w-3xl text-sm leading-6 text-slate-600">
+              <p className="max-w-3xl text-sm leading-6 text-[#6e706b]">
                 The database centers the question bank around taxonomy. These
                 nested admin routes match that structure directly so control
                 panels stay aligned with `Grade`, `Subject`, `Chapter`, and
@@ -64,8 +64,8 @@ function TaxonomyLayout() {
                   asChild
                   variant="outline"
                   className={cn(
-                    "border-slate-300/80 bg-white",
-                    isActive && "border-slate-900 bg-slate-900 text-white hover:bg-slate-900",
+                    "border-[#d8d4c9] bg-[#fffdf8] text-[#202321] hover:border-[#7fa99d] hover:bg-[#f8f5ee]",
+                    isActive && "border-[#48766b] bg-[#48766b] text-white hover:bg-[#2b554d]",
                   )}
                 >
                   <Link to={tab.to}>{tab.label}</Link>

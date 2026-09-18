@@ -74,16 +74,16 @@ export function GlassSignInCard({
   };
 
   return (
-    <div className="relative w-full overflow-hidden rounded-3xl border border-slate-200/70 bg-white/70 p-5 shadow-2xl shadow-slate-300/35 backdrop-blur-xl sm:p-6">
-      <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-cyan-200/45 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-10 -left-8 h-32 w-32 rounded-full bg-emerald-200/40 blur-3xl" />
+    <div className="relative w-full overflow-hidden rounded-[22px] border border-[#d8d4c9] bg-[#fffdf8] p-5 shadow-[0_24px_56px_-38px_rgba(32,35,33,0.3)] sm:p-6">
+      <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-[#e7efe9] blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-10 -left-8 h-32 w-32 rounded-full bg-[#f5e4da] blur-3xl" />
 
       <form className="relative space-y-3" onSubmit={handleSubmit}>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+        <p className="admin-kicker text-[#48766b]">
           {brandLabel}
         </p>
-        <p className="text-2xl font-black tracking-tight text-slate-900">{title}</p>
-        <p className="text-sm text-slate-600">{description}</p>
+        <p className="text-2xl font-black tracking-tight text-[#202321]">{title}</p>
+        <p className="text-sm leading-6 text-[#6e706b]">{description}</p>
 
         <button
           type="button"
@@ -94,7 +94,7 @@ export function GlassSignInCard({
             });
           }}
           disabled={isSubmitting || isGoogleLoading}
-          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#d8d4c9] bg-[#fffdf8] px-3 text-sm font-semibold text-[#202321] transition hover:border-[#7fa99d] hover:bg-[#f8f5ee]"
         >
           <svg viewBox="0 0 48 48" aria-hidden className="h-4 w-4">
             <path
@@ -117,16 +117,16 @@ export function GlassSignInCard({
           {isGoogleLoading ? "Redirecting..." : googleLabel}
         </button>
 
-        <div className="flex items-center gap-2 text-xs text-slate-500">
-          <div className="h-px flex-1 bg-slate-300/70" />
+        <div className="flex items-center gap-2 text-xs text-[#6e706b]">
+          <div className="h-px flex-1 bg-[#d8d4c9]" />
           <span>or use email</span>
-          <div className="h-px flex-1 bg-slate-300/70" />
+          <div className="h-px flex-1 bg-[#d8d4c9]" />
         </div>
 
         <label className="grid gap-1.5 text-sm">
-          <span className="font-medium text-slate-700">Email</span>
+          <span className="font-medium text-[#202321]">Email</span>
           <input
-            className="h-10 w-full rounded-xl border border-white/70 bg-white/90 px-3 text-slate-900 outline-none transition focus:border-cyan-300"
+            className="h-11 w-full rounded-lg border border-[#d8d4c9] bg-[#fffdf8] px-3 text-[#202321] outline-none transition placeholder:text-[#a8ada5] focus:border-[#48766b] focus:ring-4 focus:ring-[#48766b]/10"
             type="email"
             autoComplete="email"
             placeholder="you@example.com"
@@ -141,10 +141,10 @@ export function GlassSignInCard({
           />
         </label>
         <label className="grid gap-1.5 text-sm">
-          <span className="font-medium text-slate-700">Password</span>
-          <div className="flex h-10 items-center gap-2 rounded-xl border border-white/70 bg-white/90 px-3 transition focus-within:border-cyan-300">
+          <span className="font-medium text-[#202321]">Password</span>
+          <div className="flex h-11 items-center gap-2 rounded-lg border border-[#d8d4c9] bg-[#fffdf8] px-3 transition focus-within:border-[#48766b] focus-within:ring-4 focus-within:ring-[#48766b]/10">
             <input
-              className="w-full bg-transparent text-slate-900 outline-none"
+              className="w-full bg-transparent text-[#202321] outline-none placeholder:text-[#a8ada5]"
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               placeholder="Your password"
@@ -160,21 +160,21 @@ export function GlassSignInCard({
             <button
               type="button"
               onClick={() => setShowPassword((current) => !current)}
-              className="text-xs font-medium text-slate-600"
+              className="text-xs font-semibold text-[#48766b]"
             >
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
         </label>
         {formError ? (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+          <p className="rounded-lg border border-[#e3b6a7] bg-[#f5e4da] px-3 py-2 text-xs text-[#8f4437]">
             {formError}
           </p>
         ) : null}
         <button
           type="submit"
           disabled={isSubmitting || isGoogleLoading}
-          className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-slate-900 px-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-500"
+          className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-[#202321] px-3 text-sm font-semibold text-[#fffdf8] transition hover:bg-[#2f3531] disabled:cursor-not-allowed disabled:bg-[#a8ada5]"
         >
           {isSubmitting ? "Signing in..." : submitLabel}
         </button>

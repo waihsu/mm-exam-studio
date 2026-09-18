@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   },
   switchButton: {
     alignItems: "center",
-    borderColor: "#CBD5E1",
+    borderColor: "#CFC9BD",
     borderRadius: 10,
     borderWidth: 1,
     flex: 1,
@@ -141,18 +141,18 @@ const styles = StyleSheet.create({
     minHeight: 42,
   },
   switchButtonActive: {
-    backgroundColor: "#EFF6FF",
-    borderColor: "#60A5FA",
+    backgroundColor: "#E7EFE9",
+    borderColor: "#BBD5C9",
   },
   switchButtonPressed: {
     opacity: 0.85,
   },
   switchButtonLabel: {
-    color: "#475569",
+    color: "#4F514B",
     fontSize: 13,
     fontWeight: "700",
   },
   switchButtonLabelActive: {
-    color: "#1D4ED8",
+    color: "#48766B",
   },
 });

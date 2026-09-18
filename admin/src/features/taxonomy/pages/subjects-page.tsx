@@ -134,32 +134,32 @@ export function SubjectsPage({ search }: SubjectsPageProps) {
 
   return (
     <div className="space-y-4">
-      <PagePanel className="space-y-4 bg-gradient-to-br from-white/95 via-sky-50/55 to-slate-100/70">
+      <PagePanel className="space-y-4 bg-[#fffdf8]">
         <div className="space-y-3 lg:flex lg:items-start lg:justify-between lg:space-y-0">
           <div className="space-y-2">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+            <p className="admin-kicker">
               Taxonomy • Subject Layer
             </p>
-            <h2 className="text-2xl font-black text-slate-900 sm:text-3xl">
+            <h2 className="text-2xl font-black text-[#202321] sm:text-3xl">
               Map subjects across grades
             </h2>
-            <p className="max-w-2xl text-sm leading-7 text-slate-600">
+            <p className="max-w-2xl text-sm leading-7 text-[#6e706b]">
               Subjects can be linked to multiple grades through the grade-subject
               table. Keep labels concise to improve search and question tagging clarity.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:w-auto">
-            <div className="rounded-2xl border border-slate-200 bg-white/90 px-3 py-2">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
+            <div className="rounded-2xl border border-[#d8d4c9] bg-[#f8f5ee] px-3 py-2">
+              <p className="admin-kicker opacity-70">
                 Total
               </p>
-              <p className="mt-1 text-lg font-black text-slate-900">{subjectPage.total}</p>
+              <p className="mt-1 text-lg font-black text-[#202321]">{subjectPage.total}</p>
             </div>
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 px-3 py-2">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700">
+            <div className="rounded-2xl border border-[#c9dcd3] bg-[#e7efe9] px-3 py-2">
+              <p className="admin-kicker">
                 Active
               </p>
-              <p className="mt-1 text-lg font-black text-emerald-900">{activeCount}</p>
+              <p className="mt-1 text-lg font-black text-[#2b554d]">{activeCount}</p>
             </div>
           </div>
         </div>

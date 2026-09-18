@@ -34,13 +34,13 @@ export function QuestionImportWorkspace({
   onImport,
 }: QuestionImportWorkspaceProps) {
   return (
-    <PagePanel className="space-y-4 bg-white/88">
+    <PagePanel className="space-y-4 bg-[#fffdf8]">
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <FileSpreadsheet className="h-5 w-5 text-slate-500" />
-          <h2 className="text-2xl font-bold text-slate-900">Bulk import questions</h2>
+          <FileSpreadsheet className="h-5 w-5 text-[#48766b]" />
+          <h2 className="text-2xl font-bold text-[#202321]">Bulk import questions</h2>
         </div>
-        <p className="max-w-3xl text-sm leading-7 text-slate-600">
+        <p className="max-w-3xl text-sm leading-7 text-[#6e706b]">
           Paste CSV content or load a CSV file, then we will validate taxonomy codes, JSON
           columns, and question rules before sending the valid rows to the server. Every
           imported question starts as a draft and must be reviewed before publishing.
@@ -51,13 +51,13 @@ export function QuestionImportWorkspace({
         <Button
           type="button"
           variant="outline"
-          className="border-slate-300/80 bg-white"
+          className="border-[#d8d4c9] bg-[#fffdf8] hover:border-[#7fa99d] hover:bg-[#f8f5ee]"
           onClick={onDownloadTemplate}
         >
           <Download className="mr-2 h-4 w-4" />
           Download template
         </Button>
-        <Button asChild variant="outline" className="border-slate-300/80 bg-white">
+        <Button asChild variant="outline" className="border-[#d8d4c9] bg-[#fffdf8] hover:border-[#7fa99d] hover:bg-[#f8f5ee]">
           <Link to={ADMIN_ROUTES.questionsNew}>Create manually instead</Link>
         </Button>
       </div>
@@ -65,7 +65,7 @@ export function QuestionImportWorkspace({
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.9fr)]">
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-800">Load CSV file</label>
+            <label className="text-sm font-medium text-[#202321]">Load CSV file</label>
             <Input
               type="file"
               accept=".csv,text/csv"
@@ -77,7 +77,7 @@ export function QuestionImportWorkspace({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-800">CSV content</label>
+            <label className="text-sm font-medium text-[#202321]">CSV content</label>
             <Textarea
               value={csvText}
               onChange={(event) => onCsvTextChange(event.target.value)}
@@ -104,9 +104,9 @@ export function QuestionImportWorkspace({
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-            <h3 className="text-sm font-semibold text-slate-900">CSV columns</h3>
-            <p className="mt-2 text-xs leading-6 text-slate-600">
+              <div className="rounded-2xl border border-[#d8d4c9] bg-[#f8f5ee] p-4">
+            <h3 className="text-sm font-semibold text-[#202321]">CSV columns</h3>
+            <p className="mt-2 text-xs leading-6 text-[#6e706b]">
               Required: <code>questionCode</code>, <code>body</code>, <code>type</code>,{" "}
               <code>gradeCode</code>, <code>subjectCode</code>. Use <code>optionsJson</code>{" "}
               and <code>variablesJson</code> for JSON arrays. Chapters and sub chapters can be
@@ -159,8 +159,8 @@ export function QuestionImportWorkspace({
 
 function QuestionImportResultPanel({ result }: { result: QuestionImportResult }) {
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-200 bg-white/92 p-4">
-      <h3 className="text-sm font-semibold text-slate-900">Import result</h3>
+    <div className="space-y-3 rounded-2xl border border-[#d8d4c9] bg-[#fffdf8] p-4">
+      <h3 className="text-sm font-semibold text-[#202321]">Import result</h3>
       <div className="flex flex-wrap gap-2">
         <Badge variant="outline">Total {result.summary.total}</Badge>
         <Badge>Succeeded {result.summary.succeeded}</Badge>

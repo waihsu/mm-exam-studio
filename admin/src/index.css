@@ -222,38 +222,51 @@
   --admin-header-height: 4rem;
   --font-sans: "MMExam Sans", "Segoe UI", sans-serif;
   --font-heading: "MMExam Display", "MMExam Sans", "Segoe UI", sans-serif;
-  --radius: 0.625rem;
-  --background: oklch(0.978 0.004 250);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.47 0.11 252);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.96 0.02 250);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0.01 252);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0.018 242);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.66 0.11 250);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.47 0.11 252);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0.018 242);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --paper: #f3efe6;
+  --ink: #202321;
+  --muted-ink: #6e706b;
+  --line: #d8d4c9;
+  --sage: #7fa99d;
+  --sage-strong: #48766b;
+  --sage-soft: #e7efe9;
+  --terracotta: #d76f55;
+  --terracotta-soft: #f5e4da;
+  --lavender: #a99bf2;
+  --lavender-soft: #eeeafb;
+  --lime: #c8f27a;
+  --surface: #fffdf8;
+  --radius: 0.875rem;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--sage-strong);
+  --primary-foreground: var(--surface);
+  --secondary: var(--sage-soft);
+  --secondary-foreground: #2b554d;
+  --muted: #ece8de;
+  --muted-foreground: var(--muted-ink);
+  --accent: var(--terracotta-soft);
+  --accent-foreground: #8f4437;
+  --destructive: #b4534c;
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--sage-strong);
+  --chart-1: var(--terracotta);
+  --chart-2: var(--sage);
+  --chart-3: var(--ink);
+  --chart-4: var(--lavender);
+  --chart-5: var(--lime);
+  --sidebar: var(--ink);
+  --sidebar-foreground: var(--surface);
+  --sidebar-primary: var(--lime);
+  --sidebar-primary-foreground: var(--ink);
+  --sidebar-accent: rgba(255, 253, 248, 0.1);
+  --sidebar-accent-foreground: var(--surface);
+  --sidebar-border: rgba(255, 253, 248, 0.14);
+  --sidebar-ring: var(--sage);
 }
 
 .dark {
@@ -324,13 +337,46 @@
   }
 }
 
-/* Admin is an operations surface: quiet planes and typography carry hierarchy. */
+/* Admin is an operations surface: quiet paper planes and ink hierarchy carry the work. */
 .admin-kicker {
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   line-height: 1.2;
   text-transform: uppercase;
+  color: var(--sage-strong);
+}
+
+:lang(my) .admin-kicker {
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 0.8125rem;
+}
+
+.admin-paper {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 18px 42px -34px rgba(32, 35, 33, 0.28);
+}
+
+.admin-ink {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.admin-skeleton {
+  background: linear-gradient(90deg, #ebe6dc 25%, #f5f1e9 50%, #ebe6dc 75%);
+  background-size: 200% 100%;
+  animation: admin-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes admin-skeleton-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-skeleton { animation: none; }
 }
 
 ::selection {

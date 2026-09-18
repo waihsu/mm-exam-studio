@@ -85,12 +85,12 @@ const renderSidebarLink = (
       className={cn(
         "group flex w-full items-center text-sm font-medium transition-colors",
         collapsed
-          ? "mx-auto h-9 w-9 justify-center rounded-lg border border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-950"
-          : "justify-between rounded-lg border border-transparent bg-transparent px-2.5 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-950",
+          ? "mx-auto h-9 w-9 justify-center rounded-lg border border-transparent text-[#b9c4bc] hover:bg-white/10 hover:text-[#fffdf8]"
+          : "justify-between rounded-lg border border-transparent bg-transparent px-2.5 py-2 text-[#d8d4c9] hover:bg-white/10 hover:text-[#fffdf8]",
         isActive &&
           (collapsed
-            ? "bg-slate-900 text-white shadow-sm"
-            : "border-slate-900 bg-slate-900 text-white shadow-sm"),
+            ? "bg-[#fffdf8] text-[#202321] shadow-sm"
+            : "border-[#fffdf8] bg-[#fffdf8] text-[#202321] shadow-sm"),
       )}
     >
         <span className={cn("flex min-w-0 items-center", collapsed ? "justify-center" : "gap-2.5")}>
@@ -98,7 +98,7 @@ const renderSidebarLink = (
         {!collapsed ? <span className="truncate">{label}</span> : null}
       </span>
       {isActive && !collapsed ? (
-        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#d76f55]" />
       ) : null}
     </Link>
   );
@@ -127,9 +127,9 @@ export function AdminSidebar({
   return (
     <aside
       className={cn(
-        "h-full min-h-0 overflow-x-hidden overflow-y-auto overscroll-contain [scrollbar-gutter:stable] bg-white pl-3 pr-2 py-4",
+        "h-full min-h-0 overflow-x-hidden overflow-y-auto overscroll-contain [scrollbar-gutter:stable] bg-[#202321] pl-3 pr-2 py-4",
         collapsed &&
-          "bg-white px-1.5 py-3",
+          "bg-[#202321] px-1.5 py-3",
         className,
       )}
     >
@@ -141,10 +141,10 @@ export function AdminSidebar({
       >
         {!collapsed ? (
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#7fa99d]">
               Workspace nav
             </p>
-            <p className="mt-1 text-sm font-semibold text-slate-900">Admin controls</p>
+            <p className="mt-1 text-sm font-semibold text-[#fffdf8]">Admin controls</p>
           </div>
         ) : null}
         {onToggleCollapsed ? (
@@ -153,7 +153,7 @@ export function AdminSidebar({
             variant="outline"
             size="icon"
             className={cn(
-              "shrink-0 rounded-xl border-slate-300/80 bg-white/90 text-slate-700 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.65)]",
+              "shrink-0 rounded-xl border-white/10 bg-white/5 text-[#d8d4c9] shadow-[0_10px_24px_-18px_rgba(32,35,33,0.65)]",
               collapsed ? "h-10 w-10" : "h-9 w-9",
             )}
             onClick={onToggleCollapsed}
@@ -178,10 +178,10 @@ export function AdminSidebar({
             )}
           >
             {collapsed && groupIndex > 0 ? (
-              <div className="mx-auto mb-2 h-px w-8 bg-slate-300/70" />
+              <div className="mx-auto mb-2 h-px w-8 bg-white/15" />
             ) : null}
             {!collapsed ? (
-              <p className="px-1 pb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
+              <p className="px-1 pb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#7fa99d]">
                 {tr(group.label)}
               </p>
             ) : null}

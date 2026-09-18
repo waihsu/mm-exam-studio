@@ -48,7 +48,7 @@ export function PagePanel({ children, className }: PagePanelProps) {
   return (
     <div
       className={cn(
-        "space-y-4 rounded-xl border border-slate-200/90 bg-white p-4 shadow-[0_10px_28px_-24px_rgba(15,23,42,0.42)] md:p-5",
+        "space-y-4 rounded-[20px] border border-[#d8d4c9] bg-[#fffdf8] p-4 shadow-[0_16px_34px_-28px_rgba(32,35,33,0.24)] md:p-5",
         className,
       )}
     >

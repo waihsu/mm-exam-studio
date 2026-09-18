@@ -75,37 +75,37 @@ export function NewQuestionPage() {
 
   return (
     <PagePanel className="space-y-5">
-      <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex flex-col gap-4 border-b border-[#e8e2d7] pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-2">
-          <p className="admin-kicker text-slate-500">
+          <p className="admin-kicker text-[#48766b]">
             Question Authoring
           </p>
-          <h2 className="text-2xl font-bold text-slate-950 sm:text-3xl">
+          <h2 className="text-2xl font-bold text-[#202321] sm:text-3xl">
             Create question
           </h2>
-          <p className="max-w-3xl text-sm leading-6 text-slate-600">
+          <p className="max-w-3xl text-sm leading-6 text-[#6e706b]">
             Questions are linked to grade, subject, chapter, and sub chapter so
             the bank stays organized for future exam generation workflows.
           </p>
         </div>
         <div className="flex flex-wrap gap-2 lg:justify-end">
-          <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700">
+          <Badge variant="outline" className="border-[#d8d4c9] bg-[#f8f5ee] text-[#6e706b]">
             {metaQuery.data.grades.length} grades
           </Badge>
-          <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700">
+          <Badge variant="outline" className="border-[#d8d4c9] bg-[#f8f5ee] text-[#6e706b]">
             {metaQuery.data.subjects.length} subjects
           </Badge>
-          <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700">
+          <Badge variant="outline" className="border-[#d8d4c9] bg-[#f8f5ee] text-[#6e706b]">
             {metaQuery.data.chapters.length} chapters
           </Badge>
-          <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700">
+          <Badge variant="outline" className="border-[#c9dcd3] bg-[#e7efe9] text-[#2b554d]">
             <Sparkles className="mr-1 h-3.5 w-3.5" />
             Static + variable mode
           </Badge>
         </div>
       </div>
-      <div className="flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600">
-        <CircleHelp className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+      <div className="flex items-start gap-2 rounded-lg border border-[#c9dcd3] bg-[#e7efe9] px-3 py-2.5 text-sm text-[#2b554d]">
+        <CircleHelp className="mt-0.5 h-4 w-4 shrink-0 text-[#48766b]" />
         <p>New questions always start as drafts. Save it, inspect the review preview, then approve and publish only when it is ready.</p>
       </div>
       <QuestionForm

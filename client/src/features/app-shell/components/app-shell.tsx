@@ -1,8 +1,6 @@
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
-  Bell,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -25,7 +23,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { accountNavItems, primaryNavItems, userAppRoutes } from "@/constants/routes";
 import { useAuthFlow } from "@/features/auth/hooks/use-auth-flow";
-import { workspaceApi } from "@/features/workspace/api/workspace-api";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -73,6 +70,7 @@ function NavLinks({
             key={item.to}
             to={item.to}
             onClick={onNavigate}
+            aria-current={active ? "page" : undefined}
             className={cn(
               "group flex items-center gap-3 rounded-xl font-medium transition",
               compact
@@ -81,11 +79,11 @@ function NavLinks({
                   ? "mx-auto h-10 w-10 justify-center px-0 text-sm"
                   : "px-3 py-2.5 text-sm",
               active
-                ? "bg-white text-slate-950 shadow-sm"
-                : "text-slate-400 hover:bg-white/10 hover:text-white",
+                ? "bg-[#fffdf8] text-[#202321] shadow-sm"
+                : "text-[#b9c4bc] hover:bg-white/10 hover:text-[#fffdf8]",
             )}
           >
-            <Icon className={cn("h-4 w-4 shrink-0", active ? "text-indigo-600" : "text-slate-400")} />
+            <Icon className={cn("h-4 w-4 shrink-0", active ? "text-[#d76f55]" : "text-[#7fa99d]")} />
             {!collapsed ? <span className="truncate">{item.label}</span> : null}
           </Link>
         );
@@ -112,7 +110,7 @@ function AccountMenu({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-1.5 text-left shadow-sm transition hover:border-slate-300"
+          className="flex items-center gap-2 rounded-xl border border-[#d8d4c9] bg-[#fffdf8] p-1.5 text-left shadow-sm transition hover:border-[#7fa99d]"
           aria-label="Open account menu"
         >
           <Avatar className="h-8 w-8">
@@ -153,16 +151,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, signOut } = useAuthFlow();
-  const summaryQuery = useQuery({
-    queryKey: ["workspace-summary", "app-shell"],
-    queryFn: () => workspaceApi.getSummary(),
-    staleTime: 60_000,
-  });
 
   const page = getPageMeta(location.pathname);
   const userName = user?.name || user?.email || "Your account";
   const initial = (userName[0] ?? "U").toUpperCase();
-  const unreadCount = summaryQuery.data?.ok ? summaryQuery.data.data.notifications.unreadCount : 0;
   const navigateTo = (to: string) => void navigate({ to });
 
   useEffect(() => {
@@ -182,11 +174,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   return (
-    <div className="min-h-[100dvh] bg-[#f7f8fa] text-slate-950">
+    <div className="min-h-[100dvh] bg-[#f3efe6] text-[#202321]">
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-slate-800 bg-slate-950 px-3 py-4 transition-[width] duration-200 lg:flex",
+          "fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-white/10 bg-[#202321] px-3 py-4 transition-[width] duration-200 lg:flex",
           collapsed ? "w-[88px]" : "w-[288px]",
         )}
       >
@@ -228,22 +224,21 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <header className={cn("sticky top-0 z-30 h-16 border-b border-slate-200 bg-white/95 px-4 backdrop-blur lg:ml-[288px] lg:px-6", collapsed && "lg:ml-[88px]")}>
+      <header className={cn("sticky top-0 z-30 h-16 border-b border-[#d8d4c9] bg-[#fffdf8]/95 px-4 backdrop-blur lg:ml-[288px] lg:px-6", collapsed && "lg:ml-[88px]")}>
         <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(true)} aria-label="Open navigation">
               <Menu className="h-5 w-5" />
             </Button>
             <p className="truncate text-sm font-semibold text-slate-500">
-              <span className="font-bold text-[#202536]">MM Exam Studio</span>
+              <span className="font-bold text-[#202321]">MM Exam Studio</span>
               <span className="mx-2 text-slate-400">/</span>
               {page.crumb}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="relative text-slate-600" onClick={() => navigateTo(userAppRoutes.support)} aria-label="Open notifications">
-              <Bell className="h-5 w-5" />
-              {unreadCount > 0 ? <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500" /> : null}
+            <Button variant="ghost" size="icon" className="relative text-slate-600" onClick={() => navigateTo(userAppRoutes.support)} aria-label="Open support">
+              <MessageSquareMore className="h-5 w-5" />
             </Button>
             <AccountMenu userName={userName} initial={initial} image={user?.image} onNavigate={navigateTo} onSignOut={() => void signOut().then((result) => result.ok && navigateTo("/signin"))} />
           </div>
@@ -258,8 +253,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {mobileMenuOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <button type="button" className="absolute inset-0 bg-slate-950/55" onClick={() => setMobileMenuOpen(false)} aria-label="Close navigation" />
-          <aside className="relative flex h-full w-[min(300px,86vw)] flex-col bg-[#121827] px-4 py-5 shadow-2xl">
+          <button type="button" className="absolute inset-0 bg-[#202321]/55" onClick={() => setMobileMenuOpen(false)} aria-label="Close navigation" />
+          <aside className="relative flex h-full w-[min(300px,86vw)] flex-col bg-[#202321] px-4 py-5 shadow-2xl">
             <div className="mb-8 flex items-center justify-between">
               <Link to={userAppRoutes.dashboard} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3">
                 <img src={studyAppLogo} alt="MM Exam Studio" className="h-9 w-9 rounded-xl" />
@@ -275,7 +270,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       ) : null}
 
-      <nav className="print:hidden fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur lg:hidden">
+      <nav className="print:hidden fixed inset-x-0 bottom-0 z-30 border-t border-[#d8d4c9] bg-[#f3efe6]/95 px-2 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur lg:hidden">
         <NavLinks items={primaryNavItems} pathname={location.pathname} compact />
       </nav>
     </div>

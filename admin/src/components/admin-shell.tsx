@@ -25,7 +25,7 @@ export function AdminShell() {
   }, []);
 
   return (
-    <div className="relative isolate h-[100dvh] overflow-hidden bg-slate-50">
+    <div className="relative isolate h-[100dvh] overflow-hidden bg-[#f3efe6]">
       <AdminNavbar
         isSidebarCollapsed={isSidebarCollapsed}
         onToggleSidebar={() =>
@@ -35,7 +35,7 @@ export function AdminShell() {
       <div className="mx-auto flex h-[calc(100dvh-var(--admin-header-height,4rem))] w-full max-w-none lg:overflow-hidden">
         <div
           className={cn(
-            "hidden shrink-0 border-r border-slate-200 bg-white transition-[width] duration-200 lg:block",
+            "hidden shrink-0 border-r border-white/10 bg-[#202321] transition-[width] duration-200 lg:block",
             isSidebarCollapsed ? "w-[88px]" : "w-[288px]",
           )}
         >

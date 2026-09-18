@@ -342,6 +342,20 @@
   .app-icon-chip {
     @apply inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700;
   }
+
+  button,
+  [role="button"] {
+    transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  button:active:not(:disabled),
+  [role="button"]:active {
+    transform: scale(0.98);
+  }
 }
 
 @keyframes rise-fade {
@@ -421,6 +435,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  button,
+  [role="button"] {
+    transition: none !important;
+  }
+
+  button:active:not(:disabled),
+  [role="button"]:active {
+    transform: none !important;
+  }
+
   .reveal-up,
   .hover-lift,
   .route-transition,
@@ -435,28 +459,88 @@
   }
 }
 
+@layer components {
+  .ink-surface {
+    background: var(--ink);
+    color: var(--surface);
+  }
+
+  .tone-sage {
+    background: var(--sage-soft);
+    border-color: color-mix(in srgb, var(--sage) 42%, var(--line));
+    color: var(--sage-strong);
+  }
+
+  .tone-terracotta {
+    background: var(--terracotta-soft);
+    border-color: color-mix(in srgb, var(--terracotta) 32%, var(--line));
+    color: #9b4b3c;
+  }
+
+  .tone-lavender {
+    background: var(--lavender-soft);
+    border-color: color-mix(in srgb, var(--lavender) 36%, var(--line));
+    color: #7668b6;
+  }
+
+  .skeleton-surface {
+    background: linear-gradient(90deg, #ebe6dc 25%, #f5f1e9 50%, #ebe6dc 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-surface { animation: none; }
+}
+
 ::selection {
   background: color-mix(in oklab, var(--color-primary) 18%, white);
   color: var(--color-foreground);
 }
 
-/* Client product surface: deliberate and quiet, so study actions carry the emphasis. */
+/* Shared product surface: paper, ink, and small confident color notes from Expo. */
 :root {
-  --background: oklch(0.958 0.008 88);
-  --foreground: oklch(0.205 0.018 268);
-  --primary: oklch(0.45 0.18 277);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.925 0.018 270);
-  --secondary-foreground: oklch(0.26 0.055 277);
-  --muted: oklch(0.935 0.006 88);
-  --muted-foreground: oklch(0.46 0.016 268);
-  --border: oklch(0.84 0.009 88);
-  --ring: oklch(0.54 0.16 277);
-  --radius: 0.625rem;
+  --paper: #f3efe6;
+  --ink: #202321;
+  --muted-ink: #6e706b;
+  --line: #d8d4c9;
+  --sage: #7fa99d;
+  --sage-strong: #48766b;
+  --sage-soft: #e7efe9;
+  --terracotta: #d76f55;
+  --terracotta-soft: #f5e4da;
+  --lavender: #a99bf2;
+  --lavender-soft: #eeeafb;
+  --lime: #c8f27a;
+  --surface: #fffdf8;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--sage-strong);
+  --primary-foreground: var(--surface);
+  --secondary: var(--sage-soft);
+  --secondary-foreground: #2b554d;
+  --muted: #ece8de;
+  --muted-foreground: var(--muted-ink);
+  --accent: var(--terracotta-soft);
+  --accent-foreground: #8f4437;
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--sage-strong);
+  --radius: 0.875rem;
 }
 
 body {
-  background: #f7f8fa;
+  background: var(--paper);
   letter-spacing: -0.006em;
 }
 
@@ -483,9 +567,9 @@ body {
 }
 
 .paper-surface {
-  border: 1px solid #e1e5eb;
-  background: #ffffff;
-  box-shadow: 0 16px 42px -36px rgba(21, 27, 43, 0.38);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 20px 42px -34px rgba(32, 35, 33, 0.28);
 }
 
 .ink-rule {
@@ -509,9 +593,9 @@ body {
 }
 
 .app-chip {
-  border-color: #e2e5ec;
-  background: #fff;
-  color: #4b5565;
+  border-color: color-mix(in srgb, var(--sage) 36%, var(--line));
+  background: var(--sage-soft);
+  color: var(--sage-strong);
   font-size: 10px;
   letter-spacing: 0.1em;
 }
@@ -526,8 +610,9 @@ body {
 }
 
 .app-icon-chip {
-  border-color: #e2e5ec;
-  background: #f8f9fc;
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--sage-strong);
 }
 
 .route-transition,

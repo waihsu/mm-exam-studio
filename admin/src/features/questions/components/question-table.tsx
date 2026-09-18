@@ -64,16 +64,16 @@ export function QuestionTable({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-40 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white/80">
+      <div className="flex min-h-40 items-center justify-center rounded-2xl border border-dashed border-[#d8d4c9] bg-[#fffdf8]/90">
         <Spinner className="mr-2 h-4 w-4" />
-        <span className="text-sm text-slate-600">Loading questions...</span>
+        <span className="text-sm text-[#6e706b]">Loading questions...</span>
       </div>
     );
   }
 
   if (!questions.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-white/80 px-6 py-10 text-center text-sm text-slate-600">
+      <div className="rounded-2xl border border-dashed border-[#d8d4c9] bg-[#fffdf8]/90 px-6 py-10 text-center text-sm text-[#6e706b]">
         No questions matched the current filters yet.
       </div>
     );
@@ -81,7 +81,7 @@ export function QuestionTable({
 
   return (
     <>
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-[0_10px_28px_-24px_rgba(15,23,42,0.42)]">
+      <div className="overflow-x-auto rounded-xl border border-[#d8d4c9] bg-[#fffdf8] shadow-[0_14px_30px_-24px_rgba(32,35,33,0.3)]">
         <Table>
           <TableHeader>
             <TableRow>
@@ -107,7 +107,7 @@ export function QuestionTable({
                   </TableCell>
                   <TableCell className="max-w-xl whitespace-normal">
                     <div className="space-y-1">
-                      <p className="line-clamp-2 font-medium text-slate-900">
+                      <p className="line-clamp-2 font-medium text-[#202321]">
                         {question.body}
                       </p>
                       <div className="flex flex-wrap gap-2">
@@ -127,18 +127,18 @@ export function QuestionTable({
                           </Badge>
                         ) : null}
                       </div>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-[#6e706b]">
                         {question.options.length} option(s) • {question.marks} mark(s)
                       </p>
                       {question.creator ? (
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-[#6e706b]">
                           Author: {question.creator.name || question.creator.email}
                         </p>
                       ) : null}
                     </div>
                   </TableCell>
                   <TableCell className="whitespace-normal">
-                    <div className="space-y-1 text-xs text-slate-600">
+                    <div className="space-y-1 text-xs text-[#6e706b]">
                       <p>{question.grade.name}</p>
                       <p>{question.subject.name}</p>
                       {question.chapter ? <p>{question.chapter.name}</p> : null}
@@ -168,7 +168,7 @@ export function QuestionTable({
                         }}
                         aria-label={question.isPublished ? "Move to draft" : "Publish question"}
                       />
-                      <span className="text-xs font-medium text-slate-600">
+                      <span className="text-xs font-medium text-[#6e706b]">
                         {isPublishing
                           ? "Saving"
                           : question.isPublished
@@ -183,7 +183,7 @@ export function QuestionTable({
                           <Button
                             variant="outline"
                             size="icon"
-                            className="h-8 w-8 border-slate-300 bg-white"
+                            className="h-8 w-8 border-[#d8d4c9] bg-[#fffdf8] hover:border-[#7fa99d] hover:bg-[#f8f5ee]"
                             disabled={isDeleting || isPublishing}
                             aria-label={`Open actions for ${question.questionCode}`}
                           >
@@ -192,7 +192,7 @@ export function QuestionTable({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="w-48 border-slate-200 bg-white/95"
+                          className="w-48 border-[#d8d4c9] bg-[#fffdf8]/95"
                         >
                           <DropdownMenuItem asChild>
                             <Link
