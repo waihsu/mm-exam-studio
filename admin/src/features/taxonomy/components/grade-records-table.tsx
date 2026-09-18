@@ -38,7 +38,7 @@ export function GradeRecordsTable({ grades, onEdit, onDelete }: GradeRecordsTabl
                 <TableCell className="font-semibold">{grade.code}</TableCell>
                 <TableCell>{grade.name}</TableCell>
                 <TableCell>{grade.sortOrder}</TableCell>
-                <TableCell className="text-xs text-slate-600">
+                <TableCell className="text-xs text-[#6e706b]">
                   {grade._count.gradeSubjects} subject link(s) • {grade._count.chapters} chapter(s) • {grade._count.questions} question(s)
                 </TableCell>
                 <TableCell>
@@ -51,6 +51,7 @@ export function GradeRecordsTable({ grades, onEdit, onDelete }: GradeRecordsTabl
                     type="button"
                     variant="outline"
                     size="sm"
+                    className="border-[#d8d4c9] bg-[#fffdf8] hover:border-[#7fa99d] hover:bg-[#f8f5ee]"
                     title={`Edit ${grade.name}`}
                     onClick={() => onEdit(grade)}
                   >
@@ -60,6 +61,7 @@ export function GradeRecordsTable({ grades, onEdit, onDelete }: GradeRecordsTabl
                     type="button"
                     variant="outline"
                     size="sm"
+                    className="border-[#d8d4c9] bg-[#fffdf8] text-[#8f4437] hover:border-[#d76f55] hover:bg-[#f5e4da]"
                     title={`Delete ${grade.name}`}
                     onClick={() => onDelete(grade)}
                   >
@@ -70,7 +72,7 @@ export function GradeRecordsTable({ grades, onEdit, onDelete }: GradeRecordsTabl
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={6} className="py-10 text-center text-sm text-slate-500">
+              <TableCell colSpan={6} className="py-10 text-center text-sm text-[#6e706b]">
                 No grades yet.
               </TableCell>
             </TableRow>

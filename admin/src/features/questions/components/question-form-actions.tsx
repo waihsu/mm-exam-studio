@@ -21,15 +21,15 @@ export function QuestionFormActions({
   onPreview,
 }: QuestionFormActionsProps) {
   return (
-    <div className="sticky bottom-3 z-20 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.55)] backdrop-blur-sm">
+    <div className="sticky bottom-3 z-20 rounded-2xl border border-[#d8d4c9] bg-[#fffdf8]/95 p-3 shadow-[0_18px_40px_-28px_rgba(32,35,33,0.45)] backdrop-blur-sm">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-slate-600">{submitHint}</p>
+        <p className="text-sm text-[#6e706b]">{submitHint}</p>
         <div className="flex flex-col gap-2 sm:flex-row">
           {previewEnabled ? (
             <Button
               type="button"
               variant="outline"
-              className="w-full border-slate-300/80 bg-white sm:w-auto"
+              className="w-full border-[#d8d4c9] bg-[#fffdf8] text-[#202321] hover:border-[#7fa99d] hover:bg-[#f8f5ee] sm:w-auto"
               disabled={previewing || submitting}
               onClick={onPreview}
             >

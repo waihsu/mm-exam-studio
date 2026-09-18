@@ -42,14 +42,14 @@ export default function TabsLayout() {
       initialRouteName="home"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#2563EB",
-        tabBarInactiveTintColor: "#64748B",
+        tabBarActiveTintColor: "#202321",
+        tabBarInactiveTintColor: "#7FA99D",
         tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopColor: "#D8DEE9",
-          height: 56 + insets.bottom,
+          backgroundColor: "#F3EFE6",
+          borderTopColor: "#D8D4C9",
+          height: 62 + insets.bottom,
           paddingBottom: Math.max(insets.bottom, 8),
-          paddingTop: 6,
+          paddingTop: 8,
         },
         tabBarLabelStyle: {
           fontSize: 11,

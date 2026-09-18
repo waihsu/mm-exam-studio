@@ -50,7 +50,7 @@ export const PaperDetailMetadataForm = ({
         <TextInput
           editable={editable}
           placeholder={t("papers:detail.titlePlaceholder")}
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor="#96938A"
           style={[styles.input, !isDraft && styles.inputDisabled]}
           value={title}
           onChangeText={setTitle}
@@ -63,7 +63,7 @@ export const PaperDetailMetadataForm = ({
           multiline
           numberOfLines={4}
           placeholder={t("papers:detail.instructionsPlaceholder")}
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor="#96938A"
           style={[
             styles.input,
             styles.multilineInput,
@@ -81,7 +81,7 @@ export const PaperDetailMetadataForm = ({
             <TextInput
               editable={editable}
               placeholder={t("papers:detail.optional")}
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor="#96938A"
               style={[styles.input, !isDraft && styles.inputDisabled]}
               value={schoolName}
               onChangeText={setSchoolName}
@@ -93,7 +93,7 @@ export const PaperDetailMetadataForm = ({
             <TextInput
               editable={editable}
               placeholder="2025-2026"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor="#96938A"
               style={[styles.input, !isDraft && styles.inputDisabled]}
               value={academicYear}
               onChangeText={setAcademicYear}
@@ -157,44 +157,44 @@ const Field = ({ children, label }: { children: ReactNode; label: string }) => (
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#D8DEE9",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 12,
     borderWidth: 1,
     gap: 10,
     padding: 14,
   },
-  cardTitle: { color: "#0F172A", fontSize: 16, fontWeight: "700" },
-  hint: { color: "#64748B", fontSize: 12 },
+  cardTitle: { color: "#202321", fontSize: 16, fontWeight: "700" },
+  hint: { color: "#6E706B", fontSize: 12 },
   formRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   formGroup: { gap: 6 },
   formHalf: { flex: 1, minWidth: 140 },
-  label: { color: "#334155", fontSize: 13, fontWeight: "600" },
+  label: { color: "#4F514B", fontSize: 13, fontWeight: "600" },
   input: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#CBD5E1",
+    backgroundColor: "#F8F5EE",
+    borderColor: "#CFC9BD",
     borderRadius: 10,
     borderWidth: 1,
-    color: "#0F172A",
+    color: "#202321",
     fontSize: 14,
     minHeight: 44,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   multilineInput: { minHeight: 100 },
-  inputDisabled: { color: "#64748B" },
+  inputDisabled: { color: "#6E706B" },
   checkboxRow: {
     alignItems: "center",
-    borderColor: "#CBD5E1",
+    borderColor: "#CFC9BD",
     borderRadius: 10,
     borderWidth: 1,
     minHeight: 42,
     paddingHorizontal: 12,
   },
-  checkboxRowActive: { backgroundColor: "#EFF6FF", borderColor: "#60A5FA" },
-  checkboxLabel: { color: "#1E293B", fontSize: 13, fontWeight: "600" },
+  checkboxRowActive: { backgroundColor: "#E7EFE9", borderColor: "#A8C9BD" },
+  checkboxLabel: { color: "#202321", fontSize: 13, fontWeight: "600" },
   metaGrid: { gap: 4 },
-  metaText: { color: "#475569", fontSize: 12 },
+  metaText: { color: "#6E706B", fontSize: 12 },
   buttonDisabled: { opacity: 0.6 },
   buttonPressed: { opacity: 0.85 },
 });

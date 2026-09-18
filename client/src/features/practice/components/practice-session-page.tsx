@@ -77,9 +77,9 @@ export function PracticeSessionPage({ sessionId }: { sessionId: string }) {
                 type="button"
                 disabled={completed}
                 onClick={() => answerQuestion(value)}
-                className={`group flex items-center gap-4 rounded-xl border px-4 py-4 text-left transition ${chosen ? "border-indigo-600 bg-indigo-600 text-white shadow-[0_12px_24px_-18px_rgba(79,70,229,0.9)]" : "border-slate-200 bg-white text-slate-800 hover:border-indigo-300 hover:bg-indigo-50/40"}`}
+                className={`group flex items-center gap-4 rounded-xl border px-4 py-4 text-left transition ${chosen ? "border-[#48766b] bg-[#48766b] text-white shadow-[0_12px_24px_-18px_rgba(72,118,107,0.8)]" : "border-slate-200 bg-white text-slate-800 hover:border-[#7fa99d] hover:bg-[#e7efe9]/60"}`}
               >
-                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold ${chosen ? "border-white/40 bg-white/15" : "border-slate-200 bg-slate-50 text-slate-500 group-hover:border-indigo-300"}`}>
+                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold ${chosen ? "border-white/40 bg-white/15" : "border-slate-200 bg-slate-50 text-slate-500 group-hover:border-[#7fa99d]"}`}>
                   {(option.label || String.fromCharCode(65 + index)).trim()}
                 </span>
                 <MathRichText content={option.text} inline />
@@ -95,7 +95,7 @@ export function PracticeSessionPage({ sessionId }: { sessionId: string }) {
         <div className="grid gap-3 sm:grid-cols-2">
           {["True", "False"].map((choice) => {
             const chosen = currentAnswer === choice;
-            return <button key={choice} type="button" disabled={completed} onClick={() => answerQuestion(choice)} className={`rounded-xl border px-5 py-4 text-left font-semibold transition ${chosen ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-200 bg-white text-slate-800 hover:border-indigo-300 hover:bg-indigo-50/40"}`}>{choice}</button>;
+            return <button key={choice} type="button" disabled={completed} onClick={() => answerQuestion(choice)} className={`rounded-xl border px-5 py-4 text-left font-semibold transition ${chosen ? "border-[#48766b] bg-[#48766b] text-white" : "border-slate-200 bg-white text-slate-800 hover:border-[#7fa99d] hover:bg-[#e7efe9]/60"}`}>{choice}</button>;
           })}
         </div>
       );
@@ -115,7 +115,7 @@ export function PracticeSessionPage({ sessionId }: { sessionId: string }) {
                   const nextPairs = { ...selectedPairs };
                   if (event.target.value) nextPairs[pairKey] = event.target.value; else delete nextPairs[pairKey];
                   answerQuestion(Object.keys(nextPairs).length ? JSON.stringify(nextPairs) : "");
-                }} className="h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-indigo-500">
+                }} className="h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-[#48766b]">
                   <option value="">Choose a match</option>
                   {choices.map((choice) => <option key={choice} value={choice}>{choice}</option>)}
                 </select>
@@ -126,21 +126,21 @@ export function PracticeSessionPage({ sessionId }: { sessionId: string }) {
       );
     }
 
-    return <input value={currentAnswer} disabled={completed} onChange={(event) => answerQuestion(event.target.value)} placeholder="Type your answer" className="h-14 w-full rounded-xl border border-slate-300 bg-white px-4 text-base outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />;
+    return <input value={currentAnswer} disabled={completed} onChange={(event) => answerQuestion(event.target.value)} placeholder="Type your answer" className="h-14 w-full rounded-xl border border-slate-300 bg-white px-4 text-base outline-none transition focus:border-[#48766b] focus:ring-4 focus:ring-[#48766b]/10" />;
   };
 
   return (
     <div className="space-y-6 pb-4">
-      <section className="relative isolate overflow-hidden rounded-[24px] bg-[#121b33] px-5 py-6 text-white shadow-[0_22px_50px_-38px_rgba(15,23,42,0.76)] sm:px-7">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_0%,rgba(111,99,255,0.42),transparent_33%),radial-gradient(circle_at_8%_115%,rgba(15,166,184,0.15),transparent_42%)]" />
+      <section className="relative isolate overflow-hidden rounded-[24px] bg-[#202321] px-5 py-6 text-white shadow-[0_22px_50px_-38px_rgba(32,35,33,0.76)] sm:px-7">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_0%,rgba(215,111,85,0.34),transparent_33%),radial-gradient(circle_at_8%_115%,rgba(127,169,157,0.22),transparent_42%)]" />
         <div className="relative flex flex-wrap items-start justify-between gap-4">
         <div>
           <Link to="/practice" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-300 transition hover:text-white"><ArrowLeft className="h-4 w-4" /> Back to practice</Link>
-          <p className="ui-kicker mt-6 text-indigo-200">{completed ? "Session complete" : "Focus session"}</p>
+          <p className="ui-kicker mt-6 text-[#c8f27a]">{completed ? "Session complete" : "Focus session"}</p>
           <h1 className="mt-2 text-[clamp(1.7rem,3vw,2.5rem)] font-bold tracking-[-0.04em] text-white">{session.title || "Practice session"}</h1>
           <p className="mt-2 text-sm leading-6 text-slate-300">{completed ? `You scored ${session.correctAnswers}/${session.totalQuestions} (${session.scorePercent ?? 0}%). Review each answer and keep the useful feedback.` : "Work through one question at a time. Answers are saved in this browser until you submit."}</p>
         </div>
-        {!completed ? <Button disabled={submitMutation.isPending} onClick={requestSubmit} className="rounded-xl bg-white text-slate-950 hover:bg-indigo-50">{submitMutation.isPending ? "Submitting..." : "Finish session"}</Button> : null}
+        {!completed ? <Button disabled={submitMutation.isPending} onClick={requestSubmit} className="rounded-xl bg-white text-slate-950 hover:bg-[#e7efe9]">{submitMutation.isPending ? "Submitting..." : "Finish session"}</Button> : null}
         </div>
       </section>
 
@@ -151,13 +151,13 @@ export function PracticeSessionPage({ sessionId }: { sessionId: string }) {
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_18px_40px_-32px_rgba(15,23,42,0.34)]">
             <div className="flex items-end justify-between gap-3">
               <div><p className="ui-kicker text-slate-500">Session progress</p><p className="mt-1 text-2xl font-extrabold tracking-tight text-slate-950">{answerState}/{session.totalQuestions}</p></div>
-              <span className="text-sm font-semibold text-indigo-600">{progress}%</span>
+              <span className="text-sm font-semibold text-[#48766b]">{progress}%</span>
             </div>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-indigo-600 transition-all" style={{ width: `${progress}%` }} /></div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#48766b] transition-all" style={{ width: `${progress}%` }} /></div>
             <div className="mt-5 grid grid-cols-5 gap-2 xl:grid-cols-4">
               {session.items.map((item, index) => {
                 const answered = (answers[item.id] ?? item.submittedAnswer ?? "").trim().length > 0;
-                return <button key={item.id} type="button" onClick={() => setActiveIndex(index)} className={`aspect-square rounded-lg text-xs font-bold transition ${index === activeIndex ? "bg-indigo-600 text-white" : answered ? "bg-indigo-100 text-indigo-700 hover:bg-indigo-200" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`} aria-label={`Open question ${index + 1}`}>{index + 1}</button>;
+                return <button key={item.id} type="button" onClick={() => setActiveIndex(index)} className={`aspect-square rounded-lg text-xs font-bold transition ${index === activeIndex ? "bg-[#48766b] text-white" : answered ? "bg-[#e7efe9] text-[#2b554d] hover:bg-[#c9dcd3]" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`} aria-label={`Open question ${index + 1}`}>{index + 1}</button>;
               })}
             </div>
             <p className="mt-4 text-xs leading-5 text-slate-500">Dark: current · light: answered</p>

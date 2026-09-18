@@ -131,6 +131,26 @@ export const PracticeHomeScreen = () => {
 
         <PracticeStartSection
           title={t("practice:home.generatorTitle")}
+          scopeTitle={t("practice:filters.grade")}
+          scopeItems={[
+            {
+              key: "grade" as const,
+              label: t("practice:filters.grade"),
+              value: scopeSummary.grade,
+            },
+            {
+              key: "subject" as const,
+              label: t("practice:filters.subject"),
+              value: scopeSummary.subject,
+            },
+          ]}
+          onScopePress={key => setActiveScopePicker(key)}
+          modeTitle={t("practice:home.presets.title")}
+          modeItems={PRACTICE_PRESETS.map(preset => ({
+            key: preset.key,
+            label: t(preset.labelKey),
+            onPress: () => applyPracticePreset(preset.values),
+          }))}
           errorMessage={actionError}
           actionDisabled={quickStartDisabled}
           actionLabel={
@@ -140,8 +160,6 @@ export const PracticeHomeScreen = () => {
           }
           needsGrade={!hasSelectedGrade}
           gradeHint={t("practice:home.gradeRequiredHint")}
-          selectGradeLabel={t("practice:home.selectGradeToStart")}
-          onSelectGrade={() => setActiveScopePicker("grade")}
           onStart={quickStart}
         />
 

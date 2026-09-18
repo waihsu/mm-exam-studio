@@ -88,13 +88,13 @@ export function PracticeBuilderPage() {
 
   return (
     <div className="space-y-7 pb-4">
-      <section className="grid gap-5 border-b border-slate-200 pb-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+      <section className="grid gap-5 border-b border-[#d8d4c9] pb-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
         <div>
-          <p className="ui-kicker text-indigo-700">Practice planner</p>
-          <h1 className="mt-3 text-[clamp(2rem,3.8vw,3.25rem)] font-bold leading-[1.06] tracking-[-0.045em] text-slate-950">
+          <p className="ui-kicker text-[#48766b]">Practice planner</p>
+          <h1 className="mt-3 text-[clamp(2rem,3.8vw,3.25rem)] font-bold leading-[1.06] tracking-[-0.045em] text-[#202321]">
             Build one session with a purpose.
           </h1>
-          <p className="mt-3 max-w-2xl text-[0.9375rem] leading-7 text-slate-600">
+          <p className="mt-3 max-w-2xl text-[0.9375rem] leading-7 text-[#6e706b]">
             Set the class and subject first. Everything else is optional
             control, not another obstacle.
           </p>
@@ -108,17 +108,17 @@ export function PracticeBuilderPage() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-5">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_45px_-38px_rgba(15,23,42,0.36)] sm:p-7">
+          <section className="rounded-2xl border border-[#d8d4c9] bg-[#fffdf8] p-5 shadow-[0_18px_45px_-38px_rgba(15,23,42,0.36)] sm:p-7">
             <div className="mb-5 flex flex-wrap items-start gap-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-sm font-extrabold text-white shadow-lg shadow-slate-900/10">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#202321] text-sm font-extrabold text-white shadow-lg shadow-slate-900/10">
                 01
               </span>
               <div>
-                <p className="ui-kicker text-indigo-600">Define the focus</p>
-                <h2 className="mt-2 text-xl font-bold tracking-tight text-slate-950">
+                <p className="ui-kicker text-[#d76f55]">Define the focus</p>
+                <h2 className="mt-2 text-xl font-bold tracking-tight text-[#202321]">
                   Which class and subject need your attention?
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
+                <p className="mt-2 text-sm leading-6 text-[#6e706b]">
                   Grade and subject are required. Chapter and lesson are
                   optional when you want a narrower focus.
                 </p>
@@ -136,16 +136,16 @@ export function PracticeBuilderPage() {
             />
           </section>
 
-          <section className="relative isolate overflow-hidden rounded-[24px] bg-[#121b33] p-5 text-white shadow-[0_22px_50px_-36px_rgba(15,23,42,0.82)] sm:p-7">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_5%,rgba(111,99,255,0.42),transparent_32%),radial-gradient(circle_at_15%_105%,rgba(15,166,184,0.2),transparent_42%)]" />
+          <section className="relative isolate overflow-hidden rounded-[24px] bg-[#202321] p-5 text-white shadow-[0_22px_50px_-36px_rgba(15,23,42,0.82)] sm:p-7">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_5%,rgba(215,111,85,0.34),transparent_32%),radial-gradient(circle_at_15%_105%,rgba(127,169,157,0.22),transparent_42%)]" />
             <div className="relative">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="ui-kicker text-indigo-200">02 · Set the pace</p>
+                  <p className="ui-kicker text-[#c8f27a]">02 · Set the pace</p>
                   <h2 className="mt-3 text-2xl font-extrabold tracking-tight">
                     How much focus do you have today?
                   </h2>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">
+                  <p className="mt-2 text-sm leading-6 text-[#d8d4c9]">
                     Choose a short set and begin. The question bank fills the
                     mix unless you decide otherwise.
                   </p>
@@ -154,7 +154,7 @@ export function PracticeBuilderPage() {
                   <button
                     type="button"
                     onClick={clearMix}
-                    className="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
+                    className="rounded-lg border border-[#48534d] px-3 py-2 text-sm font-semibold text-[#d8d4c9] transition hover:bg-[#333c36]"
                   >
                     Use simple count
                   </button>
@@ -172,14 +172,14 @@ export function PracticeBuilderPage() {
                     }}
                     className={`min-w-14 rounded-lg border px-4 py-2 text-sm font-bold transition ${
                       !hasExactMix && fallbackCount === count
-                        ? "border-white bg-white text-slate-950"
-                        : "border-slate-700 bg-slate-900 text-white hover:border-slate-400"
+                        ? "border-white bg-white text-[#202321]"
+                        : "border-[#48534d] bg-[#2c322d] text-white hover:border-[#7fa99d]"
                     }`}
                   >
                     {count}
                   </button>
                 ))}
-                <label className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 text-sm text-slate-300">
+                <label className="flex items-center gap-2 rounded-lg border border-[#48534d] bg-[#2c322d] px-3 text-sm text-[#d8d4c9]">
                   Custom
                   <input
                     value={countValue}
@@ -197,7 +197,7 @@ export function PracticeBuilderPage() {
               </div>
 
               {hasExactMix ? (
-                <p className="mt-4 rounded-lg bg-slate-800 px-3 py-2 text-sm text-sky-100">
+                <p className="mt-4 rounded-lg bg-[#333c36] px-3 py-2 text-sm text-[#e7efe9]">
                   Your exact mix is active: {configuredMixCount} questions
                   across {activeMixTypes} types.
                 </p>
@@ -219,14 +219,14 @@ export function PracticeBuilderPage() {
                 <Button
                   disabled={!canStart}
                   onClick={() => void startPractice()}
-                  className="bg-white text-slate-950 hover:bg-slate-100"
+                  className="bg-white text-[#202321] hover:bg-[#e7efe9]"
                 >
                   {createSessionMutation.isPending
                     ? "Starting..."
                     : "Start practice"}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
-                <span className="text-sm text-slate-300">
+                <span className="text-sm text-[#d8d4c9]">
                   {totalPlanned} question{totalPlanned === 1 ? "" : "s"} in this
                   focus block
                 </span>
@@ -235,18 +235,18 @@ export function PracticeBuilderPage() {
           </section>
 
           <details
-            className="group rounded-2xl border border-slate-200 bg-white"
+            className="group rounded-2xl border border-[#d8d4c9] bg-[#fffdf8]"
             open={hasExactMix}
           >
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 font-bold text-slate-900 marker:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 font-bold text-[#202321] marker:hidden">
               <span className="flex items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4 text-slate-500" />
+                <SlidersHorizontal className="h-4 w-4 text-[#6e706b]" />
                 Choose an exact question mix
               </span>
-              <span className="text-sm font-medium text-slate-500 group-open:hidden">
+              <span className="text-sm font-medium text-[#6e706b] group-open:hidden">
                 Optional
               </span>
-              <span className="hidden text-sm font-medium text-slate-500 group-open:inline">
+              <span className="hidden text-sm font-medium text-[#6e706b] group-open:inline">
                 Close options
               </span>
             </summary>
@@ -294,7 +294,7 @@ export function PracticeBuilderPage() {
             description="A live check before you begin."
           >
             {summary ? (
-              <p className="text-xs font-medium text-slate-600">
+              <p className="text-xs font-medium text-[#6e706b]">
                 Access: Open access
               </p>
             ) : null}
@@ -340,21 +340,21 @@ export function PracticeBuilderPage() {
                     key={session.id}
                     to="/practice/$sessionId"
                     params={{ sessionId: session.id }}
-                    className="hover-lift block rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 transition hover:border-slate-900"
+                    className="hover-lift block rounded-lg border border-slate-200 bg-[#f8f5ee] px-3 py-3 transition hover:border-[#48766b]"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <p className="font-semibold text-slate-900">
+                        <p className="font-semibold text-[#202321]">
                           {session.title || "Practice Session"}
                         </p>
-                        <p className="mt-1 text-sm text-slate-500">
+                        <p className="mt-1 text-sm text-[#6e706b]">
                           {session.totalQuestions} questions
                           {session.completedAt
                             ? ` • Score ${session.correctAnswers}/${session.totalQuestions}`
                             : " • In progress"}
                         </p>
                       </div>
-                      <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white">
+                      <span className="rounded-full bg-[#2c322d] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white">
                         {session.status}
                       </span>
                     </div>

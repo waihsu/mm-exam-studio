@@ -47,7 +47,7 @@ export const PapersHomeHeader = ({
         <SymbolView
           name={{ ios: "questionmark.circle.fill", android: "help", web: "help" }}
           size={18}
-          tintColor="#1D4ED8"
+          tintColor="#48766B"
         />
       </Pressable>
     </View>
@@ -527,14 +527,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   heading: {
-    color: "#111827",
+    color: "#202321",
     fontSize: 28,
     fontWeight: "800",
   },
   helpIconButton: {
     alignItems: "center",
-    backgroundColor: "#EFF6FF",
-    borderColor: "#BFDBFE",
+    backgroundColor: "#E7EFE9",
+    borderColor: "#A8C9BD",
     borderRadius: 999,
     borderWidth: 1,
     height: 36,
@@ -542,15 +542,15 @@ const styles = StyleSheet.create({
     width: 36,
   },
   card: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 20,
     borderWidth: 1,
     gap: 12,
     padding: 16,
   },
   cardTitle: {
-    color: "#111827",
+    color: "#202321",
     fontSize: 19,
     fontWeight: "700",
   },
@@ -558,39 +558,39 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   label: {
-    color: "#334155",
+    color: "#4F514B",
     fontSize: 12,
     fontWeight: "700",
   },
   input: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#CBD5E1",
+    backgroundColor: "#F8F5EE",
+    borderColor: "#CFC9BD",
     borderRadius: 10,
     borderWidth: 1,
-    color: "#111827",
+    color: "#202321",
     fontSize: 15,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   checkboxRow: {
-    borderColor: "#CBD5E1",
+    borderColor: "#CFC9BD",
     borderRadius: 10,
     borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   checkboxRowActive: {
-    backgroundColor: "#E0EAFF",
-    borderColor: "#4F7DF3",
+    backgroundColor: "#F5E4DA",
+    borderColor: "#D76F55",
   },
   checkboxLabel: {
-    color: "#334155",
+    color: "#4F514B",
     fontSize: 13,
     fontWeight: "600",
   },
   secondaryButton: {
     alignItems: "center",
-    borderColor: "#CBD5E1",
+    borderColor: "#CFC9BD",
     borderRadius: 10,
     borderWidth: 1,
     justifyContent: "center",
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   secondaryButtonLabel: {
-    color: "#334155",
+    color: "#4F514B",
     fontSize: 14,
     fontWeight: "700",
   },
@@ -613,8 +613,8 @@ const styles = StyleSheet.create({
   },
   requiredScopeCard: {
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
-    borderColor: "#D8DEE9",
+    backgroundColor: "#F8F5EE",
+    borderColor: "#D8D4C9",
     borderRadius: 12,
     borderWidth: 1,
     flexDirection: "row",
@@ -627,24 +627,24 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   requiredScopeHint: {
-    color: "#64748B",
+    color: "#6E706B",
     fontSize: 13,
     lineHeight: 18,
   },
   builderCollapsedHint: {
-    color: "#64748B",
+    color: "#6E706B",
     fontSize: 14,
     lineHeight: 20,
   },
   linkButton: {
-    borderColor: "#CBD5E1",
+    borderColor: "#CFC9BD",
     borderRadius: 8,
     borderWidth: 1,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
   linkButtonLabel: {
-    color: "#334155",
+    color: "#4F514B",
     fontSize: 12,
     fontWeight: "700",
   },
@@ -656,14 +656,14 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     alignItems: "center",
-    backgroundColor: "#2563EB",
+    backgroundColor: "#D76F55",
     borderRadius: 10,
     justifyContent: "center",
     minHeight: 44,
     paddingHorizontal: 12,
   },
   primaryButtonLabel: {
-    color: "#FFFFFF",
+    color: "#FFFDF8",
     fontSize: 14,
     fontWeight: "700",
   },
@@ -699,12 +699,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   helpStepTitle: {
-    color: "#0F172A",
+    color: "#202321",
     fontSize: 14,
     fontWeight: "700",
   },
   helpStepHint: {
-    color: "#64748B",
+    color: "#6E706B",
     fontSize: 13,
     lineHeight: 18,
   },
@@ -722,27 +722,27 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   filterChip: {
-    borderColor: "#CBD5E1",
+    borderColor: "#CFC9BD",
     borderRadius: 999,
     borderWidth: 1,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   filterChipActive: {
-    backgroundColor: "#E0EAFF",
-    borderColor: "#4F7DF3",
+    backgroundColor: "#F5E4DA",
+    borderColor: "#D76F55",
   },
   filterChipLabel: {
-    color: "#334155",
+    color: "#4F514B",
     fontSize: 12,
     fontWeight: "600",
   },
   filterChipLabelActive: {
-    color: "#1D4ED8",
+    color: "#48766B",
   },
   paperCard: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#D8DEE9",
+    backgroundColor: "#F8F5EE",
+    borderColor: "#D8D4C9",
     borderRadius: 10,
     borderWidth: 1,
     gap: 4,
@@ -754,15 +754,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   paperTitle: {
-    color: "#0F172A",
+    color: "#202321",
     fontSize: 14,
     fontWeight: "700",
     maxWidth: "76%",
   },
   statusPill: {
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "#D8D4C9",
     borderRadius: 999,
-    color: "#334155",
+    color: "#4F514B",
     fontSize: 11,
     fontWeight: "700",
     overflow: "hidden",
@@ -771,11 +771,11 @@ const styles = StyleSheet.create({
     textTransform: "capitalize",
   },
   exportedPill: {
-    backgroundColor: "#DBEAFE",
-    color: "#1D4ED8",
+    backgroundColor: "#E7EFE9",
+    color: "#48766B",
   },
   paperMeta: {
-    color: "#64748B",
+    color: "#6E706B",
     fontSize: 12,
   },
 });

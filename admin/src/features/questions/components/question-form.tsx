@@ -368,7 +368,7 @@ export function QuestionForm({
       />
 
       {isVariableMode ? (
-        <div className="space-y-4 rounded-2xl border border-sky-200 bg-sky-50/70 p-4">
+        <div className="space-y-4 rounded-2xl border border-[#c9dcd3] bg-[#e7efe9]/75 p-4">
           <QuestionFormVariableOverview />
 
           <QuestionFormVariablePresets

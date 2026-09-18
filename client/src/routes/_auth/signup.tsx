@@ -38,19 +38,19 @@ function SignUpPage() {
   return (
     <div className="min-w-0 space-y-7 sm:space-y-8">
       <div className="min-w-0 space-y-3">
-        <p className="ink-kicker text-indigo-700">
+        <p className="ink-kicker text-[#48766b]">
           Account setup
         </p>
-        <h1 className="text-[2.25rem] font-extrabold leading-[1.08] tracking-[-0.04em] text-[#202536] [text-wrap:balance] sm:text-[2.75rem]">
+        <h1 className="text-[2.25rem] font-extrabold leading-[1.08] tracking-[-0.04em] text-[#202321] [text-wrap:balance] sm:text-[2.75rem]">
           Start with a clearer study system.
         </h1>
-        <p className="max-w-sm text-[0.9375rem] leading-7 text-slate-600">
+        <p className="max-w-sm text-[0.9375rem] leading-7 text-[#6e706b]">
           Your workspace keeps practice, question papers, and progress together without adding unnecessary steps.
         </p>
       </div>
 
       <form
-        className="space-y-5 border-t border-[#d8d5ca] pt-7"
+        className="space-y-5 border-t border-[#d8d4c9] pt-7"
         onSubmit={async (event) => {
           event.preventDefault();
           setIsPending(true);
@@ -68,7 +68,7 @@ function SignUpPage() {
         }}
       >
         <div className="space-y-2">
-          <Label htmlFor="signup-name" className="text-slate-800">
+          <Label htmlFor="signup-name" className="text-[#202321]">
             Full name
           </Label>
           <Input
@@ -76,14 +76,14 @@ function SignUpPage() {
             type="text"
             value={name}
             onChange={(event) => onNameChange(event.target.value)}
-            className="h-12 rounded-lg border-[#cfcbbf] bg-white px-4 shadow-none focus-visible:ring-indigo-500/20"
+            className="h-12 rounded-lg border-[#d8d4c9] bg-[#fffdf8] px-4 shadow-none focus-visible:ring-[#48766b]/25"
             placeholder="Aye Aye Khine"
             autoComplete="name"
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="signup-email" className="text-slate-800">
+          <Label htmlFor="signup-email" className="text-[#202321]">
             Email
           </Label>
           <Input
@@ -91,7 +91,7 @@ function SignUpPage() {
             type="email"
             value={email}
             onChange={(event) => onEmailChange(event.target.value)}
-            className="h-12 rounded-lg border-[#cfcbbf] bg-white px-4 shadow-none focus-visible:ring-indigo-500/20"
+            className="h-12 rounded-lg border-[#d8d4c9] bg-[#fffdf8] px-4 shadow-none focus-visible:ring-[#48766b]/25"
             placeholder="user@example.com"
             autoComplete="email"
             autoCapitalize="none"
@@ -101,7 +101,7 @@ function SignUpPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="signup-password" className="text-slate-800">
+          <Label htmlFor="signup-password" className="text-[#202321]">
             Password
           </Label>
           <Input
@@ -109,12 +109,12 @@ function SignUpPage() {
             type="password"
             value={password}
             onChange={(event) => onPasswordChange(event.target.value)}
-            className="h-12 rounded-lg border-[#cfcbbf] bg-white px-4 shadow-none focus-visible:ring-indigo-500/20"
+            className="h-12 rounded-lg border-[#d8d4c9] bg-[#fffdf8] px-4 shadow-none focus-visible:ring-[#48766b]/25"
             placeholder="Choose a secure password"
             autoComplete="new-password"
             required
           />
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#6e706b]">
             Use at least 8 characters with a mix of letters and numbers.
           </p>
         </div>
@@ -127,7 +127,7 @@ function SignUpPage() {
 
         <Button
           type="submit"
-          className="h-12 w-full rounded-lg bg-[#202536] text-white hover:bg-[#30364d]"
+          className="h-12 w-full rounded-lg bg-[#202321] text-[#fffdf8] hover:bg-[#2f3531]"
           disabled={isPending}
         >
           {isPending ? "Creating account..." : "Create account"}
@@ -135,9 +135,9 @@ function SignUpPage() {
         </Button>
       </form>
 
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-[#6e706b]">
         Already have an account?{" "}
-        <Link to="/signin" className="font-semibold text-slate-900 hover:text-indigo-700">
+        <Link to="/signin" className="font-semibold text-[#202321] hover:text-[#48766b]">
           Sign in
         </Link>
       </p>

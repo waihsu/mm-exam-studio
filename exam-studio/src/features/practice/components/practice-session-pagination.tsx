@@ -43,11 +43,11 @@ export function PracticeSessionPagination({
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: "#FFFFFF", borderColor: "#D8DEE9", borderRadius: 12, borderWidth: 1, padding: 12 },
+  card: { backgroundColor: "#FFFDF8", borderColor: "#D8D4C9", borderRadius: 12, borderWidth: 1, padding: 12 },
   row: { alignItems: "center", flexDirection: "row", gap: 10, justifyContent: "space-between" },
-  button: { alignItems: "center", backgroundColor: "#FFFFFF", borderColor: "#CBD5E1", borderRadius: 10, borderWidth: 1, minWidth: 82, paddingHorizontal: 12, paddingVertical: 10 },
-  buttonLabel: { color: "#334155", fontSize: 13, fontWeight: "700" },
-  progress: { color: "#64748B", flex: 1, fontSize: 12, fontWeight: "700", textAlign: "center" },
+  button: { alignItems: "center", backgroundColor: "#FFFDF8", borderColor: "#CFC9BD", borderRadius: 10, borderWidth: 1, minWidth: 82, paddingHorizontal: 12, paddingVertical: 10 },
+  buttonLabel: { color: "#4F514B", fontSize: 13, fontWeight: "700" },
+  progress: { color: "#6E706B", flex: 1, fontSize: 12, fontWeight: "700", textAlign: "center" },
   disabled: { opacity: 0.45 },
   pressed: { opacity: 0.84 },
 });

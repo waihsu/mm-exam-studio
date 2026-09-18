@@ -21,12 +21,12 @@ export function InfoCard({
   note: string;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+    <div className="rounded-xl border border-[#d8d4c9] bg-[#f8f5ee] p-4">
       <p className="field-label">
         {label}
       </p>
-      <p className="mt-1 text-base font-semibold text-slate-900">{value}</p>
-      <p className="mt-2 text-sm text-slate-600">{note}</p>
+      <p className="mt-1 text-base font-semibold text-[#202321]">{value}</p>
+      <p className="mt-2 text-sm text-[#6e706b]">{note}</p>
     </div>
   );
 }

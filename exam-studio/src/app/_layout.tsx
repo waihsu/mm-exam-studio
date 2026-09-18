@@ -134,7 +134,7 @@ export default function RootLayout() {
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: "#F4F6FA" },
+            contentStyle: { backgroundColor: "#F3EFE6" },
           }}
         >
           <Stack.Screen name="index" />
@@ -162,14 +162,14 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   errorRoot: {
     alignItems: "center",
-    backgroundColor: "#F4F6FA",
+    backgroundColor: "#F3EFE6",
     flex: 1,
     justifyContent: "center",
     padding: 20,
   },
   errorCard: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#D8DEE9",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 14,
     borderWidth: 1,
     gap: 10,
@@ -178,18 +178,18 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   errorTitle: {
-    color: "#0F172A",
+    color: "#202321",
     fontSize: 20,
     fontWeight: "800",
   },
   errorMessage: {
-    color: "#334155",
+    color: "#4F514B",
     fontSize: 14,
     lineHeight: 20,
   },
   errorButton: {
     alignItems: "center",
-    backgroundColor: "#111827",
+    backgroundColor: "#48766B",
     borderRadius: 10,
     justifyContent: "center",
     minHeight: 42,
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   errorButtonLabel: {
-    color: "#FFFFFF",
+    color: "#FFFDF8",
     fontSize: 14,
     fontWeight: "700",
   },

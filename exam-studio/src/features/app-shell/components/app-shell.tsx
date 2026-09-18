@@ -37,12 +37,12 @@ const AppShellInner = ({ children, style, ...rest }: AppShellProps) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F4F6FA",
+    backgroundColor: "#F3EFE6",
   },
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    gap: 16,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    gap: 20,
   },
 });

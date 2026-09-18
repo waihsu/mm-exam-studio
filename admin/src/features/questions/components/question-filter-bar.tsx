@@ -129,8 +129,8 @@ export function QuestionFilterBar({
     <div className="space-y-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-slate-900">Filter questions</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-sm font-semibold text-[#202321]">Filter questions</p>
+          <p className="text-xs text-[#6e706b]">
             Narrow the bank by taxonomy, content type, publish state, or question mode.
           </p>
         </div>
@@ -139,7 +139,7 @@ export function QuestionFilterBar({
             type="button"
             variant="outline"
             size="sm"
-            className="border-slate-300 bg-white text-slate-700"
+            className="border-[#d8d4c9] bg-[#fffdf8] text-[#202321] hover:border-[#7fa99d] hover:bg-[#f8f5ee]"
             onClick={() => setShowAdvanced((current) => !current)}
           >
             <SlidersHorizontal className="mr-2 h-3.5 w-3.5" />
@@ -147,14 +147,14 @@ export function QuestionFilterBar({
           </Button>
           {activeFilterCount > 0 ? (
             <>
-              <Badge variant="outline" className="w-fit border-slate-300 bg-slate-50 text-slate-700">
+              <Badge variant="outline" className="w-fit border-[#c9dcd3] bg-[#e7efe9] text-[#2b554d]">
                 {activeFilterCount} active filter{activeFilterCount > 1 ? "s" : ""}
               </Badge>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+                className="text-[#6e706b] hover:bg-[#f5e4da] hover:text-[#8f4437]"
                 onClick={onReset}
               >
                 <X className="mr-1.5 h-3.5 w-3.5" />
@@ -225,7 +225,7 @@ export function QuestionFilterBar({
         </SelectContent>
       </Select>
 
-      {showAdvanced ? <div className="grid gap-3 border-t border-slate-200 pt-3 md:grid-cols-2 xl:grid-cols-8">
+      {showAdvanced ? <div className="grid gap-3 border-t border-[#e8e2d7] pt-3 md:grid-cols-2 xl:grid-cols-8">
       <Select
         value={filters.type ?? "__all__"}
         onValueChange={(value) =>

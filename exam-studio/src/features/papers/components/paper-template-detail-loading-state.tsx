@@ -121,10 +121,10 @@ const DifficultySkeleton = ({
 );
 
 const styles = StyleSheet.create({
-  skeletonBlock: { backgroundColor: "#DBEAFE", borderRadius: 999 },
+  skeletonBlock: { backgroundColor: "#DDEBE4", borderRadius: 999 },
   card: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 24,
     borderWidth: 1,
     gap: 14,
@@ -141,8 +141,8 @@ const styles = StyleSheet.create({
   metaWide: { height: 12, width: "68%" },
   metricRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   metricChip: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#F8F5EE",
+    borderColor: "#D8D4C9",
     borderRadius: 16,
     borderWidth: 1,
     flex: 1,
@@ -156,8 +156,8 @@ const styles = StyleSheet.create({
   sectionHeading: { height: 16, width: "34%" },
   difficultyGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   difficultyChip: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#F8F5EE",
+    borderColor: "#D8D4C9",
     borderRadius: 16,
     borderWidth: 1,
     gap: 10,

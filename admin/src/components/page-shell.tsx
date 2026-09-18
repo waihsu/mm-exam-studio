@@ -22,7 +22,8 @@ export function AdminPageHeader({
   return (
     <PagePanel
       className={cn(
-        "overflow-hidden border-slate-200 bg-white",
+        "overflow-hidden border-[#d8d4c9] bg-[#fffdf8]",
+        inverted && "border-[#202321] bg-[#202321] shadow-[0_24px_60px_-40px_rgba(32,35,33,0.7)]",
         className,
       )}
     >
@@ -31,7 +32,7 @@ export function AdminPageHeader({
           <p
             className={cn(
               "admin-kicker",
-              inverted ? "text-slate-300" : "text-slate-500",
+              inverted ? "text-[#d8d4c9]" : "text-[#48766b]",
             )}
           >
             {eyebrow}
@@ -40,7 +41,7 @@ export function AdminPageHeader({
             <h1
               className={cn(
                 "text-2xl font-bold tracking-tight sm:text-[1.875rem]",
-                inverted ? "text-white" : "text-slate-950",
+                inverted ? "text-[#fffdf8]" : "text-[#202321]",
               )}
             >
               {title}
@@ -49,7 +50,7 @@ export function AdminPageHeader({
               <p
                 className={cn(
                   "max-w-3xl text-sm leading-6",
-                  inverted ? "text-slate-300" : "text-slate-600",
+                  inverted ? "text-[#d8d4c9]" : "text-[#6e706b]",
                 )}
               >
                 {description}
@@ -74,15 +75,15 @@ export function AdminStatPill({
   tone?: "default" | "cyan" | "amber" | "emerald" | "violet";
 }) {
   const toneClassMap = {
-    default: "border-slate-200 bg-white text-slate-900",
-    cyan: "border-slate-200 bg-slate-50 text-slate-900",
-    amber: "border-amber-200 bg-amber-50/70 text-amber-950",
-    emerald: "border-emerald-200 bg-emerald-50/70 text-emerald-950",
-    violet: "border-violet-200 bg-violet-50/70 text-violet-950",
+    default: "border-[#d8d4c9] bg-[#fffdf8] text-[#202321]",
+    cyan: "border-[#c9dcd3] bg-[#e7efe9] text-[#2b554d]",
+    amber: "border-[#ead1c3] bg-[#f5e4da] text-[#8f4437]",
+    emerald: "border-[#c9dcd3] bg-[#e7efe9] text-[#2b554d]",
+    violet: "border-[#dcd6f4] bg-[#eeeafb] text-[#7668b6]",
   } as const;
 
   return (
-    <div className={cn("rounded-lg border px-3 py-2", toneClassMap[tone])}>
+    <div className={cn("rounded-xl border px-3 py-2.5", toneClassMap[tone])}>
       <p className="admin-kicker opacity-65">{label}</p>
       <p className="mt-1 text-lg font-bold tracking-tight">{value}</p>
     </div>

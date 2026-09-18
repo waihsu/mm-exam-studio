@@ -97,52 +97,52 @@ export function EditQuestionPage({ questionId }: EditQuestionPageProps) {
 
   return (
     <PagePanel className="space-y-5">
-      <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex flex-col gap-4 border-b border-[#e8e2d7] pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-3">
-          <Button asChild variant="outline" className="border-slate-300/80 bg-white">
+          <Button asChild variant="outline" className="border-[#d8d4c9] bg-[#fffdf8] text-[#202321] hover:border-[#7fa99d] hover:bg-[#f8f5ee]">
             <Link to={ADMIN_ROUTES.questions}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to list
             </Link>
           </Button>
           <div className="space-y-2">
-            <p className="admin-kicker text-slate-500">
+            <p className="admin-kicker text-[#48766b]">
               Question Editor
             </p>
-            <h2 className="text-2xl font-bold text-slate-950 sm:text-3xl">
+            <h2 className="text-2xl font-bold text-[#202321] sm:text-3xl">
               Edit question
             </h2>
-            <p className="max-w-3xl text-sm leading-6 text-slate-600">
+            <p className="max-w-3xl text-sm leading-6 text-[#6e706b]">
               Update wording, taxonomy, options, and publish state without leaving
               the question bank workflow.
             </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2 lg:justify-end">
-          <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700">
+          <Badge variant="outline" className="border-[#d8d4c9] bg-[#f8f5ee] text-[#6e706b]">
             {questionQuery.data.questionCode}
           </Badge>
-          <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700 capitalize">
+          <Badge variant="outline" className="border-[#d8d4c9] bg-[#f8f5ee] text-[#6e706b] capitalize">
             {getQuestionTypeLabel(questionQuery.data.type)}
           </Badge>
-          <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700 capitalize">
+          <Badge variant="outline" className="border-[#d8d4c9] bg-[#f8f5ee] text-[#6e706b] capitalize">
             {questionQuery.data.mode}
           </Badge>
           <Badge
             variant="outline"
             className={
               questionQuery.data.isPublished
-                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                : "border-amber-200 bg-amber-50 text-amber-700"
+                ? "border-[#c9dcd3] bg-[#e7efe9] text-[#2b554d]"
+                : "border-[#ead1c3] bg-[#f5e4da] text-[#8f4437]"
             }
           >
             {questionQuery.data.isPublished ? "Published" : "Draft"}
           </Badge>
-          <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700">
+          <Badge variant="outline" className="border-[#d8d4c9] bg-[#f8f5ee] text-[#6e706b]">
             <PencilLine className="mr-1 h-3.5 w-3.5" />
             Live editing
           </Badge>
-          <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700">
+          <Badge variant="outline" className="border-[#c9dcd3] bg-[#e7efe9] text-[#2b554d]">
             <Sparkles className="mr-1 h-3.5 w-3.5" />
             Preview before save
           </Badge>

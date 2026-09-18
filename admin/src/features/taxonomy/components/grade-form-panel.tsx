@@ -26,10 +26,11 @@ export function GradeFormPanel({
   return (
     <PagePanel className="space-y-4 bg-white/90">
       <div className="space-y-1">
-        <h3 className="text-xl font-black text-slate-900">
+        <p className="admin-kicker">Taxonomy record</p>
+        <h3 className="text-xl font-black text-[#202321]">
           {editingGrade ? "Edit grade" : "Create grade"}
         </h3>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-[#6e706b]">
           Use short codes (`G-06`, `G-07`) and keep sort order continuous for cleaner filters.
         </p>
       </div>
@@ -69,7 +70,7 @@ export function GradeFormPanel({
             }
           />
         </div>
-        <label className="flex items-end gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        <label className="flex items-end gap-3 rounded-2xl border border-[#d8d4c9] bg-[#f8f5ee] px-4 py-3 text-sm text-[#202321]">
           <Checkbox
             checked={form.isActive}
             onCheckedChange={(checked) =>

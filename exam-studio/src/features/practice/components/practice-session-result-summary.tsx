@@ -48,12 +48,12 @@ export function PracticeSessionResultSummary({
 }
 
 const styles = StyleSheet.create({
-  successBanner: { backgroundColor: "#ECFDF5", borderColor: "#86EFAC", borderRadius: 14, borderWidth: 1, gap: 4, padding: 14 },
-  successTitle: { color: "#166534", fontSize: 15, fontWeight: "800" },
-  successHint: { color: "#15803D", fontSize: 13, lineHeight: 19 },
-  analyticsCard: { backgroundColor: "#FFFFFF", borderColor: "#D8DEE9", borderRadius: 12, borderWidth: 1, gap: 8, padding: 14 },
-  analyticsTitle: { color: "#0F172A", fontSize: 14, fontWeight: "800" },
+  successBanner: { backgroundColor: "#E7EFE9", borderColor: "#A8C9BD", borderRadius: 14, borderWidth: 1, gap: 4, padding: 14 },
+  successTitle: { color: "#48766B", fontSize: 15, fontWeight: "800" },
+  successHint: { color: "#48766B", fontSize: 13, lineHeight: 19 },
+  analyticsCard: { backgroundColor: "#FFFDF8", borderColor: "#D8D4C9", borderRadius: 12, borderWidth: 1, gap: 8, padding: 14 },
+  analyticsTitle: { color: "#202321", fontSize: 14, fontWeight: "800" },
   analyticsRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
-  analyticsType: { color: "#334155", fontSize: 13 },
-  analyticsValue: { color: "#0F172A", fontSize: 13, fontWeight: "700" },
+  analyticsType: { color: "#4F514B", fontSize: 13 },
+  analyticsValue: { color: "#202321", fontSize: 13, fontWeight: "700" },
 });
