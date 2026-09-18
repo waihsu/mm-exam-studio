@@ -45,6 +45,7 @@ lerna-debug.log*
 **/google-services.json
 **/google-service.json
 **/google-services\ (*.json
+**/wrangler*.jsonc
 **/*.jks
 **/*.p12
 **/*.p8
