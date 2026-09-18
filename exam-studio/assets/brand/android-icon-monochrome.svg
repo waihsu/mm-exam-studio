@@ -1,3 +1,5 @@
 <svg width="432" height="432" viewBox="0 0 432 432" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M112 304L168 116L216 194L264 116L320 304" stroke="black" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M72 88C133 96 184 135 216 192V360C176 327 123 301 72 296V88Z" fill="black"/>
+  <path d="M360 88C299 96 248 135 216 192V360C256 327 309 301 360 296V88Z" fill="black"/>
+  <path d="M116 201L194 276L324 132" stroke="white" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

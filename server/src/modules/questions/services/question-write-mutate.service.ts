@@ -60,6 +60,7 @@ export const duplicateQuestion = async (id: string, createdBy?: string) => {
       answerFormula: sourceQuestion.answerFormula,
       variablesSchema: sourceQuestion.variablesSchema ?? null,
       parametricValueSets: sourceQuestion.parametricValueSets ?? null,
+      variantContents: sourceQuestion.variantContents ?? null,
       reviewStatus: "draft",
       reviewNotes: null,
       marks: sourceQuestion.marks,

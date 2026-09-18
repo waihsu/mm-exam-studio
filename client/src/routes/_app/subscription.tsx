@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SubscriptionPage } from "@/features/subscription/components/subscription-page";
+import { OpenAccessPage } from "@/features/open-access/components/open-access-page";
 
 export const Route = createFileRoute("/_app/subscription")({
-  component: SubscriptionPage,
+  component: OpenAccessPage,
 });

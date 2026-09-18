@@ -91,6 +91,17 @@ export const useQuestionPaperDetail = (paperId: string) => {
     },
   });
 
+  const duplicateMutation = useMutation({
+    mutationFn: () => workspaceApi.duplicateQuestionPaper(paperId),
+    onSuccess: async (response) => {
+      if (!response.ok) return;
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["workspace-papers"] }),
+        queryClient.invalidateQueries({ queryKey: ["workspace-summary"] }),
+      ]);
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: () => workspaceApi.deleteQuestionPaper(paperId),
     onSuccess: async (response) => {
@@ -108,6 +119,7 @@ export const useQuestionPaperDetail = (paperId: string) => {
     pdfMutation,
     updateMutation,
     statusMutation,
+    duplicateMutation,
     deleteMutation,
   };
 };

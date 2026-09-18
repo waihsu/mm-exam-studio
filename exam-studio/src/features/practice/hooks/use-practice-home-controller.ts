@@ -40,12 +40,14 @@ type ScopeLabels = {
 export const usePracticeHomeController = ({
   scopeLabels,
   createFailedMessage,
+  gradeRequiredMessage,
   plannedTitle,
   quickTitle,
   onSessionCreated,
 }: {
   scopeLabels: ScopeLabels;
   createFailedMessage: string;
+  gradeRequiredMessage: string;
   plannedTitle: string;
   quickTitle: string;
   onSessionCreated: (sessionId: string) => void;
@@ -56,13 +58,14 @@ export const usePracticeHomeController = ({
   const [subjectId, setSubjectId] = useState<ScopeFilterValue>("all");
   const [chapterId, setChapterId] = useState<ScopeFilterValue>("all");
   const [subChapterId, setSubChapterId] = useState<ScopeFilterValue>("all");
-  const [mixCounts, setMixCounts] = useState<Record<PracticeQuestionType, string>>(
-    EMPTY_PRACTICE_MIX_COUNTS,
-  );
+  const [mixCounts, setMixCounts] = useState<
+    Record<PracticeQuestionType, string>
+  >(EMPTY_PRACTICE_MIX_COUNTS);
   const [mixHydrated, setMixHydrated] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [helpSheetOpen, setHelpSheetOpen] = useState(false);
-  const [activeScopePicker, setActiveScopePicker] = useState<ScopePickerKey | null>(null);
+  const [activeScopePicker, setActiveScopePicker] =
+    useState<ScopePickerKey | null>(null);
   const [onboardingVisible, setOnboardingVisible] = useState(false);
   const createSessionMutation = useCreatePracticeSessionMutation();
 
@@ -141,42 +144,47 @@ export const usePracticeHomeController = ({
       chapterId: chapterId === "all" ? undefined : chapterId,
       subChapterId: subChapterId === "all" ? undefined : subChapterId,
     },
-    ["all", "mcq", "short_answer"],
+    ["all", "mcq", "short_answer"]
   );
 
   const sessionsQuery = usePracticeSessionsQuery();
   const practiceRefresh = useRefreshAction(async () => {
-    await Promise.allSettled([quickTypeCountsQuery.refetch(), sessionsQuery.refetch()]);
+    await Promise.allSettled([
+      quickTypeCountsQuery.refetch(),
+      sessionsQuery.refetch(),
+    ]);
   });
 
   const configuredMixCount = useMemo(
     () =>
       PRACTICE_MIX_TYPES.reduce(
         (sum, type) => sum + (Number.parseInt(mixCounts[type] || "0", 10) || 0),
-        0,
+        0
       ),
-    [mixCounts],
+    [mixCounts]
   );
 
   const activeMixTypes = useMemo(
     () =>
-      PRACTICE_MIX_TYPES.filter((type) => (Number.parseInt(mixCounts[type] || "0", 10) || 0) > 0)
-        .length,
-    [mixCounts],
+      PRACTICE_MIX_TYPES.filter(
+        type => (Number.parseInt(mixCounts[type] || "0", 10) || 0) > 0
+      ).length,
+    [mixCounts]
   );
 
   const exceedsAvailableMix = useMemo(
     () =>
-      PRACTICE_MIX_TYPES.some((type) => {
+      PRACTICE_MIX_TYPES.some(type => {
         const requested = Number.parseInt(mixCounts[type] || "0", 10) || 0;
         const available = quickTypeCountsQuery.counts[type];
         return typeof available === "number" && requested > available;
       }),
-    [mixCounts, quickTypeCountsQuery.counts],
+    [mixCounts, quickTypeCountsQuery.counts]
   );
 
   const quickStartDisabled =
     createSessionMutation.isPending ||
+    gradeId === "all" ||
     configuredMixCount > 50 ||
     exceedsAvailableMix ||
     (configuredMixCount > 0 && configuredMixCount < 1);
@@ -192,7 +200,9 @@ export const usePracticeHomeController = ({
     setMixCounts(getDefaultPracticeMix());
   };
 
-  const applyPracticePreset = (values: Record<PracticeQuestionType, string>) => {
+  const applyPracticePreset = (
+    values: Record<PracticeQuestionType, string>
+  ) => {
     setMixCounts(values);
   };
 
@@ -232,23 +242,23 @@ export const usePracticeHomeController = ({
   };
 
   const quickStart = async () => {
-    if (createSessionMutation.isPending) {
+    if (createSessionMutation.isPending || gradeId === "all") {
+      if (gradeId === "all") {
+        setActionError(gradeRequiredMessage);
+      }
       return;
     }
 
     setActionError(null);
 
-    const questionMix = PRACTICE_MIX_TYPES.map((type) => ({
+    const questionMix = PRACTICE_MIX_TYPES.map(type => ({
       questionType: type,
       count: Number.parseInt(mixCounts[type] || "0", 10) || 0,
-    })).filter((entry) => entry.count > 0);
+    })).filter(entry => entry.count > 0);
 
     try {
       const result = await createSessionMutation.mutateAsync({
-        title:
-          questionMix.length > 0
-            ? plannedTitle
-            : quickTitle,
+        title: questionMix.length > 0 ? plannedTitle : quickTitle,
         count: questionMix.length > 0 ? undefined : 10,
         questionMix: questionMix.length > 0 ? questionMix : undefined,
         gradeId: gradeId === "all" ? undefined : gradeId,
@@ -258,7 +268,9 @@ export const usePracticeHomeController = ({
       });
       onSessionCreated(result.id);
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : createFailedMessage);
+      setActionError(
+        error instanceof Error ? error.message : createFailedMessage
+      );
     }
   };
 
@@ -281,6 +293,7 @@ export const usePracticeHomeController = ({
     activeMixTypes,
     exceedsAvailableMix,
     quickStartDisabled,
+    hasSelectedGrade: gradeId !== "all",
     scopeSummary,
     activeScopePickerLabel,
     activeScopePickerOptions,

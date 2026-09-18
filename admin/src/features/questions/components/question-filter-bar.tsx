@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Search, X } from "lucide-react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -58,6 +58,16 @@ export function QuestionFilterBar({
   onReset,
 }: QuestionFilterBarProps) {
   const [searchInput, setSearchInput] = useState(filters.search ?? "");
+  const [showAdvanced, setShowAdvanced] = useState(
+    Boolean(
+      filters.type ||
+        filters.mode ||
+        typeof filters.isPublished === "boolean" ||
+        filters.chapterId ||
+        filters.subChapterId ||
+        filters.difficulty,
+    ),
+  );
   const deferredSearchInput = useDeferredValue(searchInput);
   const debouncedSearchInput = useDebouncedValue(deferredSearchInput, 280);
   const subjects = getSubjectsForGrade(meta, filters.gradeId ?? "");
@@ -95,20 +105,64 @@ export function QuestionFilterBar({
     });
   }, [debouncedSearchInput, filters, onChange]);
 
+  useEffect(() => {
+    if (
+      filters.type ||
+      filters.mode ||
+      typeof filters.isPublished === "boolean" ||
+      filters.chapterId ||
+      filters.subChapterId ||
+      filters.difficulty
+    ) {
+      setShowAdvanced(true);
+    }
+  }, [
+    filters.chapterId,
+    filters.difficulty,
+    filters.isPublished,
+    filters.mode,
+    filters.subChapterId,
+    filters.type,
+  ]);
+
   return (
     <div className="space-y-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-slate-900">Filter questions</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-sm font-semibold text-[#202321]">Filter questions</p>
+          <p className="text-xs text-[#6e706b]">
             Narrow the bank by taxonomy, content type, publish state, or question mode.
           </p>
         </div>
-        {activeFilterCount > 0 ? (
-          <Badge variant="outline" className="w-fit">
-            {activeFilterCount} active filter{activeFilterCount > 1 ? "s" : ""}
-          </Badge>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="border-[#d8d4c9] bg-[#fffdf8] text-[#202321] hover:border-[#7fa99d] hover:bg-[#f8f5ee]"
+            onClick={() => setShowAdvanced((current) => !current)}
+          >
+            <SlidersHorizontal className="mr-2 h-3.5 w-3.5" />
+            {showAdvanced ? "Hide details" : "More filters"}
+          </Button>
+          {activeFilterCount > 0 ? (
+            <>
+              <Badge variant="outline" className="w-fit border-[#c9dcd3] bg-[#e7efe9] text-[#2b554d]">
+                {activeFilterCount} active filter{activeFilterCount > 1 ? "s" : ""}
+              </Badge>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-[#6e706b] hover:bg-[#f5e4da] hover:text-[#8f4437]"
+                onClick={onReset}
+              >
+                <X className="mr-1.5 h-3.5 w-3.5" />
+                Clear
+              </Button>
+            </>
+          ) : null}
+        </div>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-12">
@@ -171,6 +225,7 @@ export function QuestionFilterBar({
         </SelectContent>
       </Select>
 
+      {showAdvanced ? <div className="grid gap-3 border-t border-[#e8e2d7] pt-3 md:grid-cols-2 xl:grid-cols-8">
       <Select
         value={filters.type ?? "__all__"}
         onValueChange={(value) =>
@@ -315,18 +370,8 @@ export function QuestionFilterBar({
         </SelectContent>
       </Select>
 
-      <div className="flex items-center md:col-span-2 xl:col-span-1">
-        <Button
-          type="button"
-          variant="outline"
-          className="h-11 w-full border-slate-300/80 bg-white"
-          onClick={onReset}
-        >
-          <X className="mr-2 h-4 w-4" />
-          Reset
-        </Button>
-      </div>
-      </div>
+      </div> : null}
+    </div>
     </div>
   );
 }

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   BookText,
-  CreditCard,
   ExternalLink,
   Layers3,
   LifeBuoy,
@@ -22,7 +21,7 @@ import {
 } from "@/constants/routes";
 import { useAuthFlow } from "@/features/auth/hooks/use-auth-flow";
 import { useLanguage } from "@/i18n";
-import adminLogo from "@/assets/admin-logo.svg";
+import adminLogo from "@/assets/brand-mark-compact.png";
 import { cn } from "@/lib/utils";
 
 import {
@@ -77,7 +76,6 @@ const iconForRoute = (to: string) => {
   }
   if (to === ADMIN_ROUTES.taxonomy || to.startsWith("/taxonomy"))
     return Layers3;
-  if (to === ADMIN_ROUTES.userSubscriptions) return CreditCard;
   if (to === ADMIN_ROUTES.userSupport) return LifeBuoy;
   if (to === ADMIN_ROUTES.users) return UsersRound;
   if (to === ADMIN_ROUTES.settings || to.startsWith("/settings"))
@@ -102,9 +100,9 @@ const renderMobileNavLink = (
       onClick={onNavigate}
       className={cn(
         "flex items-center justify-between rounded-2xl border px-3 py-3 text-sm font-semibold transition",
-        isActive
-          ? "border-indigo-300 bg-indigo-50 text-indigo-900 shadow-[0_10px_20px_-16px_rgba(49,46,129,0.7)]"
-          : "border-slate-200 bg-white/90 text-slate-700 hover:border-slate-300 hover:bg-white",
+isActive
+          ? "border-[#c9dcd3] bg-[#e7efe9] text-[#2b554d] shadow-[0_10px_20px_-16px_rgba(72,118,107,0.35)]"
+          : "border-[#d8d4c9] bg-[#fffdf8]/90 text-[#202321] hover:border-[#7fa99d] hover:bg-[#fffdf8]",
       )}
     >
       <span className="flex min-w-0 items-center gap-3">
@@ -112,7 +110,7 @@ const renderMobileNavLink = (
         <span className="truncate">{label}</span>
       </span>
       {isActive ? (
-        <span className="h-2 w-2 rounded-full bg-indigo-700" />
+        <span className="h-2 w-2 rounded-full bg-[#d76f55]" />
       ) : null}
     </Link>
   );
@@ -202,12 +200,12 @@ export function AdminNavbar({
 
   return (
     <>
-      <header className="sticky top-0 z-[180] min-h-[var(--admin-header-height,4rem)] border-b border-white/70 bg-gradient-to-b from-white/94 to-white/82 backdrop-blur-xl">
+      <header className="sticky top-0 z-[180] min-h-[var(--admin-header-height,4rem)] border-b border-[#d8d4c9] bg-[#fffdf8]/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[var(--admin-header-height,4rem)] w-full max-w-none items-center justify-between gap-3 px-3 md:px-4 lg:px-6">
         <div className="flex min-w-0 items-center gap-2">
           <Link
             to={ADMIN_ROUTES.dashboard}
-            className="group inline-flex items-center gap-2 rounded-2xl border border-white/75 bg-white/92 px-3 py-1.5 shadow-[0_10px_22px_-18px_rgba(15,23,42,0.75)] ring-1 ring-slate-900/5 transition hover:-translate-y-0.5"
+            className="group inline-flex items-center gap-2 rounded-xl border border-[#d8d4c9] bg-[#fffdf8] px-3 py-1.5 transition hover:bg-[#f3efe6]"
           >
             <img
               src={adminLogo}
@@ -215,10 +213,10 @@ export function AdminNavbar({
               className="h-8 w-8 rounded-xl shadow-sm shadow-indigo-900/20"
             />
             <span className="leading-tight">
-              <span className="block text-sm font-black tracking-tight text-slate-900">
+              <span className="block text-sm font-black tracking-tight text-[#202321]">
                 Study Admin
               </span>
-              <span className="block text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">
+              <span className="block text-[11px] font-medium uppercase tracking-[0.14em] text-[#48766b]">
                 Route Groups
               </span>
             </span>
@@ -229,7 +227,7 @@ export function AdminNavbar({
           <Button
             type="button"
             variant="outline"
-            className="h-9 rounded-xl border-slate-300/80 bg-white/88 px-3 text-slate-700"
+            className="h-9 rounded-xl border-[#d8d4c9] bg-[#fffdf8]/88 px-3 text-[#202321]"
             onClick={toggleLanguage}
           >
             {language === "en" ? "MM" : "EN"}
@@ -238,7 +236,7 @@ export function AdminNavbar({
             href={studyAppUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-300/75 bg-white/88 px-3 text-sm font-semibold text-slate-700 transition hover:bg-white"
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#d8d4c9]/75 bg-[#fffdf8]/88 px-3 text-sm font-semibold text-[#202321] transition hover:bg-[#fffdf8]"
           >
             {tr({ en: "Study App", my: "လေ့လာရေး App" })}
             <ExternalLink className="h-3.5 w-3.5" />
@@ -299,7 +297,7 @@ export function AdminNavbar({
           type="button"
           variant="ghost"
           size="icon"
-          className="relative z-[320] border border-slate-300/80 bg-white/90 text-slate-800 shadow-[0_8px_20px_-16px_rgba(15,23,42,0.9)] lg:hidden"
+          className="relative z-[320] border border-[#d8d4c9] bg-[#fffdf8]/90 text-[#202321] shadow-[0_8px_20px_-16px_rgba(32,35,33,0.28)] lg:hidden"
           onClick={() => setIsMobileOpen((current) => !current)}
           aria-label="Toggle mobile navigation"
           aria-expanded={isMobileOpen}
@@ -318,16 +316,16 @@ export function AdminNavbar({
         <div className="fixed inset-x-0 bottom-0 top-[var(--admin-header-height,4rem)] z-[300] lg:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-slate-950/35 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-[#202321]/35 backdrop-blur-[2px]"
             aria-label="Close mobile navigation"
             onClick={() => setIsMobileOpen(false)}
           />
           <div
             id="admin-mobile-nav-panel"
-            className="absolute inset-x-0 top-0 max-h-full overflow-y-auto border-t border-white/60 bg-gradient-to-b from-white/96 to-slate-50/96 px-4 pb-6 pt-4 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.55)]"
+            className="absolute inset-x-0 top-0 max-h-full overflow-y-auto border-t border-[#d8d4c9]/60 bg-gradient-to-b from-[#fffdf8]/96 to-[#f3efe6]/96 px-4 pb-6 pt-4 shadow-[0_30px_80px_-40px_rgba(32,35,33,0.4)]"
           >
             <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
-              <div className="rounded-3xl border border-white/80 bg-white/92 p-4 shadow-[0_18px_44px_-28px_rgba(15,23,42,0.45)] ring-1 ring-slate-900/5">
+              <div className="rounded-3xl border border-[#d8d4c9]/80 bg-[#fffdf8]/92 p-4 shadow-[0_18px_44px_-28px_rgba(15,23,42,0.45)] ring-1 ring-slate-900/5">
                 <div className="flex items-center gap-3">
                   <img
                     src={adminLogo}
@@ -370,9 +368,9 @@ export function AdminNavbar({
               {visibleGroups.map((group) => (
                 <section
                   key={group.id}
-                  className="rounded-3xl border border-white/80 bg-white/92 p-4 shadow-[0_18px_44px_-28px_rgba(15,23,42,0.45)] ring-1 ring-slate-900/5"
+                  className="rounded-3xl border border-[#d8d4c9]/80 bg-[#fffdf8]/92 p-4 shadow-[0_18px_44px_-28px_rgba(15,23,42,0.45)] ring-1 ring-slate-900/5"
                 >
-                  <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                  <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-[#48766b]">
                     {tr(group.label)}
                   </p>
                   <div className="space-y-2">
@@ -386,7 +384,7 @@ export function AdminNavbar({
               ))}
 
               {isSignedIn ? (
-                <section className="rounded-3xl border border-white/80 bg-white/92 p-4 shadow-[0_18px_44px_-28px_rgba(15,23,42,0.45)] ring-1 ring-slate-900/5">
+                <section className="rounded-3xl border border-[#d8d4c9]/80 bg-[#fffdf8]/92 p-4 shadow-[0_18px_44px_-28px_rgba(15,23,42,0.45)] ring-1 ring-slate-900/5">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-11 w-11">
                       <AvatarImage src={userImage} alt={userDisplayName} />

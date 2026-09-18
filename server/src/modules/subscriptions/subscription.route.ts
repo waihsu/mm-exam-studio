@@ -5,6 +5,7 @@ import { subscriptionAdminRequestsRoute } from "./routes/admin-requests.route";
 import { subscriptionAdminUsersRoute } from "./routes/admin-users.route";
 import { subscriptionMyRequestsRoute } from "./routes/my-requests.route";
 import { subscriptionPlansRoute } from "./routes/plans.route";
+import { isOpenSourceMode } from "./core/subscription-core-shared.service";
 
 export const subscriptionRoute = new Hono<AppBindings>();
 
@@ -12,6 +13,8 @@ subscriptionRoute.use("*", requireAuth);
 subscriptionRoute.use("/admin/*", requireRoles("admin", "superadmin"));
 
 subscriptionRoute.route("/", subscriptionPlansRoute);
-subscriptionRoute.route("/", subscriptionMyRequestsRoute);
-subscriptionRoute.route("/", subscriptionAdminUsersRoute);
-subscriptionRoute.route("/", subscriptionAdminRequestsRoute);
+if (!isOpenSourceMode()) {
+  subscriptionRoute.route("/", subscriptionMyRequestsRoute);
+  subscriptionRoute.route("/", subscriptionAdminUsersRoute);
+  subscriptionRoute.route("/", subscriptionAdminRequestsRoute);
+}

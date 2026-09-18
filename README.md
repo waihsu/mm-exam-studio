@@ -1,264 +1,203 @@
-# bhvr 🦫
+# MM Exam Studio
 
-![cover](https://cdn.stevedylan.dev/ipfs/bafybeievx27ar5qfqyqyud7kemnb5n2p4rzt2matogi6qttwkpxonqhra4)
+> An open-source learning workspace for Myanmar learners, educators, and content teams.
 
-A full-stack TypeScript monorepo starter with shared types, using Bun, Hono, Vite, and React.
+MM Exam Studio brings practice, question-paper creation, answer review, and content operations into a single platform. Learners can build focused study sessions and review their progress; educators can assemble export-ready papers; administrators can maintain a governed question bank.
 
-## Why bhvr?
+The project is open by design. Core practice, paper-building, branding, and PDF-export capabilities are available without subscription tiers, payment-proof uploads, or upgrade approvals.
 
-While there are plenty of existing app building stacks out there, many of them are either bloated, outdated, or have too much of a vendor lock-in. bhvr is built with the opinion that you should be able to deploy your client or server in any environment while also keeping type safety.
+## What you can do
 
-## Features
+| For learners | For educators and content teams | For operators |
+| --- | --- | --- |
+| Build targeted practice sessions | Create, revise, finalize, and export question papers | Manage authentication, roles, and platform configuration |
+| Submit answers and review clear feedback | Organize grades, subjects, and question banks | Run database migrations, seed data, and release checks |
+| Use the study experience on web or mobile | Review content before publishing | Deploy the API and web applications independently |
 
-- **Full-Stack TypeScript**: End-to-end type safety between client and server
-- **Shared Types**: Common type definitions shared between client and server
-- **Monorepo Structure**: Organized as a workspaces-based monorepo with Turbo for build orchestration
-- **Modern Stack**:
-  - [Bun](https://bun.sh) as the JavaScript runtime and package manager
-  - [Hono](https://hono.dev) as the backend framework
-  - [Vite](https://vitejs.dev) for frontend bundling
-  - [React](https://react.dev) for the frontend UI
-  - [Turbo](https://turbo.build) for monorepo build orchestration and caching
+## Platform overview
 
-## Project Structure
-
-```
-.
-├── client/               # React frontend
-├── server/               # Hono backend
-├── shared/               # Shared TypeScript definitions
-│   └── src/types/        # Type definitions used by both client and server
-├── package.json          # Root package.json with workspaces
-└── turbo.json            # Turbo configuration for build orchestration
-```
-
-### Server
-
-bhvr uses Hono as a backend API for its simplicity and massive ecosystem of plugins. If you have ever used Express then it might feel familiar. Declaring routes and returning data is easy.
-
-```
-server
-├── bun.lock
-├── package.json
-├── README.md
-├── src
-│   └── index.ts
-└── tsconfig.json
+```text
+                  ┌──────────────────────┐
+                  │      Shared types    │
+                  │       shared/        │
+                  └──────────┬───────────┘
+                             │
+        ┌────────────────────┼────────────────────┐
+        │                    │                    │
+┌───────▼────────┐  ┌────────▼────────┐  ┌────────▼────────┐
+│ Learner web app│  │      API         │  │  Admin console  │
+│    client/     │◄─┤    server/       ├─►│     admin/       │
+└────────────────┘  │ Hono + Drizzle  │  └─────────────────┘
+                    │ + Better Auth    │
+                    └────────┬─────────┘
+                             │
+                    ┌────────▼─────────┐
+                    │   Mobile app      │
+                    │  exam-studio/     │
+                    └──────────────────┘
 ```
 
-```typescript src/index.ts
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
-import type { ApiResponse } from 'shared'
+| Workspace | Responsibility | Primary tools |
+| --- | --- | --- |
+| `server/` | API, authentication, database access, PDF export, and seed scripts | Bun, Hono, Better Auth, Drizzle ORM |
+| `client/` | Learner-facing web experience | React, Vite, TanStack Router/Query |
+| `admin/` | Content and operations console | React, Vite, TanStack Router/Query |
+| `exam-studio/` | Android and iOS mobile experience | Expo, React Native, Expo Router |
+| `shared/` | Shared TypeScript contracts | TypeScript |
+| `docs/` | Release, policy, and production documentation | Markdown |
 
-const app = new Hono()
+## Quick start
 
-app.use(cors())
+### Requirements
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+- [Bun](https://bun.sh/) 1.2.4 or newer
+- Node.js 20 or newer for the Expo mobile app
+- A PostgreSQL database, local or remote
+- Android Studio or Xcode only when testing mobile builds on a simulator or device
 
-app.get('/hello', async (c) => {
-
-  const data: ApiResponse = {
-    message: "Hello BHVR!",
-    success: true
-  }
-
-  return c.json(data, { status: 200 })
-})
-
-export default app
-```
-
-If you wanted to add a database to Hono you can do so with a multitude of Typescript libraries like [Supabase](https://supabase.com), or ORMs like [Drizzle](https://orm.drizzle.team/docs/get-started)
-
-### Client
-
-bhvr uses Vite + React Typescript template, which means you can build your frontend just as you would with any other React app. This makes it flexible to add UI components like [shadcn/ui](https://ui.shadcn.com) or routing using [React Router](https://reactrouter.com/start/declarative/installation).
-
-```
-client
-├── eslint.config.js
-├── index.html
-├── package.json
-├── public
-│   └── vite.svg
-├── README.md
-├── src
-│   ├── App.css
-│   ├── App.tsx
-│   ├── assets
-│   ├── index.css
-│   ├── main.tsx
-│   └── vite-env.d.ts
-├── tsconfig.app.json
-├── tsconfig.json
-├── tsconfig.node.json
-└── vite.config.ts
-```
-
-```typescript src/App.tsx
-import { useState } from 'react'
-import beaver from './assets/beaver.svg'
-import { ApiResponse } from 'shared'
-import './App.css'
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3000"
-
-function App() {
-  const [data, setData] = useState<ApiResponse | undefined>()
-
-  async function sendRequest() {
-    try {
-      const req = await fetch(`${SERVER_URL}/hello`)
-      const res: ApiResponse = await req.json()
-      setData(res)
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
-  return (
-    <>
-      <div>
-        <a href="https://github.com/stevedylandev/bhvr" target="_blank">
-          <img src={beaver} className="logo" alt="beaver logo" />
-        </a>
-      </div>
-      <h1>bhvr</h1>
-      <h2>Bun + Hono + Vite + React</h2>
-      <p>A typesafe fullstack monorepo</p>
-      <div className="card">
-        <button onClick={sendRequest}>
-          Call API
-        </button>
-        {data && (
-          <pre className='response'>
-            <code>
-            Message: {data.message} <br />
-            Success: {data.success.toString()}
-            </code>
-          </pre>
-        )}
-      </div>
-      <p className="read-the-docs">
-        Click the beaver to learn more
-      </p>
-    </>
-  )
-}
-
-export default App
-```
-
-### Shared
-
-The Shared package is used for anything you want to share between the Server and Client. This could be types or libraries that you use in both environments.
-
-```
-shared
-├── package.json
-├── src
-│   ├── index.ts
-│   └── types
-│       └── index.ts
-└── tsconfig.json
-```
-
-Inside the `src/index.ts` we export any of our code from the folders so it's usable in other parts of the monorepo
-
-```typescript
-export * from "./types"
-```
-
-By running `bun run dev` or `bun run build` it will compile and export the packages from `shared` so it can be used in either `client` or `server`
-
-```typescript
-import { ApiResponse } from 'shared'
-```
-
-## Getting Started
-
-### Quick Start
-
-You can start a new bhvr project using the [CLI](https://github.com/stevedylandev/create-bhvr)
+### 1. Install dependencies
 
 ```bash
-bun create bhvr
-```
-
-### Installation
-
-```bash
-# Install dependencies for all workspaces
+# Web/API workspaces
 bun install
+
+# Mobile workspace
+cd exam-studio
+npm install
+cd ..
 ```
 
-### Development
+### 2. Configure local development
+
+Create the API and mobile environment files from their committed examples.
 
 ```bash
-# Run all workspaces in development mode with Turbo
+# macOS/Linux
+cp server/.env.example server/.env
+cp exam-studio/.env.example exam-studio/.env
+```
+
+```powershell
+# Windows PowerShell
+Copy-Item server/.env.example server/.env
+Copy-Item exam-studio/.env.example exam-studio/.env
+```
+
+Set a real database connection and a strong `BETTER_AUTH_SECRET` in `server/.env` before sharing an environment. The web applications target `http://localhost:3000` by default; create `client/.env.local` or `admin/.env.local` only when using a different API address.
+
+### 3. Initialize the database
+
+For an existing database, synchronize the schema and load demo content:
+
+```bash
+cd server
+bun run db:push
+bun run seed:demo
+cd ..
+```
+
+For a new database that should use the checked-in migration history, run `bun run db:migrate` from `server/` instead.
+
+### 4. Run the platform
+
+Start each service in a separate terminal.
+
+| Service | Command | Default URL |
+| --- | --- | --- |
+| API | `bun run dev:server` | `http://localhost:3000` |
+| Learner web app | `bun run dev:client` | `http://localhost:5173` |
+| Admin console | `bun run dev:admin` | `http://localhost:5174` |
+| Mobile app | `cd exam-studio && npm run start` | Expo development server |
+
+The Android emulator reaches a backend on the host computer through `http://10.0.2.2:3000`. For a physical device, set `EXPO_PUBLIC_API_BASE_URL` in `exam-studio/.env` to your computer's LAN address, for example `http://192.168.1.10:3000`.
+
+## Configuration reference
+
+Environment files are intentionally excluded from Git. Never commit credentials, service-account files, Firebase configuration, or Wrangler configuration.
+
+| Application | Local file | Values to configure |
+| --- | --- | --- |
+| API | `server/.env` | `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `BETTER_AUTH_TRUSTED_ORIGINS`, `ADMIN_EMAILS` |
+| Learner web app | `client/.env.local` | `VITE_SERVER_URL`, `VITE_APP_URL` |
+| Admin console | `admin/.env.local` | `VITE_SERVER_URL`, `VITE_ADMIN_URL`, `VITE_STUDY_APP_URL` |
+| Mobile app | `exam-studio/.env` | `EXPO_PUBLIC_API_BASE_URL`, `EXPO_PUBLIC_EAS_PROJECT_ID` |
+
+`OPEN_SOURCE_MODE=true` keeps the core learning experience open. Legacy subscription data remains available for compatibility but does not limit access in open-source mode.
+
+## Database workflow
+
+Drizzle is the source of truth for database schema changes.
+
+| Goal | Command from `server/` |
+| --- | --- |
+| Generate a migration after schema changes | `bun run db:generate` |
+| Apply checked-in migrations | `bun run db:migrate` |
+| Synchronize an existing database | `bun run db:push` |
+| Seed standard data | `bun run seed` |
+| Seed demo data | `bun run seed:demo` |
+| Synchronize and seed demo data | `bun run db:push:seed:demo` |
+
+Back up production data before schema changes. After applying a schema change, deploy the API version that expects it.
+
+## Development and verification
+
+```bash
+# Start all available web/API development tasks
 bun run dev
 
-# Or run individual workspaces directly
-bun run dev:client    # Run the Vite dev server for React
-bun run dev:server    # Run the Hono backend
-```
-
-### Building
-
-```bash
-# Build all workspaces with Turbo
+# Build all web/API workspaces
 bun run build
 
-# Or build individual workspaces directly
-bun run build:client  # Build the React frontend
-bun run build:server  # Build the Hono backend
+# Lint and test available web/API workspaces
+bun run lint
+bun run test
+
+# Complete web/API release verification
+bun run verify:release
 ```
 
-### Additional Commands
+Focused checks:
 
 ```bash
-# Lint all workspaces
-bun run lint
+# Published-question integrity audit
+cd server && bun run questions:audit
 
-# Type check all workspaces
-bun run type-check
+# PDF export smoke test
+cd server && bun run pdf:smoke
 
-# Run tests across all workspaces
-bun run test
+# Mobile environment and TypeScript validation
+cd exam-studio && npm run check
+npm run lint
 ```
 
-### Deployment
+The complete manual release flow—including authentication, practice, answer submission, paper creation, and mobile testing—is in [Release QA](docs/RELEASE_QA.md).
 
-Deplying each piece is very versatile and can be done numerous ways, and exploration into automating these will happen at a later date. Here are some references in the meantime.
+## Deployment
 
-**Client**
-- [Orbiter](https://orbiter.host)
-- [GitHub Pages](https://vite.dev/guide/static-deploy.html#github-pages)
-- [Netlify](https://vite.dev/guide/static-deploy.html#netlify)
-- [Cloudflare Pages](https://vite.dev/guide/static-deploy.html#cloudflare-pages)
+The API and web applications can be deployed with the Cloudflare scripts declared in the root `package.json`:
 
-**Server**
-- [Cloudflare Worker](https://gist.github.com/stevedylandev/4aa1fc569bcba46b7169193c0498d0b3)
-- [Bun](https://hono.dev/docs/getting-started/bun)
-- [Node.js](https://hono.dev/docs/getting-started/nodejs)
-
-## Type Sharing
-
-Types are automatically shared between the client and server thanks to the shared package and TypeScript path aliases. You can import them in your code using:
-
-```typescript
-import { ApiResponse } from 'shared/types';
+```bash
+bun run cf:whoami
+bun run cf:deploy:api
+bun run cf:deploy:client
+bun run cf:deploy:admin
 ```
 
-## Learn More
+Wrangler configuration files are deliberately ignored and are not included in this repository. Create and maintain those deployment-specific files privately, then configure production secrets in Cloudflare. Review the [Production launch checklist](docs/PRODUCTION_LAUNCH_CHECKLIST.md) before a public release.
 
-- [Bun Documentation](https://bun.sh/docs)
-- [Vite Documentation](https://vitejs.dev/guide/)
-- [React Documentation](https://react.dev/learn)
-- [Hono Documentation](https://hono.dev/docs)
-- [Turbo Documentation](https://turbo.build/docs)
-- [TypeScript Documentation](https://www.typescriptlang.org/docs/)
+For mobile release setup, local Android artifacts, and EAS Build guidance, see the [mobile app guide](exam-studio/README.md).
+
+## Documentation
+
+- [API and server guide](server/README.md)
+- [Mobile app guide](exam-studio/README.md)
+- [Release QA](docs/RELEASE_QA.md)
+- [Production launch checklist](docs/PRODUCTION_LAUNCH_CHECKLIST.md)
+- [Content policy](docs/CONTENT_POLICY.md)
+- [Privacy policy](docs/PRIVACY_POLICY.md)
+
+## Contributing and security
+
+Contributions are welcome. Please read the [Contributing guide](CONTRIBUTING.md) and follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+To report a security issue privately, follow the [Security policy](SECURITY.md). MM Exam Studio is available under the [MIT License](LICENSE).

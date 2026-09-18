@@ -87,6 +87,13 @@ const questionParametricValueSetSchema = z.record(
   z.string().trim().min(1),
   questionParametricValueSchema,
 );
+const questionVariantContentSchema = z.object({
+  body: z.string().min(1).optional(),
+  explanation: z.string().nullable().optional(),
+  answerText: z.string().nullable().optional(),
+  answerFormula: z.string().nullable().optional(),
+  options: z.array(questionOptionSchema).optional(),
+});
 
 export const questionVariableSchema = z
   .object({
@@ -175,6 +182,7 @@ const questionSchemaBase = z.object({
   answerFormula: z.string().nullable().optional(),
   variablesSchema: z.array(questionVariableSchema).optional(),
   parametricValueSets: z.array(questionParametricValueSetSchema).optional(),
+  variantContents: z.array(questionVariantContentSchema).max(20).optional(),
   isPublished: z.boolean().optional(),
   marks: z
     .number()
@@ -214,6 +222,8 @@ const applyQuestionRefinements = (
     answerFormula?: string | null | undefined;
     marks?: number | undefined;
     variablesSchema?: Array<{ key: string }> | undefined;
+    parametricValueSets?: Array<Record<string, string | number>> | undefined;
+    variantContents?: Array<unknown> | undefined;
   },
   ctx: z.RefinementCtx,
 ) => {
@@ -295,16 +305,25 @@ const applyQuestionRefinements = (
     }
   }
 
+  if ((value.variantContents?.length ?? 0) > (value.parametricValueSets?.length ?? 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["variantContents"],
+      message: "Variant content must correspond to a fixed value set.",
+    });
+  }
+
   if (
     value.mode === "static" &&
-    ((value.variablesSchema && value.variablesSchema.length > 0) ||
-      value.answerFormula?.trim())
+      ((value.variablesSchema && value.variablesSchema.length > 0) ||
+      value.answerFormula?.trim() ||
+      (value.variantContents?.length ?? 0) > 0)
   ) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["mode"],
       message:
-        "Static questions cannot include variable definitions or answer formulas.",
+        "Static questions cannot include variable definitions, answer formulas, or variant content.",
     });
   }
 
@@ -340,6 +359,7 @@ export type QuestionVariableInput = z.infer<typeof questionVariableSchema>;
 export type QuestionParametricValueSetInput = z.infer<
   typeof questionParametricValueSetSchema
 >;
+export type QuestionVariantContentInput = z.infer<typeof questionVariantContentSchema>;
 export type CreateQuestionInput = z.infer<typeof createQuestionSchema>;
 export type UpdateQuestionInput = z.infer<typeof updateQuestionSchema>;
 export type QuestionPreviewInput = z.infer<typeof questionPreviewSchema>;

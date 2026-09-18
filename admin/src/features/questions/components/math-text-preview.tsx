@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+  loadMathTextRenderer,
+  type KatexRenderer,
+} from "./math-text-renderer";
 
 type Segment =
   | { type: "text"; value: string }
@@ -9,18 +13,6 @@ type MathTextPreviewProps = {
   content?: string | null;
   className?: string;
   emptyLabel?: string;
-};
-
-type KatexRenderer = {
-  renderToString: (
-    expression: string,
-    options: {
-      displayMode: boolean;
-      throwOnError: boolean;
-      output: "html";
-      strict: "warn";
-    },
-  ) => string;
 };
 
 const MATH_SEGMENT_PATTERN = /(\$\$[\s\S]+?\$\$|\$[^$\n]+\$)/g;
@@ -60,23 +52,6 @@ const parseSegments = (content: string): Segment[] => {
   return segments.length ? segments : [{ type: "text", value: content }];
 };
 
-let katexLoader: Promise<KatexRenderer> | null = null;
-
-const loadKatex = async (): Promise<KatexRenderer> => {
-  if (!katexLoader) {
-    katexLoader = Promise.all([
-      import("katex/dist/katex.min.css"),
-      import("katex"),
-    ]).then(([, module]) => module.default as KatexRenderer);
-  }
-
-  return katexLoader;
-};
-
-export const preloadMathTextRenderer = async (): Promise<void> => {
-  await loadKatex();
-};
-
 const renderMath = (
   renderer: KatexRenderer | null,
   expression: string,
@@ -109,7 +84,7 @@ export function MathTextPreview({
   useEffect(() => {
     let isActive = true;
 
-    void loadKatex().then((resolved) => {
+    void loadMathTextRenderer().then((resolved) => {
       if (isActive) {
         setRenderer(resolved);
       }

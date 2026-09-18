@@ -29,7 +29,7 @@ export const FullscreenLoading = ({
 
         <View style={styles.progressCard}>
           <View style={styles.progressRow}>
-            <ActivityIndicator color="#208AEF" />
+            <ActivityIndicator color="#48766B" />
             <Text style={styles.progressLabel}>Please wait a moment</Text>
           </View>
           <View style={styles.progressTrack}>
@@ -60,7 +60,7 @@ export const FullscreenLoading = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#EAF3FF",
+    backgroundColor: "#F3EFE6",
     justifyContent: "center",
   },
   content: {
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   glowPrimary: {
-    backgroundColor: "rgba(32, 138, 239, 0.18)",
+    backgroundColor: "rgba(72, 118, 107, 0.16)",
     borderRadius: 180,
     height: 280,
     position: "absolute",
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     width: 280,
   },
   glowSecondary: {
-    backgroundColor: "rgba(15, 23, 42, 0.08)",
+    backgroundColor: "rgba(215, 111, 85, 0.12)",
     borderRadius: 150,
     bottom: 18,
     height: 220,
@@ -90,15 +90,15 @@ const styles = StyleSheet.create({
   },
   card: {
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.94)",
-    borderColor: "rgba(148, 163, 184, 0.24)",
+    backgroundColor: "rgba(255,253,248,0.96)",
+    borderColor: "#D8D4C9",
     borderRadius: 30,
     borderWidth: 1,
     gap: 18,
     maxWidth: 440,
     paddingHorizontal: 22,
     paddingVertical: 24,
-    shadowColor: "#0F172A",
+    shadowColor: "#202321",
     shadowOffset: { width: 0, height: 16 },
     shadowOpacity: 0.08,
     shadowRadius: 28,
@@ -106,8 +106,8 @@ const styles = StyleSheet.create({
   },
   logoWrap: {
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderColor: "rgba(32, 138, 239, 0.14)",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#BBD5C9",
     borderRadius: 28,
     borderWidth: 1,
     height: 76,
@@ -123,20 +123,20 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   eyebrow: {
-    color: "#208AEF",
+    color: "#48766B",
     fontSize: 11,
     fontWeight: "900",
     letterSpacing: 1.8,
   },
   hint: {
-    color: "#64748B",
+    color: "#6E706B",
     fontSize: 13,
     lineHeight: 19,
     maxWidth: 280,
     textAlign: "center",
   },
   label: {
-    color: "#0F172A",
+    color: "#202321",
     fontSize: 24,
     fontWeight: "900",
     lineHeight: 30,
@@ -144,8 +144,8 @@ const styles = StyleSheet.create({
   },
   progressCard: {
     alignSelf: "stretch",
-    backgroundColor: "#F8FBFF",
-    borderColor: "#D7E6F7",
+    backgroundColor: "#F8F5EE",
+    borderColor: "#D8D4C9",
     borderRadius: 24,
     borderWidth: 1,
     gap: 14,
@@ -157,19 +157,19 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   progressLabel: {
-    color: "#334155",
+    color: "#4F514B",
     flex: 1,
     fontSize: 13,
     fontWeight: "700",
   },
   progressTrack: {
-    backgroundColor: "#DCEAF8",
+    backgroundColor: "#DDEBE4",
     borderRadius: 999,
     height: 8,
     overflow: "hidden",
   },
   progressFill: {
-    backgroundColor: "#208AEF",
+    backgroundColor: "#48766B",
     borderRadius: 999,
     height: "100%",
     width: "62%",
@@ -178,8 +178,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   previewCardLarge: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 18,
     borderWidth: 1,
     gap: 8,
@@ -190,8 +190,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   previewCardSmall: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 16,
     borderWidth: 1,
     flex: 1,
@@ -199,31 +199,31 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   previewPill: {
-    backgroundColor: "#DBEAFE",
+    backgroundColor: "#BBD5C9",
     borderRadius: 999,
     height: 22,
     width: 74,
   },
   previewPillMuted: {
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "#D8D4C9",
     borderRadius: 999,
     height: 22,
     width: 58,
   },
   previewLineStrong: {
-    backgroundColor: "#CBDDF3",
+    backgroundColor: "#C8DED2",
     borderRadius: 999,
     height: 12,
     width: "58%",
   },
   previewLineSoft: {
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "#D8D4C9",
     borderRadius: 999,
     height: 10,
     width: "76%",
   },
   previewLineSoftWide: {
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "#D8D4C9",
     borderRadius: 999,
     height: 10,
     width: "92%",

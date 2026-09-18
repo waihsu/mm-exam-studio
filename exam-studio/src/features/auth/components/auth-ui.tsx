@@ -89,12 +89,16 @@ export const AuthButton = ({
     {...rest}
   >
     {loading ? (
-      <ActivityIndicator color={variant === "primary" ? "#FFFFFF" : "#0F172A"} />
+      <ActivityIndicator
+        color={variant === "primary" ? "#FFFDF8" : "#4F514B"}
+      />
     ) : (
       <Text
         style={[
           styles.buttonLabel,
-          variant === "primary" ? styles.buttonLabelPrimary : styles.buttonLabelSecondary,
+          variant === "primary"
+            ? styles.buttonLabelPrimary
+            : styles.buttonLabelSecondary,
         ]}
       >
         {label}
@@ -121,7 +125,7 @@ export const AuthField = ({
       <View style={styles.fieldHeader}>
         <Text style={styles.fieldLabel}>{label}</Text>
         {isSecureField ? (
-          <Pressable onPress={() => setRevealed((current) => !current)}>
+          <Pressable onPress={() => setRevealed(current => !current)}>
             <Text style={styles.fieldToggle}>
               {revealed ? t("actions.hide") : t("actions.show")}
             </Text>
@@ -130,13 +134,15 @@ export const AuthField = ({
       </View>
 
       <TextInput
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor="#A29E95"
         secureTextEntry={isSecureField ? !revealed : secureTextEntry}
         style={[styles.input, style]}
         {...rest}
       />
 
-      {helperText?.trim() ? <Text style={styles.helperText}>{helperText}</Text> : null}
+      {helperText?.trim() ? (
+        <Text style={styles.helperText}>{helperText}</Text>
+      ) : null}
     </View>
   );
 };
@@ -150,7 +156,13 @@ export const AuthConsent = ({
   onToggle,
 }: AuthConsentProps) => (
   <View style={styles.consentGroup}>
-    <Pressable onPress={onToggle} style={({ pressed }) => [styles.consentRow, pressed && styles.consentRowPressed]}>
+    <Pressable
+      onPress={onToggle}
+      style={({ pressed }) => [
+        styles.consentRow,
+        pressed && styles.consentRowPressed,
+      ]}
+    >
       <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
         {checked ? <Text style={styles.checkboxIcon}>✓</Text> : null}
       </View>
@@ -161,58 +173,11 @@ export const AuthConsent = ({
         </Text>
       </Text>
     </Pressable>
-    {helperText?.trim() ? <Text style={styles.consentHelper}>{helperText}</Text> : null}
+    {helperText?.trim() ? (
+      <Text style={styles.consentHelper}>{helperText}</Text>
+    ) : null}
   </View>
 );
-
-export const authUiStyles = StyleSheet.create({
-  sectionKicker: {
-    color: "#0F172A",
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
-  sectionTitle: {
-    color: "#0F172A",
-    fontSize: 26,
-    fontWeight: "800",
-    letterSpacing: -0.5,
-    lineHeight: 31,
-  },
-  sectionDescription: {
-    color: "#475569",
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  sectionHeader: {
-    gap: 6,
-  },
-  actionStack: {
-    gap: 12,
-  },
-  splitRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  splitColumn: {
-    flex: 1,
-  },
-  caption: {
-    color: "#64748B",
-    fontSize: 13,
-    lineHeight: 19,
-    textAlign: "center",
-  },
-  textLink: {
-    alignSelf: "center",
-  },
-  textLinkLabel: {
-    color: "#0F172A",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-});
 
 const styles = StyleSheet.create({
   banner: {
@@ -222,16 +187,16 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   bannerError: {
-    backgroundColor: "#FEF2F2",
-    borderColor: "#FECACA",
+    backgroundColor: "#FBE9E5",
+    borderColor: "#E8B7AB",
   },
   bannerInfo: {
-    backgroundColor: "#EFF6FF",
-    borderColor: "#BFDBFE",
+    backgroundColor: "#E7EFE9",
+    borderColor: "#BBD5C9",
   },
   bannerSuccess: {
-    backgroundColor: "#ECFDF5",
-    borderColor: "#A7F3D0",
+    backgroundColor: "#E7EFE9",
+    borderColor: "#BBD5C9",
   },
   bannerText: {
     fontSize: 13,
@@ -239,13 +204,13 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   bannerTextError: {
-    color: "#B91C1C",
+    color: "#B6473A",
   },
   bannerTextInfo: {
-    color: "#1D4ED8",
+    color: "#48766B",
   },
   bannerTextSuccess: {
-    color: "#047857",
+    color: "#48766B",
   },
   button: {
     alignItems: "center",
@@ -255,10 +220,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   buttonPrimary: {
-    backgroundColor: "#0F172A",
+    backgroundColor: "#48766B",
   },
   buttonSecondary: {
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "#E7EFE9",
   },
   buttonDisabled: {
     opacity: 0.55,
@@ -272,10 +237,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   buttonLabelPrimary: {
-    color: "#FFFFFF",
+    color: "#FFFDF8",
   },
   buttonLabelSecondary: {
-    color: "#0F172A",
+    color: "#4F514B",
   },
   fieldGroup: {
     gap: 8,
@@ -286,28 +251,28 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   fieldLabel: {
-    color: "#0F172A",
+    color: "#202321",
     fontSize: 14,
     fontWeight: "700",
   },
   fieldToggle: {
-    color: "#2563EB",
+    color: "#48766B",
     fontSize: 13,
     fontWeight: "700",
   },
   input: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#CBD5E1",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#CFC9BD",
     borderRadius: 16,
     borderWidth: 1,
-    color: "#0F172A",
+    color: "#202321",
     fontSize: 16,
     minHeight: 54,
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
   helperText: {
-    color: "#64748B",
+    color: "#6E706B",
     fontSize: 12,
     lineHeight: 18,
   },
@@ -316,8 +281,8 @@ const styles = StyleSheet.create({
   },
   consentRow: {
     alignItems: "flex-start",
-    backgroundColor: "#F8FAFC",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#F8F5EE",
+    borderColor: "#D8D4C9",
     borderRadius: 16,
     borderWidth: 1,
     flexDirection: "row",
@@ -330,8 +295,8 @@ const styles = StyleSheet.create({
   },
   checkbox: {
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderColor: "#CBD5E1",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#CFC9BD",
     borderRadius: 7,
     borderWidth: 1.5,
     height: 22,
@@ -340,8 +305,8 @@ const styles = StyleSheet.create({
     width: 22,
   },
   checkboxChecked: {
-    backgroundColor: "#0F172A",
-    borderColor: "#0F172A",
+    backgroundColor: "#48766B",
+    borderColor: "#48766B",
   },
   checkboxIcon: {
     color: "#FFFFFF",
@@ -349,19 +314,19 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   consentText: {
-    color: "#334155",
+    color: "#4F514B",
     flex: 1,
     fontSize: 13,
     fontWeight: "600",
     lineHeight: 20,
   },
   consentLink: {
-    color: "#1D4ED8",
+    color: "#48766B",
     fontWeight: "800",
     textDecorationLine: "underline",
   },
   consentHelper: {
-    color: "#B91C1C",
+    color: "#B6473A",
     fontSize: 12,
     fontWeight: "600",
     lineHeight: 18,

@@ -28,7 +28,7 @@ const MATH_SEGMENT_PATTERN = /(\$\$[\s\S]+?\$\$|\$[^$\n]+\$)/g
 const joinClasses = (...values: Array<string | false | null | undefined>) =>
   values.filter(Boolean).join(" ")
 
-const parseSegments = (content: string): Segment[] => {
+export const parseMathRichTextSegments = (content: string): Segment[] => {
   const segments: Segment[] = []
   let lastIndex = 0
 
@@ -128,12 +128,12 @@ export function MathRichText({
     return null
   }
 
-  const segments = parseSegments(value)
+  const segments = parseMathRichTextSegments(value)
 
   return (
     <div
       className={joinClasses(
-        inline ? "inline-flex flex-wrap items-baseline gap-x-1 gap-y-2" : "space-y-2",
+        inline ? "inline" : "",
         className,
       )}
     >
@@ -143,7 +143,7 @@ export function MathRichText({
             <span
               key={`text-${index}`}
               className={joinClasses(
-                inline ? "whitespace-pre-wrap" : "block whitespace-pre-wrap",
+                "whitespace-pre-wrap",
                 textClassName,
               )}
             >
@@ -158,7 +158,9 @@ export function MathRichText({
             <code
               key={`math-loading-${index}`}
               className={joinClasses(
-                "rounded-md bg-slate-100/70 px-1.5 py-1 text-[0.9em] text-slate-700",
+                segment.displayMode
+                  ? "my-2 block w-full overflow-x-auto rounded-md bg-slate-100/70 px-1.5 py-1 text-[0.9em] text-slate-700"
+                  : "inline-block rounded-md bg-slate-100/70 px-1.5 py-1 text-[0.9em] text-slate-700",
                 textClassName,
               )}
             >
@@ -172,7 +174,9 @@ export function MathRichText({
             <code
               key={`math-${index}`}
               className={joinClasses(
-                "rounded-md bg-amber-100/70 px-1.5 py-1 text-[0.9em] text-amber-900",
+                segment.displayMode
+                  ? "my-2 block w-full overflow-x-auto rounded-md bg-amber-100/70 px-1.5 py-1 text-[0.9em] text-amber-900"
+                  : "inline-block rounded-md bg-amber-100/70 px-1.5 py-1 text-[0.9em] text-amber-900",
                 textClassName,
               )}
             >
@@ -185,7 +189,9 @@ export function MathRichText({
           <span
             key={`math-${index}`}
             className={joinClasses(
-              segment.displayMode ? "block w-full overflow-x-auto py-1" : "inline-block",
+              segment.displayMode
+                ? "my-2 block w-full overflow-x-auto py-1"
+                : "inline-block",
               textClassName,
             )}
             dangerouslySetInnerHTML={{ __html: html }}

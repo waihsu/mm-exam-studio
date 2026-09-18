@@ -11,7 +11,10 @@
 	},
 	"scripts": {
 		"build": "tsc",
+		"test": "bun test ./tests",
 		"dev": "bun --watch run src/index.ts",
+		"pdf:smoke": "bun run scripts/pdf-smoke.ts",
+		"questions:audit": "bun run scripts/question-quality-audit.ts",
 		"seed": "bun run scripts/seed.ts",
 		"seed:prod": "SEED_PROFILE=production bun run scripts/seed.ts",
 		"seed:prod:small": "SEED_PROFILE=production SEED_INCLUDE_GENERATED_QUESTIONS=true SEED_QUESTIONS_PER_GRADE_SUBJECT=12 bun run scripts/seed.ts",

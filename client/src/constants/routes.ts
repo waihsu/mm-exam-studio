@@ -4,7 +4,6 @@ import {
   House,
   MessageSquareMore,
   Settings,
-  ShieldCheck,
   User2,
 } from "lucide-react";
 
@@ -12,7 +11,6 @@ export const userAppRoutes = {
   dashboard: "/dashboard",
   practice: "/practice",
   questionPapers: "/question-papers",
-  subscription: "/subscription",
   profile: "/profile",
   support: "/support",
   settings: "/settings",
@@ -41,12 +39,6 @@ export const primaryNavItems = [
 
 export const accountNavItems = [
   {
-    to: userAppRoutes.subscription,
-    label: "Subscription",
-    icon: ShieldCheck,
-    status: "live" as const,
-  },
-  {
     to: userAppRoutes.profile,
     label: "Profile",
     icon: User2,
@@ -60,7 +52,7 @@ export const accountNavItems = [
   },
   {
     to: userAppRoutes.settings,
-    label: "Branding",
+    label: "Settings",
     icon: Settings,
     status: "live" as const,
   },

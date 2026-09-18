@@ -220,6 +220,12 @@ export const workspaceApi = {
       status,
     });
   },
+  async duplicateQuestionPaper(id: string) {
+    return postJson<{ id: string; title: string }>(
+      `/api/v1/workspace/papers/${id}/duplicate`,
+      {},
+    );
+  },
   async downloadQuestionPaperPdf(id: string) {
     const token = getAuthToken();
     const response = await fetch(toServerUrl(`/api/v1/workspace/papers/${id}/pdf`), {

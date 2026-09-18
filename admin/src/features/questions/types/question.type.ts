@@ -52,6 +52,22 @@ export type QuestionVariableDefinition = {
   choices?: string[];
 };
 
+/** One deterministic combination of variable values for a question variant. */
+export type QuestionParametricValueSet = Record<string, string | number>;
+
+/** Optional per-set content that overrides the base question for that variant. */
+export type QuestionVariantContent = {
+  body?: string;
+  explanation?: string | null;
+  answerText?: string | null;
+  answerFormula?: string | null;
+  options?: Array<{
+    label?: string;
+    text: string;
+    isCorrect: boolean;
+  }>;
+};
+
 export type QuestionPreview = {
   context: Record<string, string | number>;
   body: string;
@@ -79,6 +95,8 @@ export type QuestionRecord = {
   answerText?: string | null;
   answerFormula?: string | null;
   variablesSchema?: QuestionVariableDefinition[] | null;
+  parametricValueSets?: QuestionParametricValueSet[] | null;
+  variantContents?: QuestionVariantContent[] | null;
   marks: number;
   isPublished: boolean;
   isActive: boolean;

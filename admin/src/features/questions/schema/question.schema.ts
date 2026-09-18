@@ -135,6 +135,26 @@ const questionVariableSchema = z
     }
   });
 
+const parametricValueSetSchema = z.record(
+  z.string().trim().min(1),
+  z.union([z.string(), z.number()]),
+);
+const variantContentSchema = z.object({
+  body: z.string().min(1).optional(),
+  explanation: z.string().nullable().optional(),
+  answerText: z.string().nullable().optional(),
+  answerFormula: z.string().nullable().optional(),
+  options: z
+    .array(
+      z.object({
+        label: z.string().optional(),
+        text: z.string().min(1, "Option text is required"),
+        isCorrect: z.boolean(),
+      }),
+    )
+    .optional(),
+});
+
 export const questionSchema = z
   .object({
     questionCode: z.string().min(3, "Question code is required"),
@@ -156,6 +176,8 @@ export const questionSchema = z
     answerText: z.string().optional(),
     answerFormula: z.string().optional(),
     variablesSchema: z.array(questionVariableSchema).default([]),
+    parametricValueSets: z.array(parametricValueSetSchema).max(20).default([]),
+    variantContents: z.array(variantContentSchema).max(20).default([]),
     isPublished: z.boolean(),
     marks: z
       .number()
@@ -198,6 +220,14 @@ export const questionSchema = z
           message: "Mark at least one correct option.",
         });
       }
+
+      if (value.isPublished && filledOptions.filter((option) => option.isCorrect).length !== 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["options"],
+          message: "Published MCQ questions need exactly one correct option.",
+        });
+      }
     }
 
     if (value.type === "matching") {
@@ -211,6 +241,29 @@ export const questionSchema = z
           message: "Add at least two matching pairs.",
         });
       }
+
+      if (value.isPublished) {
+        const labels = filledPairs.map((option) => option.label!.trim());
+        if (new Set(labels).size !== labels.length) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["options"],
+            message: "Published matching questions need unique left-side labels.",
+          });
+        }
+      }
+    }
+
+    if (
+      value.isPublished &&
+      value.type === "true_false" &&
+      !["true", "false"].includes(value.answerText?.trim().toLowerCase() ?? "")
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["answerText"],
+        message: 'Published true/false questions need an answer key of "True" or "False".',
+      });
     }
 
     if (
@@ -235,14 +288,50 @@ export const questionSchema = z
       });
     }
 
+    if (value.mode === "variable" && value.parametricValueSets.length) {
+      const variableKeys = new Set(value.variablesSchema.map((variable) => variable.key));
+
+      value.parametricValueSets.forEach((valueSet, setIndex) => {
+        const missingKeys = [...variableKeys].filter((key) => valueSet[key] === undefined);
+        if (missingKeys.length) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["parametricValueSets", setIndex],
+            message: `Value set ${setIndex + 1} is missing: ${missingKeys.join(", ")}.`,
+          });
+        }
+
+        const unknownKeys = Object.keys(valueSet).filter((key) => !variableKeys.has(key));
+        if (unknownKeys.length) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["parametricValueSets", setIndex],
+            message: `Value set ${setIndex + 1} contains unknown variables: ${unknownKeys.join(", ")}.`,
+          });
+        }
+      });
+    }
+
+    if (value.variantContents.length > value.parametricValueSets.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["variantContents"],
+        message: "Each variant content override needs a corresponding fixed value set.",
+      });
+    }
+
     if (
       value.mode === "static" &&
-      (value.variablesSchema.length > 0 || value.answerFormula?.trim())
+      (value.variablesSchema.length > 0 ||
+        value.answerFormula?.trim() ||
+        value.parametricValueSets.length > 0 ||
+        value.variantContents.length > 0)
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["mode"],
-        message: "Static mode cannot include variables or answer formulas.",
+        message:
+          "Static mode cannot include variables, answer formulas, fixed value sets, or variant content.",
       });
     }
 
@@ -275,4 +364,5 @@ export type QuestionSubmitInput = Omit<
 
 export type QuestionPreviewRequestInput = QuestionSubmitInput & {
   previewValues?: Record<string, string | number>;
+  parametricSetIndex?: number;
 };

@@ -1,0 +1,189 @@
+import { Link } from "@tanstack/react-router";
+import { AlertCircle, CheckCircle2, Download, FileSpreadsheet, Upload } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { PagePanel } from "@/components/page-container";
+import { Textarea } from "@/components/ui/textarea";
+import { ADMIN_ROUTES } from "@/constants/routes";
+import type { QuestionImportResult } from "@/features/questions/types/question.type";
+import type { PreparedQuestionImport } from "@/features/questions/utils/question-import";
+
+type QuestionImportWorkspaceProps = {
+  csvText: string;
+  prepared: PreparedQuestionImport | null;
+  result?: QuestionImportResult;
+  isLoadingTaxonomy: boolean;
+  isImporting: boolean;
+  onDownloadTemplate: () => void;
+  onCsvTextChange: (value: string) => void;
+  onLoadFile: (file: File) => void;
+  onImport: () => void;
+};
+
+export function QuestionImportWorkspace({
+  csvText,
+  prepared,
+  result,
+  isLoadingTaxonomy,
+  isImporting,
+  onDownloadTemplate,
+  onCsvTextChange,
+  onLoadFile,
+  onImport,
+}: QuestionImportWorkspaceProps) {
+  return (
+    <PagePanel className="space-y-4 bg-[#fffdf8]">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <FileSpreadsheet className="h-5 w-5 text-[#48766b]" />
+          <h2 className="text-2xl font-bold text-[#202321]">Bulk import questions</h2>
+        </div>
+        <p className="max-w-3xl text-sm leading-7 text-[#6e706b]">
+          Paste CSV content or load a CSV file, then we will validate taxonomy codes, JSON
+          columns, and question rules before sending the valid rows to the server. Every
+          imported question starts as a draft and must be reviewed before publishing.
+        </p>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="border-[#d8d4c9] bg-[#fffdf8] hover:border-[#7fa99d] hover:bg-[#f8f5ee]"
+          onClick={onDownloadTemplate}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Download template
+        </Button>
+        <Button asChild variant="outline" className="border-[#d8d4c9] bg-[#fffdf8] hover:border-[#7fa99d] hover:bg-[#f8f5ee]">
+          <Link to={ADMIN_ROUTES.questionsNew}>Create manually instead</Link>
+        </Button>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.9fr)]">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#202321]">Load CSV file</label>
+            <Input
+              type="file"
+              accept=".csv,text/csv"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) onLoadFile(file);
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#202321]">CSV content</label>
+            <Textarea
+              value={csvText}
+              onChange={(event) => onCsvTextChange(event.target.value)}
+              placeholder="Paste question import CSV content here."
+              className="min-h-[340px] bg-white font-mono text-xs"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              disabled={isLoadingTaxonomy || isImporting || !prepared?.items.length}
+              onClick={onImport}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {isImporting ? "Importing..." : "Import valid rows"}
+            </Button>
+            {prepared ? (
+              <Badge variant="outline">
+                {prepared.items.length} valid / {prepared.parsedRowCount} parsed
+              </Badge>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+              <div className="rounded-2xl border border-[#d8d4c9] bg-[#f8f5ee] p-4">
+            <h3 className="text-sm font-semibold text-[#202321]">CSV columns</h3>
+            <p className="mt-2 text-xs leading-6 text-[#6e706b]">
+              Required: <code>questionCode</code>, <code>body</code>, <code>type</code>,{" "}
+              <code>gradeCode</code>, <code>subjectCode</code>. Use <code>optionsJson</code>{" "}
+              and <code>variablesJson</code> for JSON arrays. Chapters and sub chapters can be
+              matched by code or name.
+            </p>
+          </div>
+
+          {prepared?.errors.length ? (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Rows needing attention</AlertTitle>
+              <AlertDescription className="space-y-2">
+                <p>{prepared.errors.length} row(s) could not be prepared locally.</p>
+                <div className="max-h-48 space-y-1 overflow-auto rounded-xl border border-red-200 bg-white/80 p-3 text-xs">
+                  {prepared.errors.map((error) => (
+                    <p key={error}>{error}</p>
+                  ))}
+                </div>
+              </AlertDescription>
+            </Alert>
+          ) : prepared ? (
+            <Alert className="border-emerald-200 bg-emerald-50/80 text-emerald-950">
+              <CheckCircle2 className="h-4 w-4" />
+              <AlertTitle>Rows look ready</AlertTitle>
+              <AlertDescription>{prepared.items.length} valid row(s) are ready to import.</AlertDescription>
+            </Alert>
+          ) : null}
+
+          {prepared?.notices.length ? (
+            <Alert className="border-amber-200 bg-amber-50/80 text-amber-950">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Draft-first import</AlertTitle>
+              <AlertDescription className="space-y-2">
+                <p>{prepared.notices.length} row(s) requested a review or published state and will be imported as drafts.</p>
+                <div className="max-h-32 space-y-1 overflow-auto rounded-xl border border-amber-200 bg-white/80 p-3 text-xs">
+                  {prepared.notices.map((notice) => (
+                    <p key={notice}>{notice}</p>
+                  ))}
+                </div>
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
+          {result ? <QuestionImportResultPanel result={result} /> : null}
+        </div>
+      </div>
+    </PagePanel>
+  );
+}
+
+function QuestionImportResultPanel({ result }: { result: QuestionImportResult }) {
+  return (
+    <div className="space-y-3 rounded-2xl border border-[#d8d4c9] bg-[#fffdf8] p-4">
+      <h3 className="text-sm font-semibold text-[#202321]">Import result</h3>
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="outline">Total {result.summary.total}</Badge>
+        <Badge>Succeeded {result.summary.succeeded}</Badge>
+        <Badge variant="secondary">Failed {result.summary.failed}</Badge>
+      </div>
+      {result.failures.length ? (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+            Failed rows
+          </p>
+          <div className="max-h-48 space-y-2 overflow-auto rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-xs text-slate-700">
+            {result.failures.map((failure) => (
+              <div
+                key={`${failure.index}-${failure.questionCode}`}
+                className="rounded-lg border border-white/80 bg-white/90 p-2"
+              >
+                <p className="font-semibold">Row {failure.index} · {failure.questionCode}</p>
+                <p>{failure.message}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}

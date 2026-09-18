@@ -10,7 +10,7 @@ const about = {
   papers:
     "Papers lets you choose questions, build drafts, and prepare printable exam sheets.",
   settings:
-    "Settings gives you quick access to subscription, security, notifications, support, and account controls.",
+    "Settings gives you quick access to preferences, security, notifications, support, and account controls.",
 } as const;
 
 export default about;

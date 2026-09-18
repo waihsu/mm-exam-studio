@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useAppSettingsQuery } from "@/features/settings/hooks/use-app-settings-query";
 import { DEFAULT_APP_SETTINGS } from "@/features/settings/types/settings.types";
 import { i18n } from "./i18n";

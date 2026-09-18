@@ -1,6 +1,6 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
-import { FileSpreadsheet, Plus } from "lucide-react";
+import { ExternalLink, FileSpreadsheet, Plus } from "lucide-react";
 import { PageContainer } from "@/components/page-container";
 import { AdminPageHeader } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
@@ -12,25 +12,46 @@ export const Route = createFileRoute("/_protected/questions")({
 
 function QuestionsLayout() {
   const pathname = useRouterState({
-    select: (state) => state.location.pathname,
+    select: state => state.location.pathname,
   });
   const isBlueprintRoute =
     pathname === ADMIN_ROUTES.questionBlueprints ||
     pathname.startsWith(`${ADMIN_ROUTES.questionBlueprints}/`);
+  const studyAppUrl = (
+    import.meta.env.VITE_STUDY_APP_URL ?? "http://localhost:5173"
+  )
+    .trim()
+    .replace(/\/+$/, "");
 
   return (
     <PageContainer className="space-y-4 sm:space-y-5">
       <AdminPageHeader
         eyebrow="Question Bank"
-        title={isBlueprintRoute ? "Blueprint workspace" : "Question workspace"}
+        title={
+          isBlueprintRoute ? "Paper templates (advanced)" : "Question workspace"
+        }
         description={
           isBlueprintRoute
-            ? "Manage reusable generation rules, template publishing, and preview-ready paper structures."
-            : "Manage authored questions, imports, and publication-ready question bank content."
+            ? "For teams that repeatedly generate the same paper pattern. Most paper creation happens in Paper Studio."
+            : "Create and review questions here, then open Paper Studio when you are ready to assemble a printable paper."
         }
         actions={
           !isBlueprintRoute ? (
             <>
+              <Button
+                asChild
+                variant="outline"
+                className="w-full border-slate-300/80 bg-white sm:w-auto"
+              >
+                <a
+                  href={`${studyAppUrl}/question-papers/new`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Create paper
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
               <Button
                 asChild
                 variant="outline"

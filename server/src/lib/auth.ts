@@ -10,6 +10,7 @@ import { authDb, account, session, twoFactor as twoFactorTable, user, verificati
 const authBaseURL = (process.env.BETTER_AUTH_URL ?? "http://localhost:3000")
   .trim()
   .replace(/\/+$/, "");
+const isProduction = (process.env.NODE_ENV ?? "development").trim().toLowerCase() === "production";
 
 const authBaseOrigin = (() => {
   try {
@@ -70,14 +71,14 @@ const verificationFromName = (
 const shouldLogResetLink =
   (
     process.env.AUTH_RESET_PASSWORD_LOG_LINK ??
-    (process.env.NODE_ENV === "production" ? "false" : "true")
+    (isProduction ? "false" : "true")
   )
     .trim()
     .toLowerCase() !== "false";
 const shouldLogVerificationLink =
   (
     process.env.AUTH_EMAIL_VERIFICATION_LOG_LINK ??
-    (process.env.NODE_ENV === "production" ? "false" : "true")
+    (isProduction ? "false" : "true")
   )
     .trim()
     .toLowerCase() !== "false";
@@ -95,8 +96,9 @@ const assertEmailDeliveryConfigured = (params: {
   kind: "password reset" | "email verification";
   viaResend: boolean;
   viaWebhook: boolean;
+  allowLogOnly: boolean;
 }) => {
-  if (params.viaResend || params.viaWebhook) {
+  if (params.viaResend || params.viaWebhook || params.allowLogOnly) {
     return;
   }
 
@@ -182,6 +184,7 @@ const deliverResetPassword = async (payload: {
     kind: "password reset",
     viaResend: hasResendDelivery,
     viaWebhook: hasWebhookDelivery,
+    allowLogOnly: !isProduction && shouldLogResetLink,
   });
 
   if (hasResendDelivery) {
@@ -295,6 +298,7 @@ const deliverVerificationEmail = async (payload: {
     kind: "email verification",
     viaResend: hasResendDelivery,
     viaWebhook: hasWebhookDelivery,
+    allowLogOnly: !isProduction && shouldLogVerificationLink,
   });
 
   if (hasResendDelivery) {

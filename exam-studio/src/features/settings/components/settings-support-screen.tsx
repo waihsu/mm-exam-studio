@@ -1,4 +1,3 @@
-import * as Linking from "expo-linking";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Pressable,
@@ -9,7 +8,6 @@ import {
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useSubscriptionPaymentConfigQuery } from "@/features/subscriptions/hooks/use-subscription-payment-config-query";
 import { useCreateSupportMessageMutation } from "@/features/support/hooks/use-create-support-message-mutation";
 import { useMySupportConversationRealtime } from "@/features/support/hooks/use-my-support-conversation-realtime";
 import { useMySupportConversationQuery } from "@/features/support/hooks/use-my-support-conversation-query";
@@ -18,23 +16,12 @@ import { useAppDateTimeFormatter } from "../hooks/use-app-date-time-formatter";
 import { SettingsCard, SettingsPage } from "./settings-ui";
 import { settingsUiStyles } from "./settings-ui.styles";
 
-const openExternalUrl = async (url: string) => {
-  const canOpen = await Linking.canOpenURL(url);
-  if (!canOpen) {
-    throw new Error("This link is not available on the device.");
-  }
-
-  await Linking.openURL(url);
-};
-
 export const SettingsSupportScreen = () => {
   const { t } = useTranslation("settingsDetail");
   const { formatDateTime } = useAppDateTimeFormatter();
-  const paymentConfigQuery = useSubscriptionPaymentConfigQuery();
   const supportConversationQuery = useMySupportConversationQuery();
   const supportRealtime = useMySupportConversationRealtime();
   const createSupportMessageMutation = useCreateSupportMessageMutation();
-  const paymentConfig = paymentConfigQuery.data;
   const messageListRef = useRef<ScrollView | null>(null);
   const [messageBody, setMessageBody] = useState("");
   const [messageSubject, setMessageSubject] = useState("");
@@ -112,60 +99,7 @@ export const SettingsSupportScreen = () => {
     >
       <SettingsCard>
         <Text style={settingsUiStyles.cardTitle}>{t("support.quickHelp")}</Text>
-        {paymentConfigQuery.isError ? (
-          <Text style={settingsUiStyles.errorText}>
-            {paymentConfigQuery.error instanceof Error
-              ? paymentConfigQuery.error.message
-              : t("support.supportDetailsFailed")}
-          </Text>
-        ) : null}
-        <Text style={settingsUiStyles.metaText}>
-          {paymentConfig?.supportLabel ?? t("support.fallbackSupportLabel")}
-          {paymentConfig?.supportContact ? ` • ${paymentConfig.supportContact}` : ""}
-          {paymentConfig?.channelName ? ` • ${paymentConfig.channelName}` : ""}
-        </Text>
-        <View style={settingsUiStyles.optionRow}>
-          {paymentConfig?.supportUrl ? (
-            <Pressable
-              style={({ pressed }) => [
-                settingsUiStyles.primaryButton,
-                settingsUiStyles.supportActionButton,
-                pressed && settingsUiStyles.buttonPressed,
-              ]}
-              onPress={() => {
-                if (!paymentConfig.supportUrl) {
-                  return;
-                }
-
-                void openExternalUrl(paymentConfig.supportUrl).catch(() => undefined);
-              }}
-            >
-              <Text style={settingsUiStyles.primaryButtonLabel}>
-                {t("support.openLabel", {
-                  label: paymentConfig.supportLabel ?? t("support.fallbackSupportLabel"),
-                })}
-              </Text>
-            </Pressable>
-          ) : null}
-          {paymentConfig?.paymentUrl ? (
-            <Pressable
-              style={({ pressed }) => [
-                settingsUiStyles.secondaryButton,
-                settingsUiStyles.supportActionButton,
-                pressed && settingsUiStyles.buttonPressed,
-              ]}
-              onPress={() => {
-                if (!paymentConfig.paymentUrl) {
-                  return;
-                }
-
-                void openExternalUrl(paymentConfig.paymentUrl).catch(() => undefined);
-              }}
-            >
-              <Text style={settingsUiStyles.secondaryButtonLabel}>{t("support.paymentHelp")}</Text>
-            </Pressable>
-          ) : null}
-        </View>
+        <Text style={settingsUiStyles.metaText}>{t("support.quickHelpBody")}</Text>
       </SettingsCard>
 
       <SettingsCard>

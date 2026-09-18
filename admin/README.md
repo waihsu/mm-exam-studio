@@ -25,4 +25,4 @@ bun run build
 - Question bank CRUD and review
 - Publish workflow
 - Subscription approval queue
-- Manual plan assignment and per-user limit overrides
+- User, content, support, and workspace administration

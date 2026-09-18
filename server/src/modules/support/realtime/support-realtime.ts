@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { securityStore } from "@/lib/security-store";
+import { getRequestClientIpKey } from "@/lib/request-client-ip";
 import type { AppBindings, AppRole, AppUser } from "@/core/types/app";
 import { resolveUserRoles } from "@/middlewares/rbac";
 import type { Context } from "hono";
@@ -176,18 +177,6 @@ const normalizePositiveNumber = (value: unknown, fallback: number) => {
     return fallback;
   }
   return Math.trunc(parsed);
-};
-
-const getClientIp = (request: Request) => {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0]?.trim() || "unknown";
-  }
-  return (
-    request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-real-ip") ??
-    "unknown"
-  );
 };
 
 const decodeSocketMessage = (raw: unknown) => {
@@ -397,7 +386,7 @@ export const authenticateSupportRealtimeRequest = async (request: Request) => {
 
   try {
     const now = Date.now();
-    const ip = getClientIp(request);
+    const ip = getRequestClientIpKey(request);
 
     for (const window of [
       { windowMs: 60_000, max: supportRealtimeConnectPerMinute },

@@ -1,9 +1,27 @@
 import { SchoolExamPaper, type SchoolExamSection } from "shared";
-import type { QuestionPaperDetail } from "../types";
+import type { QuestionPaperDetail, WorkspaceQuestionType } from "../types";
 
-const mapType = (value: "mcq" | "true_false" | "short_answer" | "fill_blank" | "matching") => {
+const mapType = (value: WorkspaceQuestionType) => {
   if (value === "mcq" || value === "matching") return "mcq" as const;
+  if (value === "long_answer") return "long" as const;
   return "short" as const;
+};
+
+const questionTypeTitle = (value: WorkspaceQuestionType) => {
+  switch (value) {
+    case "mcq":
+      return "Multiple Choice Questions";
+    case "true_false":
+      return "True or False Questions";
+    case "fill_blank":
+      return "Fill in the Blank Questions";
+    case "matching":
+      return "Matching Questions";
+    case "long_answer":
+      return "Long Answer Questions";
+    case "short_answer":
+      return "Short Answer Questions";
+  }
 };
 
 export function PaperPreview({ paper }: { paper: QuestionPaperDetail }) {
@@ -11,16 +29,7 @@ export function PaperPreview({ paper }: { paper: QuestionPaperDetail }) {
 
   for (const item of paper.items) {
     const key = item.questionType;
-    const title =
-      item.questionType === "mcq"
-        ? "Multiple Choice Questions"
-        : item.questionType === "true_false"
-          ? "True or False Questions"
-          : item.questionType === "fill_blank"
-            ? "Fill in the Blank Questions"
-            : item.questionType === "matching"
-              ? "Matching Questions"
-              : "Short Answer Questions";
+    const title = questionTypeTitle(item.questionType);
 
     const existing = sectionsMap.get(key);
     if (!existing) {

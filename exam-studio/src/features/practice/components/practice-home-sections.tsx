@@ -42,7 +42,10 @@ export const PracticeHomeHeader = ({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={openHelpLabel}
-        style={({ pressed }) => [styles.helpIconButton, pressed && styles.buttonPressed]}
+        style={({ pressed }) => [
+          styles.helpIconButton,
+          pressed && styles.buttonPressed,
+        ]}
         onPress={onOpenHelp}
       >
         <SymbolView
@@ -52,7 +55,7 @@ export const PracticeHomeHeader = ({
             web: "help",
           }}
           size={18}
-          tintColor="#1D4ED8"
+          tintColor="#48766B"
         />
       </Pressable>
     </View>
@@ -88,13 +91,19 @@ export const PracticeQuickGuideSheet = ({
     footer={
       <View style={styles.buttonRow}>
         <Pressable
-          style={({ pressed }) => [styles.ghostButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.ghostButton,
+            pressed && styles.buttonPressed,
+          ]}
           onPress={onClose}
         >
           <Text style={styles.ghostButtonLabel}>{closeLabel}</Text>
         </Pressable>
         <Pressable
-          style={({ pressed }) => [styles.primaryButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.primaryButton,
+            pressed && styles.buttonPressed,
+          ]}
           onPress={onOpenFullGuide}
         >
           <Text style={styles.primaryButtonLabel}>{fullGuideLabel}</Text>
@@ -109,14 +118,25 @@ export const PracticeQuickGuideSheet = ({
     >
       {steps.map((step, index) => (
         <View key={`guide-${step.title}`} style={styles.helpSheetStepRow}>
-          <View style={[styles.helpSheetNumber, { backgroundColor: step.accentSoft }]}>
-            <Text style={[styles.helpSheetNumberLabel, { color: step.accentColor }]}>
+          <View
+            style={[
+              styles.helpSheetNumber,
+              { backgroundColor: step.accentSoft },
+            ]}
+          >
+            <Text
+              style={[styles.helpSheetNumberLabel, { color: step.accentColor }]}
+            >
               {index + 1}
             </Text>
           </View>
           <View style={styles.helpSheetStepTextWrap}>
             <View style={styles.helpSheetStepHeader}>
-              <SymbolView name={step.icon} size={16} tintColor={step.accentColor} />
+              <SymbolView
+                name={step.icon}
+                size={16}
+                tintColor={step.accentColor}
+              />
               <Text style={styles.helpSheetStepTitle}>{step.title}</Text>
             </View>
             <Text style={styles.helpStepHint}>{step.hint}</Text>
@@ -167,13 +187,19 @@ export const PracticeOnboardingSheet = ({
     footer={
       <View style={styles.buttonRow}>
         <Pressable
-          style={({ pressed }) => [styles.ghostButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.ghostButton,
+            pressed && styles.buttonPressed,
+          ]}
           onPress={onSkip}
         >
           <Text style={styles.ghostButtonLabel}>{skipLabel}</Text>
         </Pressable>
         <Pressable
-          style={({ pressed }) => [styles.primaryButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.primaryButton,
+            pressed && styles.buttonPressed,
+          ]}
           onPress={onShowGuide}
         >
           <Text style={styles.primaryButtonLabel}>{showGuideLabel}</Text>
@@ -194,14 +220,25 @@ export const PracticeOnboardingSheet = ({
 
       {steps.map((step, index) => (
         <View key={`onboarding-${step.title}`} style={styles.helpSheetStepRow}>
-          <View style={[styles.helpSheetNumber, { backgroundColor: step.accentSoft }]}>
-            <Text style={[styles.helpSheetNumberLabel, { color: step.accentColor }]}>
+          <View
+            style={[
+              styles.helpSheetNumber,
+              { backgroundColor: step.accentSoft },
+            ]}
+          >
+            <Text
+              style={[styles.helpSheetNumberLabel, { color: step.accentColor }]}
+            >
               {index + 1}
             </Text>
           </View>
           <View style={styles.helpSheetStepTextWrap}>
             <View style={styles.helpSheetStepHeader}>
-              <SymbolView name={step.icon} size={16} tintColor={step.accentColor} />
+              <SymbolView
+                name={step.icon}
+                size={16}
+                tintColor={step.accentColor}
+              />
               <Text style={styles.helpSheetStepTitle}>{step.title}</Text>
             </View>
             <Text style={styles.helpStepHint}>{step.hint}</Text>
@@ -216,6 +253,11 @@ export const PracticeOnboardingSheet = ({
 
 export const PracticeBuilderSection = ({
   title,
+  collapsedHint,
+  expandLabel,
+  collapseLabel,
+  isExpanded,
+  onToggleExpanded,
   mixTitle,
   mixHint,
   mixTotalLabel,
@@ -240,6 +282,11 @@ export const PracticeBuilderSection = ({
   workspaceErrorMessage,
 }: {
   title: string;
+  collapsedHint: string;
+  expandLabel: string;
+  collapseLabel: string;
+  isExpanded: boolean;
+  onToggleExpanded: () => void;
   mixTitle: string;
   mixHint: string;
   mixTotalLabel: string;
@@ -275,63 +322,103 @@ export const PracticeBuilderSection = ({
       <View style={styles.scopeHeaderTextWrap}>
         <Text style={styles.cardTitle}>{title}</Text>
       </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: isExpanded }}
+        style={({ pressed }) => [
+          styles.linkButton,
+          pressed && styles.buttonPressed,
+        ]}
+        onPress={onToggleExpanded}
+      >
+        <Text style={styles.linkButtonLabel}>
+          {isExpanded ? collapseLabel : expandLabel}
+        </Text>
+      </Pressable>
     </View>
 
-    <ScopeSummaryGrid items={scopeItems} onPress={(key) => onScopePress(key as ScopePickerKey)} />
+    {!isExpanded ? (
+      <Text style={styles.builderCollapsedHint}>{collapsedHint}</Text>
+    ) : null}
 
-    <QuestionMixBuilder
-      title={mixTitle}
-      hint={mixHint}
-      totalLabel={mixTotalLabel}
-      items={mixItems}
-    />
+    {isExpanded ? (
+      <>
+        <ScopeSummaryGrid
+          items={scopeItems}
+          onPress={key => onScopePress(key as ScopePickerKey)}
+        />
 
-    <View style={styles.mixPresetBlock}>
-      <View style={styles.mixPresetHeader}>
-        <Text style={styles.filterTitle}>{presetTitle}</Text>
-        <Pressable
-          style={({ pressed }) => [styles.linkButton, pressed && styles.buttonPressed]}
-          onPress={onResetPresets}
-        >
-          <Text style={styles.linkButtonLabel}>{presetResetLabel}</Text>
-        </Pressable>
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.mixPresetRow}>
-        {presets.map((preset) => (
-          <Pressable
-            key={preset.key}
-            style={({ pressed }) => [styles.mixPresetChip, pressed && styles.buttonPressed]}
-            onPress={preset.onPress}
+        <QuestionMixBuilder
+          title={mixTitle}
+          hint={mixHint}
+          totalLabel={mixTotalLabel}
+          items={mixItems}
+        />
+
+        <View style={styles.mixPresetBlock}>
+          <View style={styles.mixPresetHeader}>
+            <Text style={styles.filterTitle}>{presetTitle}</Text>
+            <Pressable
+              style={({ pressed }) => [
+                styles.linkButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={onResetPresets}
+            >
+              <Text style={styles.linkButtonLabel}>{presetResetLabel}</Text>
+            </Pressable>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.mixPresetRow}
           >
-            <Text style={styles.mixPresetChipLabel}>{preset.label}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </View>
+            {presets.map(preset => (
+              <Pressable
+                key={preset.key}
+                style={({ pressed }) => [
+                  styles.mixPresetChip,
+                  pressed && styles.buttonPressed,
+                ]}
+                onPress={preset.onPress}
+              >
+                <Text style={styles.mixPresetChipLabel}>{preset.label}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
 
-    <View style={styles.mixSummaryCard}>
-      <Text style={styles.cardTitle}>{mixSummaryTitle}</Text>
-      <View style={styles.mixSummaryRow}>
-        <View style={styles.mixMetric}>
-          <Text style={styles.mixMetricValue}>{configuredMixCount}</Text>
-          <Text style={styles.mixMetricLabel}>{questionsLabel}</Text>
+        <View style={styles.mixSummaryCard}>
+          <Text style={styles.cardTitle}>{mixSummaryTitle}</Text>
+          <View style={styles.mixSummaryRow}>
+            <View style={styles.mixMetric}>
+              <Text style={styles.mixMetricValue}>{configuredMixCount}</Text>
+              <Text style={styles.mixMetricLabel}>{questionsLabel}</Text>
+            </View>
+            <View style={styles.mixMetric}>
+              <Text style={styles.mixMetricValue}>{activeMixTypes}</Text>
+              <Text style={styles.mixMetricLabel}>{typesLabel}</Text>
+            </View>
+            <View style={styles.mixMetricWide}>
+              <Text style={styles.mixMetricCopy}>
+                {configuredMixCount > 0 ? readyCopy : fallbackCopy}
+              </Text>
+            </View>
+          </View>
+          {tooLargeError ? <InlineErrorState message={tooLargeError} /> : null}
+          {unavailableError ? (
+            <InlineErrorState message={unavailableError} />
+          ) : null}
         </View>
-        <View style={styles.mixMetric}>
-          <Text style={styles.mixMetricValue}>{activeMixTypes}</Text>
-          <Text style={styles.mixMetricLabel}>{typesLabel}</Text>
-        </View>
-        <View style={styles.mixMetricWide}>
-          <Text style={styles.mixMetricCopy}>
-            {configuredMixCount > 0 ? readyCopy : fallbackCopy}
-          </Text>
-        </View>
-      </View>
-      {tooLargeError ? <InlineErrorState message={tooLargeError} /> : null}
-      {unavailableError ? <InlineErrorState message={unavailableError} /> : null}
-    </View>
 
-    {isLoadingWorkspace ? <InlineLoadingState label={loadingWorkspaceLabel} /> : null}
-    {workspaceErrorMessage ? <InlineErrorState message={workspaceErrorMessage} /> : null}
+        {isLoadingWorkspace ? (
+          <InlineLoadingState label={loadingWorkspaceLabel} />
+        ) : null}
+        {workspaceErrorMessage ? (
+          <InlineErrorState message={workspaceErrorMessage} />
+        ) : null}
+      </>
+    ) : null}
   </View>
 );
 
@@ -375,7 +462,10 @@ export const RecentPracticeSessionsSection = ({
       <View style={styles.recentHeadingRow}>
         <Text style={styles.cardTitle}>{title}</Text>
         <Pressable
-          style={({ pressed }) => [styles.linkButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.linkButton,
+            pressed && styles.buttonPressed,
+          ]}
           onPress={onViewAll}
         >
           <Text style={styles.linkButtonLabel}>{viewAllLabel}</Text>
@@ -389,11 +479,16 @@ export const RecentPracticeSessionsSection = ({
         <EmptyStateCard title={emptyTitle} hint={emptyHint} />
       ) : null}
 
-      {rows.map((session) => (
+      {rows.map(session => (
         <Pressable
           key={session.id}
-          style={({ pressed }) => [styles.sessionCard, pressed && styles.buttonPressed]}
-          onPress={() => router.push(`/practice/${session.id}` as RelativePathString)}
+          style={({ pressed }) => [
+            styles.sessionCard,
+            pressed && styles.buttonPressed,
+          ]}
+          onPress={() =>
+            router.push(`/practice/${session.id}` as RelativePathString)
+          }
         >
           <View style={styles.sessionHeadingRow}>
             <Text style={styles.sessionTitle}>{session.title}</Text>
@@ -401,7 +496,9 @@ export const RecentPracticeSessionsSection = ({
               <Text
                 style={[
                   styles.sessionStatus,
-                  session.status === "completed" ? styles.sessionStatusDone : styles.sessionStatusLive,
+                  session.status === "completed"
+                    ? styles.sessionStatusDone
+                    : styles.sessionStatusLive,
                 ]}
               >
                 {toStatusLabel(session.status)}
@@ -415,19 +512,25 @@ export const RecentPracticeSessionsSection = ({
                   pressed && styles.buttonPressed,
                   deletingSessionId === session.id && styles.buttonDisabled,
                 ]}
-                onPress={(event) => {
+                onPress={event => {
                   event.stopPropagation();
                   onDeleteSession(session.id);
                 }}
               >
                 <Text style={styles.sessionDeleteLabel}>
-                  {deletingSessionId === session.id ? deletingLabel : deleteActionLabel}
+                  {deletingSessionId === session.id
+                    ? deletingLabel
+                    : deleteActionLabel}
                 </Text>
               </Pressable>
             </View>
           </View>
-          <Text style={styles.sessionMeta}>{scoreMeta(session.scorePercent, session.totalQuestions)}</Text>
-          <Text style={styles.sessionMeta}>{startedMetaLabel(session.startedAt)}</Text>
+          <Text style={styles.sessionMeta}>
+            {scoreMeta(session.scorePercent, session.totalQuestions)}
+          </Text>
+          <Text style={styles.sessionMeta}>
+            {startedMetaLabel(session.startedAt)}
+          </Text>
         </Pressable>
       ))}
     </View>
@@ -436,31 +539,100 @@ export const RecentPracticeSessionsSection = ({
 
 export const PracticeStartSection = ({
   title,
+  scopeTitle,
+  scopeItems,
+  onScopePress,
+  modeTitle,
+  modeItems,
   errorMessage,
   actionLabel,
   actionDisabled,
+  needsGrade,
+  gradeHint,
   onStart,
 }: {
   title: string;
+  scopeTitle: string;
+  scopeItems: Array<{ key: ScopePickerKey; label: string; value: string }>;
+  onScopePress: (key: ScopePickerKey) => void;
+  modeTitle: string;
+  modeItems: Array<{ key: string; label: string; onPress: () => void }>;
   errorMessage?: string | null;
   actionLabel: string;
   actionDisabled: boolean;
+  needsGrade: boolean;
+  gradeHint: string;
   onStart: () => void;
 }) => (
-  <View style={styles.card}>
-    <Text style={styles.cardTitle}>{title}</Text>
+  <View style={[styles.card, styles.startCard]}>
+    <View style={styles.startTitleRow}>
+      <View style={styles.startIcon}>
+        <SymbolView
+          name={{ ios: "sparkles", android: "auto-awesome", web: "auto-awesome" }}
+          size={18}
+          tintColor="#48766B"
+        />
+      </View>
+      <Text style={styles.cardTitle}>{title}</Text>
+    </View>
+    <View style={styles.startSetupBlock}>
+      <Text style={styles.startSetupLabel}>{scopeTitle}</Text>
+      <View style={styles.startScopeRow}>
+        {scopeItems.map(item => (
+          <Pressable
+            key={item.key}
+            style={({ pressed }) => [
+              styles.startScopeChip,
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={() => onScopePress(item.key)}
+          >
+            <Text style={styles.startScopeLabel}>{item.label}</Text>
+            <Text numberOfLines={1} style={styles.startScopeValue}>
+              {item.value}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+    <View style={styles.startSetupBlock}>
+      <Text style={styles.startSetupLabel}>{modeTitle}</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.startModeRow}
+      >
+        {modeItems.map(item => (
+          <Pressable
+            key={item.key}
+            style={({ pressed }) => [
+              styles.startModeChip,
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={item.onPress}
+          >
+            <Text style={styles.startModeLabel}>{item.label}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+    {needsGrade ? (
+      <View style={styles.startRequirementCard}>
+        <Text style={styles.startRequirementText}>{gradeHint}</Text>
+      </View>
+    ) : null}
     {errorMessage ? <InlineErrorState message={errorMessage} /> : null}
     <View style={styles.buttonColumn}>
       <Pressable
         disabled={actionDisabled}
         style={({ pressed }) => [
-          styles.secondaryButton,
+          styles.primaryButton,
           actionDisabled && styles.buttonDisabled,
           pressed && !actionDisabled && styles.buttonPressed,
         ]}
         onPress={onStart}
       >
-        <Text style={styles.secondaryButtonLabel}>{actionLabel}</Text>
+        <Text style={styles.primaryButtonLabel}>{actionLabel}</Text>
       </Pressable>
     </View>
   </View>
@@ -477,14 +649,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   heading: {
-    color: "#111827",
+    color: "#202321",
     fontSize: 28,
     fontWeight: "800",
   },
   helpIconButton: {
     alignItems: "center",
-    backgroundColor: "#EFF6FF",
-    borderColor: "#BFDBFE",
+    backgroundColor: "#E7EFE9",
+    borderColor: "#A8C9BD",
     borderRadius: 999,
     borderWidth: 1,
     height: 36,
@@ -492,15 +664,38 @@ const styles = StyleSheet.create({
     width: 36,
   },
   card: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 20,
     borderWidth: 1,
+    elevation: 2,
     gap: 12,
     padding: 16,
+    shadowColor: "#202321",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+  },
+  startCard: {
+    backgroundColor: "#F4F8F4",
+    borderColor: "#BBD5C9",
+    shadowOpacity: 0.1,
+  },
+  startTitleRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 10,
+  },
+  startIcon: {
+    alignItems: "center",
+    backgroundColor: "#E1EFE8",
+    borderRadius: 12,
+    height: 36,
+    justifyContent: "center",
+    width: 36,
   },
   cardTitle: {
-    color: "#111827",
+    color: "#202321",
     fontSize: 19,
     fontWeight: "700",
   },
@@ -512,6 +707,11 @@ const styles = StyleSheet.create({
   scopeHeaderTextWrap: {
     flex: 1,
   },
+  builderCollapsedHint: {
+    color: "#6E706B",
+    fontSize: 14,
+    lineHeight: 20,
+  },
   mixPresetBlock: {
     gap: 8,
   },
@@ -521,7 +721,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   filterTitle: {
-    color: "#334155",
+    color: "#4F514B",
     fontSize: 12,
     fontWeight: "700",
   },
@@ -529,21 +729,21 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   mixPresetChip: {
-    backgroundColor: "#EFF6FF",
-    borderColor: "#BFDBFE",
+    backgroundColor: "#E7EFE9",
+    borderColor: "#A8C9BD",
     borderRadius: 999,
     borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   mixPresetChipLabel: {
-    color: "#1D4ED8",
+    color: "#48766B",
     fontSize: 12,
     fontWeight: "700",
   },
   mixSummaryCard: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#D8DEE9",
+    backgroundColor: "#F8F5EE",
+    borderColor: "#D8D4C9",
     borderRadius: 14,
     borderWidth: 1,
     gap: 10,
@@ -555,8 +755,8 @@ const styles = StyleSheet.create({
   },
   mixMetric: {
     alignItems: "flex-start",
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 12,
     borderWidth: 1,
     flex: 1,
@@ -564,8 +764,8 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   mixMetricWide: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 12,
     borderWidth: 1,
     flex: 1.4,
@@ -573,17 +773,17 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   mixMetricValue: {
-    color: "#0F172A",
+    color: "#202321",
     fontSize: 18,
     fontWeight: "800",
   },
   mixMetricLabel: {
-    color: "#64748B",
+    color: "#6E706B",
     fontSize: 11,
     fontWeight: "600",
   },
   mixMetricCopy: {
-    color: "#334155",
+    color: "#4F514B",
     fontSize: 12,
     fontWeight: "600",
     lineHeight: 18,
@@ -594,8 +794,8 @@ const styles = StyleSheet.create({
   },
   ghostButton: {
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderColor: "#D8DEE9",
+    backgroundColor: "#FFFDF8",
+    borderColor: "#D8D4C9",
     borderRadius: 12,
     borderWidth: 1,
     flex: 1,
@@ -604,13 +804,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   ghostButtonLabel: {
-    color: "#1F2937",
+    color: "#202321",
     fontSize: 14,
     fontWeight: "700",
   },
   primaryButton: {
     alignItems: "center",
-    backgroundColor: "#1D4ED8",
+    backgroundColor: "#48766B",
     borderRadius: 12,
     flex: 1,
     justifyContent: "center",
@@ -618,13 +818,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   primaryButtonLabel: {
-    color: "#FFFFFF",
+    color: "#FFFDF8",
     fontSize: 14,
     fontWeight: "700",
   },
   secondaryButton: {
     alignItems: "center",
-    borderColor: "#CBD5E1",
+    borderColor: "#CFC9BD",
     borderRadius: 10,
     borderWidth: 1,
     justifyContent: "center",
@@ -632,12 +832,76 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   secondaryButtonLabel: {
-    color: "#334155",
+    color: "#4F514B",
     fontSize: 14,
     fontWeight: "700",
   },
   buttonColumn: {
     gap: 8,
+  },
+  startSetupBlock: {
+    gap: 8,
+  },
+  startSetupLabel: {
+    color: "#4F514B",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0.2,
+  },
+  startScopeRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  startScopeChip: {
+    backgroundColor: "#FFFDF8",
+    borderColor: "#C8DED2",
+    borderRadius: 14,
+    borderWidth: 1,
+    flex: 1,
+    gap: 4,
+    minHeight: 58,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  startScopeLabel: {
+    color: "#6E706B",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  startScopeValue: {
+    color: "#202321",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  startModeRow: {
+    gap: 8,
+  },
+  startModeChip: {
+    backgroundColor: "#E1EFE8",
+    borderColor: "#BBD5C9",
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  startModeLabel: {
+    color: "#48766B",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  startRequirementCard: {
+    backgroundColor: "#E7EFE9",
+    borderColor: "#A8C9BD",
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 10,
+    padding: 12,
+  },
+  startRequirementText: {
+    color: "#48766B",
+    fontSize: 13,
+    fontWeight: "600",
+    lineHeight: 19,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -674,37 +938,37 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   helpSheetStepTitle: {
-    color: "#0F172A",
+    color: "#202321",
     fontSize: 14,
     fontWeight: "700",
   },
   helpStepHint: {
-    color: "#64748B",
+    color: "#6E706B",
     fontSize: 13,
     lineHeight: 18,
   },
   metaText: {
-    color: "#475569",
+    color: "#6E706B",
     fontSize: 12,
     lineHeight: 18,
   },
   onboardingHeroCard: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#F8F5EE",
+    borderColor: "#D8D4C9",
     borderRadius: 14,
     borderWidth: 1,
     gap: 6,
     padding: 14,
   },
   onboardingHeroEyebrow: {
-    color: "#1D4ED8",
+    color: "#48766B",
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
   onboardingHeroTitle: {
-    color: "#0F172A",
+    color: "#202321",
     fontSize: 18,
     fontWeight: "800",
   },
@@ -714,24 +978,29 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   linkButton: {
-    borderColor: "#CBD5E1",
+    borderColor: "#CFC9BD",
     borderRadius: 8,
     borderWidth: 1,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
   linkButtonLabel: {
-    color: "#334155",
+    color: "#4F514B",
     fontSize: 12,
     fontWeight: "700",
   },
   sessionCard: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#D8DEE9",
-    borderRadius: 10,
+    backgroundColor: "#F8F5EE",
+    borderColor: "#D8D4C9",
+    borderRadius: 14,
     borderWidth: 1,
-    gap: 4,
-    padding: 10,
+    elevation: 1,
+    gap: 5,
+    padding: 12,
+    shadowColor: "#202321",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 5,
   },
   sessionHeadingRow: {
     alignItems: "center",
@@ -744,7 +1013,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sessionTitle: {
-    color: "#0F172A",
+    color: "#202321",
     flex: 1,
     fontSize: 14,
     fontWeight: "700",
@@ -760,17 +1029,17 @@ const styles = StyleSheet.create({
     textTransform: "capitalize",
   },
   sessionStatusLive: {
-    backgroundColor: "#E0EAFF",
-    color: "#1D4ED8",
+    backgroundColor: "#F5E4DA",
+    color: "#48766B",
   },
   sessionStatusDone: {
-    backgroundColor: "#DCFCE7",
-    color: "#166534",
+    backgroundColor: "#E7EFE9",
+    color: "#48766B",
   },
   sessionDeleteButton: {
     alignItems: "center",
-    backgroundColor: "#FFF1F2",
-    borderColor: "#FECDD3",
+    backgroundColor: "#F5E4DA",
+    borderColor: "#EAD1C3",
     borderRadius: 999,
     borderWidth: 1,
     justifyContent: "center",
@@ -778,12 +1047,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   sessionDeleteLabel: {
-    color: "#BE123C",
+    color: "#AD5948",
     fontSize: 11,
     fontWeight: "700",
   },
   sessionMeta: {
-    color: "#64748B",
+    color: "#6E706B",
     fontSize: 12,
   },
   buttonPressed: {
