@@ -39,6 +39,14 @@ export const createApp = (target: AppTarget = "bun") => {
   setAppRuntime(target);
   const app = new Hono().basePath("/api");
   registerAppMiddleware(app);
+  // Deliberately does not reach the database: this is a liveness check for
+  // Cloudflare, uptime monitoring, and safe post-deploy verification.
+  app.get("/health", (c) =>
+    c.json({
+      status: "ok",
+      service: "mm-exam-studio-api",
+    }),
+  );
   applyAuthProtection(app);
   app.use("/v1/*", apiRateLimitMiddleware);
   app.route("/auth", authRoutes);

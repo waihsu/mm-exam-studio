@@ -4,35 +4,35 @@ const help = {
   quickHelp: "Quick Help",
   heroTitle: "Start with the task you want to finish.",
   heroBody:
-    "The app now follows a simpler flow: Practice uses a mini blueprint, Papers uses quick-generate or templates, and Subscription handles plan access.",
+    "The app follows a simple flow: choose a grade, start or create your work, and open extra options only when you need them.",
   startHere: "Start Here",
   startHereBody: "Choose the section that matches what you want to do next.",
   sections: [
     {
       title: "Practice",
-      description: "Choose the syllabus scope once, set the mini blueprint mix, and start a session without exposing the raw question bank.",
+      description: "Choose your grade, start a session, and use customization only when you need a focused practice set.",
       steps: [
-        "Pick grade, subject, chapter, and lesson from the scope picker.",
-        "Set exact counts by question type in the mini blueprint, or leave rows at 0 to use the quick default mix.",
+        "Choose your grade first so questions stay relevant to your curriculum.",
+        "Start right away, or open Customize to focus by subject, chapter, question type, and count.",
         "Start the session and continue unfinished work later from Recent Sessions.",
       ],
     },
     {
       title: "Papers",
-      description: "Create draft papers with Quick Generate or published templates, then finalize and preview for export.",
+      description: "Name the paper, choose its grade, and create a draft. Customize only when the paper needs a precise scope or mix.",
       steps: [
-        "Use Quick Generate when you want the app to build from scope plus mini blueprint.",
-        "Use Templates when admin has already published a fixed paper structure for your plan.",
+        "Enter a clear paper title and choose the grade before creating the draft.",
+        "Open Customize only when you need a specific subject, chapter, or question mix.",
         "Review the draft, finalize it, then preview or print the PDF only when it is ready.",
       ],
     },
     {
-      title: "Subscription",
-      description: "Check plan usage, request an upgrade, and track approval history.",
+      title: "Support",
+      description: "Get help with your account, a study flow, or a problem in the app.",
       steps: [
-        "Open Subscription to compare plans and review your current limits.",
-        "If you upgrade manually, submit transaction ID and payment proof in one request.",
-        "Track the latest request and admin notes directly from the same screen.",
+        "Check this guide first for the common study flows.",
+        "Open Support when you need help with your account, content, or the app.",
+        "Include what you were trying to do and any message you saw so the issue can be fixed faster.",
       ],
     },
   ],
@@ -46,8 +46,8 @@ const help = {
       hint: "Best when you want to quick-generate or use an admin template for a paper draft.",
     },
     {
-      title: "Open Subscription",
-      hint: "Best when you need plan details, limits, or an upgrade.",
+      title: "Open Support",
+      hint: "Get help with an account, content, or app issue.",
     },
   ],
 } as const;

@@ -28,10 +28,11 @@ export const PracticeHomeScreen = () => {
   const { t } = useTranslation(["practice", "common"]);
   const { formatDateTime } = useAppDateTimeFormatter();
   const deleteSessionMutation = useDeletePracticeSessionMutation();
+  const [customizationExpanded, setCustomizationExpanded] =
+    React.useState(false);
 
   const {
     workspaceMetaQuery,
-    createSessionMutation,
     sessionsQuery,
     quickTypeCountsQuery,
     practiceRefresh,
@@ -47,6 +48,7 @@ export const PracticeHomeScreen = () => {
     activeMixTypes,
     exceedsAvailableMix,
     quickStartDisabled,
+    hasSelectedGrade,
     scopeSummary,
     activeScopePickerLabel,
     activeScopePickerOptions,
@@ -69,9 +71,10 @@ export const PracticeHomeScreen = () => {
       allLessons: t("practice:home.scopeAllLessons"),
     },
     createFailedMessage: t("practice:home.createFailed"),
+    gradeRequiredMessage: t("practice:home.gradeRequiredError"),
     plannedTitle: t("practice:home.plannedPracticeTitle"),
     quickTitle: t("practice:home.quickPracticeTitle"),
-    onSessionCreated: (sessionId) => {
+    onSessionCreated: sessionId => {
       router.push(`/practice/${sessionId}` as RelativePathString);
     },
   });
@@ -90,16 +93,18 @@ export const PracticeHomeScreen = () => {
           style: "destructive",
           onPress: () => {
             deleteSessionMutation.mutate(sessionId, {
-              onError: (error) => {
+              onError: error => {
                 Alert.alert(
                   t("practice:sessions.deleteFailedTitle"),
-                  error instanceof Error ? error.message : t("practice:sessions.deleteFailed"),
+                  error instanceof Error
+                    ? error.message
+                    : t("practice:sessions.deleteFailed")
                 );
               },
             });
           },
         },
-      ],
+      ]
     );
   };
 
@@ -124,19 +129,78 @@ export const PracticeHomeScreen = () => {
           onOpenHelp={() => setHelpSheetOpen(true)}
         />
 
+        <PracticeStartSection
+          title={t("practice:home.generatorTitle")}
+          scopeTitle={t("practice:filters.grade")}
+          scopeItems={[
+            {
+              key: "grade" as const,
+              label: t("practice:filters.grade"),
+              value: scopeSummary.grade,
+            },
+            {
+              key: "subject" as const,
+              label: t("practice:filters.subject"),
+              value: scopeSummary.subject,
+            },
+          ]}
+          onScopePress={key => setActiveScopePicker(key)}
+          modeTitle={t("practice:home.presets.title")}
+          modeItems={PRACTICE_PRESETS.map(preset => ({
+            key: preset.key,
+            label: t(preset.labelKey),
+            onPress: () => applyPracticePreset(preset.values),
+          }))}
+          errorMessage={actionError}
+          actionDisabled={quickStartDisabled}
+          actionLabel={
+            configuredMixCount > 0
+              ? t("practice:home.startPlannedMix")
+              : t("practice:home.quickStart")
+          }
+          needsGrade={!hasSelectedGrade}
+          gradeHint={t("practice:home.gradeRequiredHint")}
+          onStart={quickStart}
+        />
+
         <PracticeBuilderSection
-          title={t("practice:home.searchFiltersTitle")}
+          title={t("practice:home.customizeTitle")}
+          collapsedHint={t("practice:home.customizeCollapsedHint")}
+          expandLabel={t("practice:home.customizeOpen")}
+          collapseLabel={t("practice:home.customizeClose")}
+          isExpanded={customizationExpanded}
+          onToggleExpanded={() =>
+            setCustomizationExpanded(current => !current)
+          }
           mixTitle={t("practice:home.mixTitle")}
           mixHint={t("practice:home.mixHint")}
-          mixTotalLabel={t("practice:home.mixTotal", { count: configuredMixCount })}
+          mixTotalLabel={t("practice:home.mixTotal", {
+            count: configuredMixCount,
+          })}
           scopeItems={[
-            { key: "grade", label: t("practice:filters.grade"), value: scopeSummary.grade },
-            { key: "subject", label: t("practice:filters.subject"), value: scopeSummary.subject },
-            { key: "chapter", label: t("practice:filters.chapter"), value: scopeSummary.chapter },
-            { key: "lesson", label: t("practice:filters.lesson"), value: scopeSummary.lesson },
+            {
+              key: "grade",
+              label: t("practice:filters.grade"),
+              value: scopeSummary.grade,
+            },
+            {
+              key: "subject",
+              label: t("practice:filters.subject"),
+              value: scopeSummary.subject,
+            },
+            {
+              key: "chapter",
+              label: t("practice:filters.chapter"),
+              value: scopeSummary.chapter,
+            },
+            {
+              key: "lesson",
+              label: t("practice:filters.lesson"),
+              value: scopeSummary.lesson,
+            },
           ]}
-          onScopePress={(key) => setActiveScopePicker(key)}
-          mixItems={PRACTICE_MIX_TYPES.map((type) => ({
+          onScopePress={key => setActiveScopePicker(key)}
+          mixItems={PRACTICE_MIX_TYPES.map(type => ({
             key: type,
             label: t(toPracticeQuestionTypeLabelKey(type)),
             helper:
@@ -145,8 +209,8 @@ export const PracticeHomeScreen = () => {
                 : t("practice:home.mixPerTypeHelper"),
             value: mixCounts[type],
             availableCount: quickTypeCountsQuery.counts[type] ?? undefined,
-            onChange: (value) => {
-              setMixCounts((current) => ({
+            onChange: value => {
+              setMixCounts(current => ({
                 ...current,
                 [type]: value.length > 0 ? value : "0",
               }));
@@ -155,7 +219,7 @@ export const PracticeHomeScreen = () => {
           presetTitle={t("practice:home.presets.title")}
           presetResetLabel={t("practice:home.presets.reset")}
           onResetPresets={resetMixToDefault}
-          presets={PRACTICE_PRESETS.map((preset) => ({
+          presets={PRACTICE_PRESETS.map(preset => ({
             key: preset.key,
             label: t(preset.labelKey),
             onPress: () => applyPracticePreset(preset.values),
@@ -167,8 +231,16 @@ export const PracticeHomeScreen = () => {
           typesLabel={t("practice:home.mixSummaryTypes")}
           readyCopy={t("practice:home.mixSummaryReady")}
           fallbackCopy={t("practice:home.mixSummaryFallback")}
-          tooLargeError={configuredMixCount > 50 ? t("practice:home.mixSummaryTooLarge") : null}
-          unavailableError={exceedsAvailableMix ? t("practice:home.mixSummaryUnavailable") : null}
+          tooLargeError={
+            configuredMixCount > 50
+              ? t("practice:home.mixSummaryTooLarge")
+              : null
+          }
+          unavailableError={
+            exceedsAvailableMix
+              ? t("practice:home.mixSummaryUnavailable")
+              : null
+          }
           isLoadingWorkspace={workspaceMetaQuery.isLoading}
           loadingWorkspaceLabel={t("practice:home.loadingWorkspaceFilters")}
           workspaceErrorMessage={
@@ -200,7 +272,7 @@ export const PracticeHomeScreen = () => {
           closeLabel={t("common:actions.close")}
           fullGuideLabel={t("practice:home.fullGuide")}
           bestPattern={t("practice:home.guideBestPattern")}
-          steps={PRACTICE_GUIDE_STEPS.map((step) => ({
+          steps={PRACTICE_GUIDE_STEPS.map(step => ({
             title: t(step.titleKey),
             hint: t(step.hintKey),
             icon: step.icon,
@@ -214,25 +286,17 @@ export const PracticeHomeScreen = () => {
           }}
         />
 
-        <PracticeStartSection
-          title={t("practice:home.generatorTitle")}
-          errorMessage={actionError}
-          actionDisabled={quickStartDisabled}
-          actionLabel={
-            configuredMixCount > 0
-              ? t("practice:home.startPlannedMix")
-              : t("practice:home.quickStart")
-          }
-          onStart={quickStart}
-        />
-
         <RecentPracticeSessionsSection
           title={t("practice:home.recentSessionsTitle")}
           viewAllLabel={t("common:actions.viewAll")}
-          onViewAll={() => router.push("/practice/sessions" as RelativePathString)}
+          onViewAll={() =>
+            router.push("/practice/sessions" as RelativePathString)
+          }
           deleteActionLabel={t("practice:sessions.deleteAction")}
           deletingLabel={t("practice:sessions.deleting")}
-          loadingLabel={sessionsQuery.isLoading ? t("practice:home.loadingSessions") : ""}
+          loadingLabel={
+            sessionsQuery.isLoading ? t("practice:home.loadingSessions") : ""
+          }
           errorMessage={
             sessionsQuery.isError
               ? sessionsQuery.error instanceof Error
@@ -249,16 +313,18 @@ export const PracticeHomeScreen = () => {
               count,
             })
           }
-          startedMetaLabel={(value) =>
+          startedMetaLabel={value =>
             t("practice:sessions.startedMeta", { date: formatDateTime(value) })
           }
-          toStatusLabel={(status) =>
+          toStatusLabel={status =>
             status === "completed"
               ? t("practice:sessions.completed")
               : t("practice:sessions.started")
           }
           deletingSessionId={
-            deleteSessionMutation.isPending ? (deleteSessionMutation.variables ?? null) : null
+            deleteSessionMutation.isPending
+              ? (deleteSessionMutation.variables ?? null)
+              : null
           }
           onDeleteSession={confirmDeleteSession}
         />
@@ -274,7 +340,7 @@ export const PracticeHomeScreen = () => {
           body={t("practice:home.onboardingBody")}
           hintTitle={t("practice:home.onboardingHintTitle")}
           hint={t("practice:home.onboardingHint")}
-          steps={PRACTICE_GUIDE_STEPS.map((step) => ({
+          steps={PRACTICE_GUIDE_STEPS.map(step => ({
             title: t(step.titleKey),
             hint: t(step.hintKey),
             icon: step.icon,

@@ -1,6 +1,7 @@
 import type {
   CreateQuestionInput,
   QuestionParametricValueSetInput,
+  QuestionVariantContentInput,
   QuestionVariableInput,
 } from "../question.schema";
 
@@ -846,6 +847,7 @@ export const validateVariableConfiguration = (input: {
   options?: Array<{ label?: string; text: string; isCorrect: boolean }>;
   variablesSchema?: QuestionVariableInput[];
   parametricValueSets?: QuestionParametricValueSetInput[];
+  variantContents?: QuestionVariantContentInput[];
 }) => {
   if (input.mode !== "variable") {
     return;
@@ -916,6 +918,22 @@ export const validateVariableConfiguration = (input: {
       coerceVariableOverride(variable, value);
     }
   }
+
+  for (const [variantIndex, variant] of (input.variantContents ?? []).entries()) {
+    validateVariableConfiguration({
+      ...input,
+      body: variant.body ?? input.body,
+      explanation: variant.explanation ?? input.explanation,
+      answerText: variant.answerText ?? input.answerText,
+      answerFormula: variant.answerFormula ?? input.answerFormula,
+      options: variant.options ?? input.options,
+      variantContents: undefined,
+    });
+
+    if (variant.options?.length && !variant.options.some((option) => option.isCorrect)) {
+      throw new Error(`Variant ${variantIndex + 1} needs at least one correct option.`);
+    }
+  }
 };
 
 export const renderQuestionPreviewResult = (
@@ -929,6 +947,7 @@ export const renderQuestionPreviewResult = (
     | "mode"
     | "variablesSchema"
     | "parametricValueSets"
+    | "variantContents"
   > & {
     previewValues?: VariablePreviewValues;
     parametricSetIndex?: number;
@@ -941,20 +960,30 @@ export const renderQuestionPreviewResult = (
     data.parametricValueSets,
     data.parametricSetIndex,
   );
+  const selectedVariant =
+    selectedParametricSetIndex === null
+      ? undefined
+      : data.variantContents?.[selectedParametricSetIndex];
+
+  const body = selectedVariant?.body ?? data.body;
+  const explanation = selectedVariant?.explanation ?? data.explanation;
+  const answerText = selectedVariant?.answerText ?? data.answerText;
+  const answerFormula = selectedVariant?.answerFormula ?? data.answerFormula;
+  const options = selectedVariant?.options ?? data.options;
 
   const renderedAnswer =
-    data.mode === "variable" && data.answerFormula?.trim()
-      ? String(evaluateNumericExpression(data.answerFormula, context))
-      : renderTemplate(data.answerText, context);
+    data.mode === "variable" && answerFormula?.trim()
+      ? String(evaluateNumericExpression(answerFormula, context))
+      : renderTemplate(answerText, context);
 
   return {
     context,
     selectedParametricSetIndex,
-    body: renderTemplate(data.body, context) ?? "",
-    explanation: renderTemplate(data.explanation, context),
+    body: renderTemplate(body, context) ?? "",
+    explanation: renderTemplate(explanation, context),
     answerText: renderedAnswer,
     options:
-      data.options?.map((option) => ({
+      options?.map((option) => ({
         ...option,
         label: renderTemplate(option.label, context),
         text: renderTemplate(option.text, context) ?? "",

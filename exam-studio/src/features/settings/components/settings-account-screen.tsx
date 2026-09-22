@@ -1,6 +1,6 @@
 import { useRouter, type RelativePathString } from "expo-router";
 import React from "react";
-import { ActivityIndicator, Pressable, RefreshControl, Text } from "react-native";
+import { ActivityIndicator, Alert, Pressable, RefreshControl, Text } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useAuthSessionQuery } from "@/features/auth/hooks/use-auth-session-query";
 import { useSendVerificationEmailMutation } from "@/features/auth/hooks/use-send-verification-email-mutation";
@@ -11,7 +11,7 @@ import { SettingsCard, SettingsLoadingRow, SettingsPage } from "./settings-ui";
 import { settingsUiStyles } from "./settings-ui.styles";
 
 export const SettingsAccountScreen = () => {
-  const { t } = useTranslation("settingsDetail");
+  const { t } = useTranslation(["settingsDetail", "common"]);
   const router = useRouter();
   const authSessionQuery = useAuthSessionQuery();
   const sendVerificationMutation = useSendVerificationEmailMutation();
@@ -20,6 +20,15 @@ export const SettingsAccountScreen = () => {
   const accountRefresh = useRefreshAction(async () => {
     await authSessionQuery.refetch();
   });
+
+  const confirmSignOut = () => {
+    if (signOutMutation.isPending) return;
+
+    Alert.alert(t("account.signOut"), undefined, [
+      { text: t("common:actions.cancel"), style: "cancel" },
+      { text: t("account.signOut"), style: "destructive", onPress: () => void signOut() },
+    ]);
+  };
 
   const signOut = async () => {
     if (signOutMutation.isPending) {
@@ -117,7 +126,7 @@ export const SettingsAccountScreen = () => {
             }}
           >
             {sendVerificationMutation.isPending ? (
-              <ActivityIndicator color="#0F172A" />
+              <ActivityIndicator color="#48766B" />
             ) : (
               <Text style={settingsUiStyles.secondaryButtonLabel}>{t("account.sendVerification")}</Text>
             )}
@@ -141,12 +150,10 @@ export const SettingsAccountScreen = () => {
             signOutMutation.isPending && settingsUiStyles.buttonDisabled,
             pressed && !signOutMutation.isPending && settingsUiStyles.buttonPressed,
           ]}
-          onPress={() => {
-            void signOut();
-          }}
+          onPress={confirmSignOut}
         >
           {signOutMutation.isPending ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color="#FFFDF8" />
           ) : (
             <Text style={settingsUiStyles.primaryButtonLabel}>{t("account.signOut")}</Text>
           )}

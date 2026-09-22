@@ -72,10 +72,6 @@ export const ADMIN_SIDEBAR_NAV_GROUPS: AdminNavGroup[] = [
         to: ADMIN_ROUTES.questions,
       },
       {
-        label: { en: "Blueprints", my: "မေးခွန်းပုံစံများ" },
-        to: ADMIN_ROUTES.questionBlueprints,
-      },
-      {
         label: { en: "Taxonomy Control", my: "Taxonomy စီမံခန့်ခွဲမှု" },
         to: ADMIN_ROUTES.taxonomy,
       },
@@ -88,10 +84,6 @@ export const ADMIN_SIDEBAR_NAV_GROUPS: AdminNavGroup[] = [
       {
         label: { en: "Users", my: "အသုံးပြုသူများ" },
         to: ADMIN_ROUTES.users,
-      },
-      {
-        label: { en: "Subscriptions", my: "စာရင်းသွင်းမှုများ" },
-        to: ADMIN_ROUTES.userSubscriptions,
       },
       {
         label: { en: "Support Inbox", my: "အကူအညီစာများ" },

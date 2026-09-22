@@ -1,9 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, LogOut, RefreshCcw, ShieldCheck } from "lucide-react";
+import { ArrowRight, LogOut, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader, SectionCard, StatGrid } from "@/components/ui/page-shell";
 import { userAppRoutes } from "@/constants/routes";
-import { getPlanCatalogItem } from "@/features/subscription/subscription-catalog";
 import { useProfilePageData } from "../hooks/use-profile-page-data";
 import { ProfileSessionsSection } from "./profile-sessions-section";
 import { InfoCard, MetaRow, StatusRow } from "./profile-shared";
@@ -26,11 +25,10 @@ export function ProfilePage() {
     switchAccount,
   } = useProfilePageData();
 
-  const deviceLimit = summary?.subscription.limits.deviceLimit ?? 1;
+  const deviceLimit = summary?.subscription.limits.deviceLimit ?? 25;
   const errors = [queryError, revokeOthersError, revokeSessionError].filter(
     (item): item is string => Boolean(item),
   );
-  const planCatalog = getPlanCatalogItem(summary?.subscription.code ?? "free");
 
   return (
     <div className="space-y-4">
@@ -40,7 +38,7 @@ export function ProfilePage() {
         chips={
           <>
             <span className="app-chip">{sessions.length}/{deviceLimit} devices</span>
-            <span className="app-chip">{summary?.subscription.name ?? "Free"} plan</span>
+            <span className="app-chip">Open access</span>
             <span className="app-chip">{isWithinDeviceLimit ? "Within limit" : "Over limit"}</span>
           </>
         }
@@ -56,7 +54,7 @@ export function ProfilePage() {
         />
       </StatGrid>
 
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <section className="grid gap-4 md:grid-cols-[minmax(0,1fr)_260px] xl:grid-cols-[minmax(0,1fr)_320px]">
         <ProfileSessionsSection
           sessions={sessions}
           isLoading={sessionsQuery.isLoading}
@@ -76,33 +74,26 @@ export function ProfilePage() {
           <SectionCard title="Account readiness">
             <div className="mt-3 space-y-2">
               <StatusRow label="Email verified" ok={Boolean(user?.emailVerified)} />
-              <StatusRow label="Plan active" ok={(summary?.subscription.status ?? "active") === "active"} />
+              <StatusRow label="Open access enabled" ok />
               <StatusRow label="Device count in limit" ok={isWithinDeviceLimit} />
             </div>
             <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-                Plan snapshot
+                Access
               </p>
               <p className="mt-2 text-sm font-semibold text-slate-900">
-                {summary?.subscription.name ?? "Free"} plan
+                Open access
               </p>
-              <p className="mt-1 text-sm text-slate-600">{planCatalog.tagline}</p>
+              <p className="mt-1 text-sm text-slate-600">
+                All core study and paper tools are available for your account.
+              </p>
               <div className="mt-3 space-y-2">
-                <MetaRow label="Practice" value={planCatalog.limitSummary.practice} />
-                <MetaRow label="Paper" value={planCatalog.limitSummary.paper} />
-                <MetaRow label="Devices" value={planCatalog.limitSummary.devices} />
+                <MetaRow label="Practice" value="No session cap" />
+                <MetaRow label="Paper" value="No paper cap" />
+                <MetaRow label="Devices" value={`Up to ${deviceLimit}`} />
               </div>
             </div>
             <div className="mt-4 space-y-2">
-              <Button asChild variant="outline" className="w-full justify-between bg-white">
-                <Link to={userAppRoutes.subscription}>
-                  <span className="inline-flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4" />
-                    Compare plans
-                  </span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
               <Button asChild variant="outline" className="w-full justify-between bg-white">
                 <Link to={userAppRoutes.settings}>
                   <span>Branding settings</span>

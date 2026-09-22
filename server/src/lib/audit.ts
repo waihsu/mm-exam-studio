@@ -1,4 +1,5 @@
 import { writeAuditLog } from "@/modules/audit/audit.service";
+import { getRequestClientIp } from "./request-client-ip";
 
 export const writeAuditLogFromRequest = async ({
   request,
@@ -16,11 +17,7 @@ export const writeAuditLogFromRequest = async ({
   metadata?: Record<string, any>;
 }) => {
   try {
-    const ip =
-      request.headers.get("x-forwarded-for") ||
-      request.headers.get("cf-connecting-ip") ||
-      null;
-
+    const ip = getRequestClientIp(request);
     const userAgent = request.headers.get("user-agent");
 
     await writeAuditLog({

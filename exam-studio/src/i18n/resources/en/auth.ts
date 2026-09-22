@@ -126,10 +126,10 @@ const auth = {
       "This app helps students practice, prepare papers, and manage exports. By continuing, you confirm that you understand the handling of account data, generated content, and support requests inside the app.",
     privacyTitle: "What we store",
     privacyBody:
-      "We store your account profile, sign-in session details, practice activity, generated papers, subscription state, and support conversation history needed to keep the service working across your signed-in devices.",
+      "We store your account profile, sign-in session details, practice activity, generated papers, and support conversation history needed to keep the service working across your signed-in devices.",
     dataUseTitle: "How data is used",
     dataUseBody:
-      "Your data is used to sign you in, sync your progress, enforce plan limits, generate papers and previews, and help the support team investigate account or billing issues when you contact us.",
+      "Your data is used to sign you in, sync your progress, generate papers and previews, and help the support team investigate account, content, or app issues when you contact us.",
     securityTitle: "Files and device safety",
     securityBody:
       "Temporary preview files and session artifacts may be cached on the device to speed up loading. Sensitive exports should be handled carefully, and you should sign out from shared devices when your work is finished.",
@@ -138,7 +138,7 @@ const auth = {
       "Only upload or generate content that you are allowed to use. Do not share copyrighted or confidential assessment material without permission, and review exported papers before distributing them.",
     supportTitle: "Support and policy updates",
     supportBody:
-      "Some subscription changes, payment checks, and support replies may require manual review. We may update this policy as the product changes, and the latest in-app version should be treated as the current reference.",
+      "Support replies may require manual review. We may update this policy as the product changes, and the latest in-app version should be treated as the current reference.",
   },
 } as const;
 

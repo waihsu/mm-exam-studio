@@ -3,7 +3,8 @@ import React, { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AuthScreenShell } from "./auth-screen-shell";
-import { AuthBanner, AuthButton, AuthField, authUiStyles } from "./auth-ui";
+import { AuthBanner, AuthButton, AuthField } from "./auth-ui";
+import { authUiStyles } from "./auth-ui.styles";
 import { useVerifyTwoFactorMutation } from "../hooks/use-verify-two-factor-mutation";
 
 type MfaMethod = "totp" | "backup";
@@ -18,7 +19,7 @@ export const MfaScreen = () => {
 
   const canSubmit = useMemo(
     () => code.trim().length > 0 && !verifyMutation.isPending,
-    [code, verifyMutation.isPending],
+    [code, verifyMutation.isPending]
   );
 
   const verify = async () => {
@@ -37,7 +38,7 @@ export const MfaScreen = () => {
       setErrorMessage(
         error instanceof Error && error.message.trim().length > 0
           ? error.message
-          : t("mfa.failed"),
+          : t("mfa.failed")
       );
     }
   };
@@ -95,7 +96,11 @@ export const MfaScreen = () => {
         autoCapitalize="characters"
         autoCorrect={false}
         keyboardType={method === "totp" ? "number-pad" : "default"}
-        label={method === "totp" ? t("mfa.authenticatorCodeLabel") : t("mfa.backupCodeLabel")}
+        label={
+          method === "totp"
+            ? t("mfa.authenticatorCodeLabel")
+            : t("mfa.backupCodeLabel")
+        }
         placeholder={method === "totp" ? "123456" : "ABCD-EFGH"}
         textContentType="oneTimeCode"
         value={code}
@@ -128,7 +133,7 @@ const styles = StyleSheet.create({
   },
   switchButton: {
     alignItems: "center",
-    borderColor: "#CBD5E1",
+    borderColor: "#CFC9BD",
     borderRadius: 10,
     borderWidth: 1,
     flex: 1,
@@ -136,18 +141,18 @@ const styles = StyleSheet.create({
     minHeight: 42,
   },
   switchButtonActive: {
-    backgroundColor: "#EFF6FF",
-    borderColor: "#60A5FA",
+    backgroundColor: "#E7EFE9",
+    borderColor: "#BBD5C9",
   },
   switchButtonPressed: {
     opacity: 0.85,
   },
   switchButtonLabel: {
-    color: "#475569",
+    color: "#4F514B",
     fontSize: 13,
     fontWeight: "700",
   },
   switchButtonLabelActive: {
-    color: "#1D4ED8",
+    color: "#48766B",
   },
 });

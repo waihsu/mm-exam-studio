@@ -229,17 +229,19 @@ export function SubscriptionPage() {
         </SectionCard>
       </section>
 
-      <section className="stagger-children grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        <div className="relative isolate overflow-hidden rounded-2xl bg-[#121b33] p-5 text-white shadow-[0_24px_55px_-40px_rgba(15,23,42,0.78)] sm:p-6">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_4%,rgba(111,99,255,0.42),transparent_32%),radial-gradient(circle_at_9%_115%,rgba(15,166,184,0.16),transparent_42%)]" />
+          <div className="relative">
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
                 <span className="app-icon-chip">
-                  <Rocket className="h-4 w-4 text-slate-700" />
+                  <Rocket className="h-4 w-4 text-indigo-700" />
                 </span>
-                <h3 className="text-base font-semibold text-slate-900">Upgrade request</h3>
+                <h3 className="text-lg font-bold tracking-tight text-white">Request your plan</h3>
               </div>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm leading-6 text-slate-300">
                 {isHighestPlan
                   ? "This account already uses the highest plan."
                   : `Selected target: ${selectedPlan.name}. Submit payment proof, then send one request for admin approval.`}
@@ -253,11 +255,11 @@ export function SubscriptionPage() {
             ) : null}
           </div>
 
-          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <div className="rounded-lg border border-slate-200 bg-white px-3 py-3">
+          <div className="mt-5 rounded-xl border border-white/15 bg-slate-950/20 p-3 sm:p-4">
+            <div className="rounded-xl border border-white/15 bg-white/95 px-3 py-3 text-slate-950">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+                  <p className="field-label">
                     Selected plan
                   </p>
                   <p className="mt-1 text-sm font-semibold text-slate-900">{selectedPlan.name}</p>
@@ -270,7 +272,7 @@ export function SubscriptionPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
               <label className="space-y-2">
                 <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                   Transaction ID
@@ -279,14 +281,14 @@ export function SubscriptionPage() {
                   value={transactionId}
                   onChange={(event) => setTransactionId(event.target.value)}
                   placeholder="KBZ-123456, Wave-ABC123, Receipt number"
-                  className="h-11 w-full rounded-lg border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none ring-0 transition focus:border-slate-900"
+                  className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none ring-0 transition focus:border-indigo-600"
                 />
               </label>
               <label className="space-y-2">
                 <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                   Payment proof
                 </span>
-                <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -298,13 +300,13 @@ export function SubscriptionPage() {
               </label>
             </div>
             {selectedProofName ? (
-              <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
+              <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2">
                 <ImagePlus className="h-4 w-4 text-slate-500" />
                 <p className="text-sm text-slate-700">{selectedProofName}</p>
               </div>
             ) : null}
             {paymentProofImageDataUrl ? (
-              <div className="mt-3 flex h-40 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white">
+              <div className="mt-3 flex h-40 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white">
                 <img
                   src={paymentProofImageDataUrl}
                   alt="Payment proof preview"
@@ -319,11 +321,11 @@ export function SubscriptionPage() {
               value={requestNote}
               onChange={(event) => setRequestNote(event.target.value)}
               placeholder="Optional note for admin, for example why you need Pro or Premium."
-              className="mt-2 min-h-24 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none ring-0 transition focus:border-slate-900"
+              className="mt-2 min-h-24 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none ring-0 transition focus:border-indigo-600"
             />
             <div className="mt-4 flex flex-wrap gap-2">
               <Button
-                className="w-full sm:w-auto"
+                className="w-full rounded-xl bg-white text-slate-950 hover:bg-indigo-50 sm:w-auto"
                 onClick={() => requestMutation.mutate(selectedPlanCode)}
                 disabled={
                   requestMutation.isPending ||
@@ -339,7 +341,7 @@ export function SubscriptionPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full bg-white sm:w-auto"
+                  className="w-full rounded-xl bg-white sm:w-auto"
                   onClick={() =>
                     setSelectedPlanCode(selectedPlanCode === "pro" ? "premium" : "pro")
                   }
@@ -384,9 +386,10 @@ export function SubscriptionPage() {
               </Notice>
             ) : null}
           </div>
+          </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_45px_-38px_rgba(15,23,42,0.34)] sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-base font-semibold text-slate-900">Latest request</h3>
             {latestRequest ? (

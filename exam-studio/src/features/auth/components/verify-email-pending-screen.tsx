@@ -1,9 +1,14 @@
-import { useLocalSearchParams, useRouter, type RelativePathString } from "expo-router";
+import {
+  useLocalSearchParams,
+  useRouter,
+  type RelativePathString,
+} from "expo-router";
 import React, { useMemo, useState } from "react";
 import { Text, View } from "react-native";
 import { useTranslation } from "@/i18n";
 import { AuthScreenShell } from "./auth-screen-shell";
-import { AuthBanner, AuthButton, authUiStyles } from "./auth-ui";
+import { AuthBanner, AuthButton } from "./auth-ui";
+import { authUiStyles } from "./auth-ui.styles";
 import { useSendVerificationEmailMutation } from "../hooks/use-send-verification-email-mutation";
 
 const readEmailParam = (value: string | string[] | undefined) => {
@@ -37,7 +42,7 @@ export const VerifyEmailPendingScreen = () => {
       setErrorMessage(
         error instanceof Error && error.message.trim().length > 0
           ? error.message
-          : t("verifyEmailPending.resendFailed"),
+          : t("verifyEmailPending.resendFailed")
       );
     }
   };
@@ -49,8 +54,12 @@ export const VerifyEmailPendingScreen = () => {
       title={t("verifyEmailPending.title")}
     >
       <View style={authUiStyles.sectionHeader}>
-        <Text style={authUiStyles.sectionKicker}>{t("verifyEmailPending.kicker")}</Text>
-        <Text style={authUiStyles.sectionTitle}>{t("verifyEmailPending.sectionTitle")}</Text>
+        <Text style={authUiStyles.sectionKicker}>
+          {t("verifyEmailPending.kicker")}
+        </Text>
+        <Text style={authUiStyles.sectionTitle}>
+          {t("verifyEmailPending.sectionTitle")}
+        </Text>
       </View>
 
       <Text style={authUiStyles.sectionDescription}>

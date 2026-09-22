@@ -1,32 +1,23 @@
-import fontkit from "@pdf-lib/fontkit";
 import {
   PDFDocument,
   type PDFImage,
-  type PDFFont,
   type PDFPage,
-  StandardFonts,
   degrees,
   rgb,
 } from "pdf-lib";
-import {
-  NOTO_SANS_MYANMAR_REGULAR_BASE64,
-  NOTO_SANS_REGULAR_BASE64,
-} from "../pdf-fonts.generated";
 import type { getQuestionPaperDetail } from "../services/paper.service";
+import {
+  loadFonts,
+  normalizePdfText,
+  pickFont,
+  segmentText,
+  type PdfFontPack,
+} from "./question-paper-pdf-text";
 
 export type QuestionPaperDetail = Awaited<ReturnType<typeof getQuestionPaperDetail>>;
 export type QuestionPaperPdfVariant = "combined" | "question" | "answer";
 type RenderQuestionPaperPdfOptions = {
   watermarkLabel?: string | null;
-};
-
-type PdfFontPack = {
-  regular: PDFFont;
-  bold: PDFFont;
-  serifRegular: PDFFont;
-  serifBold: PDFFont;
-  myanmarRegular: PDFFont;
-  myanmarBold: PDFFont;
 };
 
 const PAGE = {
@@ -38,66 +29,18 @@ const PAGE = {
 };
 
 const COLORS = {
-  ink: rgb(0.09, 0.12, 0.18),
-  muted: rgb(0.4, 0.45, 0.53),
-  subtle: rgb(0.82, 0.86, 0.91),
-  panel: rgb(0.96, 0.97, 0.99),
-  accent: rgb(0.1, 0.2, 0.42),
+  ink: rgb(0.125, 0.137, 0.129),
+  muted: rgb(0.431, 0.439, 0.42),
+  subtle: rgb(0.847, 0.831, 0.788),
+  panel: rgb(0.961, 0.945, 0.91),
+  accent: rgb(0.282, 0.463, 0.42),
 };
 
-const MYANMAR_REGEX = /[\u1000-\u109F\uAA60-\uAA7F]/;
 const SECTION_TITLE_ONLY_REGEX = /^section\s*\(?[a-z0-9]+\)?$/i;
 const DEFAULT_MATRIC_EXAM_TITLE = "MATRICULATION EXAMINATION";
 const DEFAULT_MATRIC_DEPARTMENT_LINE = "DEPARTMENT OF MYANMAR EXAMINATION";
 const DEFAULT_MATRIC_TIME_ALLOWED = "(3) Hours";
 const DEFAULT_MATRIC_ANSWER_INSTRUCTION = "WRITE YOUR ANSWERS IN THE ANSWER BOOKLET.";
-
-const SUPERSCRIPT_MAP: Record<string, string> = {
-  "0": "⁰",
-  "1": "¹",
-  "2": "²",
-  "3": "³",
-  "4": "⁴",
-  "5": "⁵",
-  "6": "⁶",
-  "7": "⁷",
-  "8": "⁸",
-  "9": "⁹",
-  "+": "⁺",
-  "-": "⁻",
-  "=": "⁼",
-  "(": "⁽",
-  ")": "⁾",
-  "n": "ⁿ",
-  "i": "ⁱ",
-};
-
-const SUBSCRIPT_MAP: Record<string, string> = {
-  "0": "₀",
-  "1": "₁",
-  "2": "₂",
-  "3": "₃",
-  "4": "₄",
-  "5": "₅",
-  "6": "₆",
-  "7": "₇",
-  "8": "₈",
-  "9": "₉",
-  "+": "₊",
-  "-": "₋",
-  "=": "₌",
-  "(": "₍",
-  ")": "₎",
-};
-
-const decodeBase64 = (value: string) => {
-  const binary = atob(value);
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
-  }
-  return bytes;
-};
 
 const extractDataUrl = (value: string | null | undefined) => {
   if (!value) return null;
@@ -105,121 +48,7 @@ const extractDataUrl = (value: string | null | undefined) => {
   if (!matched) return null;
   return {
     mimeType: matched[1] || "application/octet-stream",
-    bytes: decodeBase64(matched[2] || ""),
-  };
-};
-
-const mapScriptCharacters = (
-  value: string,
-  table: Record<string, string>,
-  fallbackPrefix: string,
-) => {
-  const mapped = Array.from(value)
-    .map((char) => table[char] ?? "")
-    .join("");
-
-  if (mapped.length === value.length) {
-    return mapped;
-  }
-
-  return `${fallbackPrefix}(${value})`;
-};
-
-const normalizeMathText = (value: string) =>
-  value
-    .replace(/\$\$?/g, "")
-    .replace(/\\left|\\right/g, "")
-    .replace(/\\times/g, "×")
-    .replace(/\\div/g, "÷")
-    .replace(/\\cdot/g, "·")
-    .replace(/\\pm/g, "±")
-    .replace(/\\neq/g, "≠")
-    .replace(/\\leq/g, "≤")
-    .replace(/\\geq/g, "≥")
-    .replace(/\\approx/g, "≈")
-    .replace(/\\to|\\rightarrow/g, "→")
-    .replace(/\\leftarrow/g, "←")
-    .replace(/\\pi/g, "π")
-    .replace(/\\theta/g, "θ")
-    .replace(/\\alpha/g, "α")
-    .replace(/\\beta/g, "β")
-    .replace(/\\gamma/g, "γ")
-    .replace(/\\delta/g, "δ")
-    .replace(/\\lambda/g, "λ")
-    .replace(/\\mu/g, "μ")
-    .replace(/\\sigma/g, "σ")
-    .replace(/\\omega/g, "ω")
-    .replace(/\\sin/g, "sin")
-    .replace(/\\cos/g, "cos")
-    .replace(/\\tan/g, "tan")
-    .replace(/\\log/g, "log")
-    .replace(/\\ln/g, "ln")
-    .replace(/\\circ/g, "°")
-    .replace(/\\sqrt\{([^}]+)\}/g, "√($1)")
-    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, "($1)/($2)")
-    .replace(/\^\{([^}]+)\}/g, (_, exponent: string) =>
-      mapScriptCharacters(exponent, SUPERSCRIPT_MAP, "^"),
-    )
-    .replace(/\^([A-Za-z0-9+\-=()])/g, (_, exponent: string) =>
-      mapScriptCharacters(exponent, SUPERSCRIPT_MAP, "^"),
-    )
-    .replace(/_\{([^}]+)\}/g, (_, subscript: string) =>
-      mapScriptCharacters(subscript, SUBSCRIPT_MAP, "_"),
-    )
-    .replace(/_([A-Za-z0-9+\-=()])/g, (_, subscript: string) =>
-      mapScriptCharacters(subscript, SUBSCRIPT_MAP, "_"),
-    )
-    .replace(/\\,/g, " ")
-    .replace(/\\+/g, "")
-    .replace(/[{}]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-const normalizePdfText = (value: string | null | undefined, fallback = "") =>
-  (value ?? fallback)
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .split("\n")
-    .map((line) => normalizeMathText(line.trim()))
-    .join("\n")
-    .trim();
-
-const pickFont = (
-  fonts: PdfFontPack,
-  text: string,
-  bold = false,
-  serif = false,
-) => {
-  if (MYANMAR_REGEX.test(text)) {
-    return bold ? fonts.myanmarBold : fonts.myanmarRegular;
-  }
-  if (serif) {
-    return bold ? fonts.serifBold : fonts.serifRegular;
-  }
-  return bold ? fonts.bold : fonts.regular;
-};
-
-const segmentText = (text: string) =>
-  text.match(/[\u1000-\u109F\uAA60-\uAA7F]+|[^\u1000-\u109F\uAA60-\uAA7F]+/g) ?? [text];
-
-const loadFonts = async (pdf: PDFDocument): Promise<PdfFontPack> => {
-  pdf.registerFontkit(fontkit);
-
-  const regular = await pdf.embedFont(decodeBase64(NOTO_SANS_REGULAR_BASE64));
-  const serifRegular = await pdf.embedFont(StandardFonts.TimesRoman);
-  const serifBold = await pdf.embedFont(StandardFonts.TimesRomanBold);
-  const myanmarRegular = await pdf.embedFont(
-    decodeBase64(NOTO_SANS_MYANMAR_REGULAR_BASE64),
-  );
-
-  return {
-    regular,
-    bold: regular,
-    serifRegular,
-    serifBold,
-    myanmarRegular,
-    myanmarBold: myanmarRegular,
+    bytes: Uint8Array.from(atob(matched[2] || ""), (char) => char.charCodeAt(0)),
   };
 };
 
@@ -268,17 +97,22 @@ const buildMetaLine = (paper: QuestionPaperDetail) =>
 
 const buildAnswerKey = (paper: QuestionPaperDetail) =>
   paper.items.map((item, index) => {
-    const correctOption = item.options.find((option) => option.isCorrect);
-    const answer =
-      normalizePdfText(item.answerText) ||
-      (correctOption
-        ? [correctOption.label, normalizePdfText(correctOption.text)]
-            .filter(Boolean)
-            .join(" - ")
-        : "No answer key");
+    const answer = getAnswerLabel(item);
 
     return `Q${index + 1}. ${answer}`;
   });
+
+const getAnswerLabel = (item: QuestionPaperDetail["items"][number]) => {
+  const correctOptions = item.options.filter((option) => option.isCorrect);
+  const answerText = normalizePdfText(item.answerText);
+  if (answerText) return answerText;
+  if (correctOptions.length > 0) {
+    return correctOptions
+      .map((option) => [option.label, normalizePdfText(option.text)].filter(Boolean).join(" - "))
+      .join(", ");
+  }
+  return "No answer key";
+};
 
 const buildAnswerEntryTitle = (paper: QuestionPaperDetail, variant: QuestionPaperPdfVariant) => {
   if (variant === "answer") {
@@ -423,7 +257,7 @@ export const renderQuestionPaperPdfBytes = async (
   const drawWatermark = () => {
     if (!watermarkLabel) return;
 
-    const watermarkColor = rgb(0.9, 0.92, 0.96);
+    const watermarkColor = rgb(0.88, 0.91, 0.89);
     const positions = [
       { x: PAGE.marginX + 18, y: PAGE.height - 180 },
       { x: PAGE.width / 2 - 20, y: PAGE.height - 260 },
@@ -746,11 +580,19 @@ export const renderQuestionPaperPdfBytes = async (
     drawTextLine(teacherLine, titleX, y, 9.5, { color: COLORS.muted });
 
     y -= 26;
+    const secondaryLine = paper.instructions
+      ? normalizePdfText(paper.instructions)
+      : variant === "answer"
+        ? "Answer paper for the finalized question set."
+        : "Read all questions carefully and answer in order.";
+    const secondaryLines = getWrappedText(secondaryLine, contentWidth - 24, 9.2);
+    const panelHeight = Math.max(52, 40 + secondaryLines.length * 11.2);
+
     page.drawRectangle({
       x: PAGE.marginX,
-      y: y - 52,
+      y: y - panelHeight,
       width: contentWidth,
-      height: 52,
+      height: panelHeight,
       color: COLORS.panel,
       borderColor: COLORS.subtle,
       borderWidth: 1,
@@ -762,16 +604,11 @@ export const renderQuestionPaperPdfBytes = async (
       10.5,
       { bold: true },
     );
-    const secondaryLine = paper.instructions
-      ? normalizePdfText(paper.instructions)
-      : variant === "answer"
-        ? "Answer paper for the finalized question set."
-        : "Read all questions carefully and answer in order.";
     drawWrapped(secondaryLine, PAGE.marginX + 12, y - 34, contentWidth - 24, 9.2, {
       color: COLORS.muted,
       lineGap: 2,
     });
-    y -= 72;
+    y -= panelHeight + 20;
   };
 
   const drawQuestion = (item: QuestionPaperDetail["items"][number], index: number) => {
@@ -1102,7 +939,7 @@ export const renderQuestionPaperPdfBytes = async (
     }
 
     const questionLabel = `Q${index + 1}.`;
-    const answerLabel = `Answer: ${normalizePdfText(item.answerText) || "No answer key"}`;
+    const answerLabel = `Answer: ${getAnswerLabel(item)}`;
     const answerBodyText = `${questionLabel} ${item.body}`;
     const bodyLines = getWrappedText(answerBodyText, contentWidth, 10.4);
     const answerLines = getWrappedText(answerLabel, contentWidth - 14, 9.6, true);

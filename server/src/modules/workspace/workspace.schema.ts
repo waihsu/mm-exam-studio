@@ -103,6 +103,22 @@ export const createPracticeSessionSchema = questionSelectionSchema
     title: z.string().trim().max(120).optional(),
   })
   .superRefine((value, ctx) => {
+    if (!value.gradeId?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["gradeId"],
+        message: "Choose a grade before starting a practice session.",
+      });
+    }
+
+    if (!value.subjectId?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["subjectId"],
+        message: "Choose a subject before starting a practice session.",
+      });
+    }
+
     if (value.questionType === "long_answer") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

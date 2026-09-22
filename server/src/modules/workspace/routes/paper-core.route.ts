@@ -9,6 +9,7 @@ import {
 import {
   createQuestionPaper,
   deleteQuestionPaper,
+  duplicateQuestionPaper,
   getQuestionPaperDetail,
   listQuestionPapers,
   updateQuestionPaper,
@@ -81,6 +82,17 @@ workspacePaperCoreRoute.post("/papers/:id/status", async (c) => {
     return c.json(result);
   } catch (error) {
     toHttpError(error, "Failed to update question paper status.");
+  }
+});
+
+workspacePaperCoreRoute.post("/papers/:id/duplicate", async (c) => {
+  const { user } = await ensureAuthContext(c);
+
+  try {
+    const result = await duplicateQuestionPaper(user.id, c.req.param("id"));
+    return c.json(result);
+  } catch (error) {
+    toHttpError(error, "Failed to duplicate question paper.");
   }
 });
 

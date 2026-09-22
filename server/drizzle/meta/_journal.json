@@ -120,6 +120,13 @@
       "when": 1774465200000,
       "tag": "0016_user_role_check_superadmin",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1788374462964,
+      "tag": "0017_cute_spyke",
+      "breakpoints": true
     }
   ]
 }

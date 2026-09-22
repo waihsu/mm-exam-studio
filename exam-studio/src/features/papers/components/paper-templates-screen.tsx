@@ -98,15 +98,6 @@ export const PaperTemplatesScreen = () => {
             >
               <Text style={styles.backButtonLabel}>{t("templates.backToPapers")}</Text>
             </Pressable>
-            <View style={styles.planPill}>
-              <Text style={styles.planPillLabel}>
-                {t("templates.planShort", {
-                  plan:
-                    templatesQuery.data?.access.planCode?.toUpperCase() ??
-                    t("templates.planFallback"),
-                })}
-              </Text>
-            </View>
           </View>
           <Text style={styles.heading}>{t("templates.title")}</Text>
           <Text style={styles.subheading}>{t("templates.subtitleCompact")}</Text>
@@ -460,19 +451,5 @@ const styles = StyleSheet.create({
     color: "#2563EB",
     fontSize: 13,
     fontWeight: "700",
-  },
-  planPill: {
-    backgroundColor: "#EFF6FF",
-    borderColor: "#BFDBFE",
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  planPillLabel: {
-    color: "#1D4ED8",
-    fontSize: 11,
-    fontWeight: "800",
-    textTransform: "uppercase",
   },
 });

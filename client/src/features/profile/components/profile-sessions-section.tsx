@@ -27,7 +27,7 @@ export function ProfileSessionsSection({
   const otherSessions = sessions.filter((item) => item.id !== currentSessionId);
 
   return (
-    <div className="reveal-up rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_45px_-38px_rgba(15,23,42,0.36)] sm:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
@@ -40,7 +40,7 @@ export function ProfileSessionsSection({
         {otherSessions.length > 0 ? (
           <Button
             variant="outline"
-            className="w-full bg-white sm:w-auto"
+            className="w-full rounded-xl bg-white sm:w-auto"
             disabled={isRevokingOthers}
             onClick={() => {
               void onRevokeOthers();
@@ -71,11 +71,11 @@ export function ProfileSessionsSection({
             return (
               <div
                 key={listedSession.id}
-                className="rounded-lg border border-slate-200 bg-white p-3"
+                className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex min-w-0 items-start gap-3">
-                    <div className="rounded-lg bg-white p-2">
+                    <div className="rounded-xl bg-white p-2.5 shadow-sm ring-1 ring-slate-200">
                       <DeviceIcon className="h-4 w-4 text-slate-700" />
                     </div>
                     <div className="min-w-0">
@@ -116,7 +116,7 @@ export function ProfileSessionsSection({
                   {!isCurrent ? (
                     <Button
                       variant="outline"
-                      className="w-full bg-white sm:w-auto"
+                      className="w-full rounded-xl bg-white sm:w-auto"
                       disabled={isRevokingOne}
                       onClick={() => {
                         void onRevokeSession(listedSession.id);

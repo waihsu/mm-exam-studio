@@ -38,6 +38,14 @@ const papers = {
       "Set the paper title and answer-key preference here. Quick Generate uses its own mini blueprint scope below.",
     paperTitle: "Paper Title",
     paperTitlePlaceholder: "Midterm Mathematics - Grade 9",
+    gradeRequiredHint:
+      "Choose a grade first so this paper only uses the right curriculum.",
+    selectGrade: "Choose grade",
+    gradeRequiredError: "Choose a grade before creating a paper.",
+    customizeCollapsedHint:
+      "The default draft uses 10 questions. Open this only to focus the syllabus or set an exact question mix.",
+    customizeOpen: "Customize",
+    customizeClose: "Hide options",
     quickType: "Quick Type",
     loadingWorkspaceFilters: "Loading workspace filters...",
     failedWorkspaceFilters: "Failed to load workspace filters.",
@@ -95,12 +103,12 @@ const papers = {
     matchingQuestions: "{{count}} matching questions",
     templatesTitle: "Admin Templates",
     templatesHint:
-      "Published templates follow the paper formats prepared by admin and unlocked for your current plan.",
+      "Published templates follow the paper formats prepared by an admin and available to every learner.",
     loadingTemplates: "Loading templates...",
     failedTemplates: "Failed to load templates.",
-    noTemplates: "No templates are available for this plan yet.",
+    noTemplates: "No templates are published yet.",
     noTemplatesHint:
-      "You can still use Quick Generate below, or ask admin to publish a template for this plan.",
+      "You can still use Quick Generate below, or ask an admin to publish a template.",
     optionalTemplatesTitle: "Optional Templates",
     optionalTemplatesHint:
       "Use these later when you want a fixed paper format. The main flow above now works without templates.",
@@ -130,7 +138,7 @@ const papers = {
   templates: {
     title: "Paper Templates",
     subtitle:
-      "Browse published templates that are already unlocked for your current plan, then generate a draft from one tap.",
+      "Browse published templates available to every learner, then generate a draft from one tap.",
     subtitleCompact: "Choose a ready-made paper format and open it to generate a draft.",
     backToPapers: "Back To Papers",
     backToCatalog: "Back To Templates",
@@ -138,9 +146,9 @@ const papers = {
     openCatalog: "Browse Templates",
     searchPlaceholder: "Search templates",
     setupTitle: "Template Setup",
-    planAccess: "Templates visible for your plan: {{plan}}",
-    planShort: "{{plan}} plan",
-    planFallback: "current",
+    planAccess: "Templates available through open access",
+    planShort: "Open access",
+    planFallback: "Open access",
     setupHint: "Pick a template first. You can name the paper and generate it on the detail screen.",
     catalogTitle: "Available Templates",
     catalogHint:
@@ -196,7 +204,10 @@ const papers = {
     saveDraft: "Save Draft",
     finalize: "Finalize",
     backToDraft: "Back To Draft",
+    saveBeforeFinalize: "Save your draft changes before finalizing.",
     deletePaper: "Delete Paper",
+    dangerZoneTitle: "Delete this paper",
+    deletePaperHint: "This permanently removes the draft, its questions, and any generated export record.",
     export: "Export",
     exportHintReady: "Open the generated PDF in the protected preview, then print from inside that preview.",
     exportHintPending: "Generate the PDF once the paper content looks final.",
@@ -208,7 +219,7 @@ const papers = {
     generatePdfExport: "Generate PDF Export",
     exportConfirmTitle: "Generate PDF Export",
     exportConfirmMessage:
-      "Generate the protected PDF now? This will consume 1 PDF export from your current monthly plan limit.",
+      "Generate the protected PDF now? You can preview and print the finished paper from inside the app.",
     exportConfirmHint:
       "Previewing and printing after this step do not consume another export for the same generated PDF.",
     protectedPreviewTitle: "Protected In-App Preview",

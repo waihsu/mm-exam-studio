@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BlueprintBuilderPage } from "@/routes/_protected/questions/blueprints";
+import { BlueprintBuilderPage } from "@/features/blueprints/pages/blueprints-workspace";
 
 export const Route = createFileRoute("/_protected/questions/blueprints/new")({
   component: NewBlueprintRoute,

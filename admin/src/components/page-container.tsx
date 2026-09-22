@@ -29,7 +29,7 @@ export function PageContainer({
   return (
     <div
       className={cn(
-        "mx-auto w-full px-4 py-4 sm:px-5 sm:py-6 md:px-6 md:py-7 xl:px-7",
+        "mx-auto w-full px-4 py-5 sm:px-5 sm:py-6 md:px-6 md:py-7 xl:px-8",
         sizeClassMap[resolvedSize],
         className,
       )}
@@ -48,7 +48,7 @@ export function PagePanel({ children, className }: PagePanelProps) {
   return (
     <div
       className={cn(
-        "space-y-4 rounded-2xl border border-white/65 bg-white/86 p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.5)] backdrop-blur-sm ring-1 ring-slate-900/6 md:p-6",
+        "space-y-4 rounded-[20px] border border-[#d8d4c9] bg-[#fffdf8] p-4 shadow-[0_16px_34px_-28px_rgba(32,35,33,0.24)] md:p-5",
         className,
       )}
     >

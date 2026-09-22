@@ -64,16 +64,16 @@ export function QuestionTable({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-40 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white/80">
+      <div className="flex min-h-40 items-center justify-center rounded-2xl border border-dashed border-[#d8d4c9] bg-[#fffdf8]/90">
         <Spinner className="mr-2 h-4 w-4" />
-        <span className="text-sm text-slate-600">Loading questions...</span>
+        <span className="text-sm text-[#6e706b]">Loading questions...</span>
       </div>
     );
   }
 
   if (!questions.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-white/80 px-6 py-10 text-center text-sm text-slate-600">
+      <div className="rounded-2xl border border-dashed border-[#d8d4c9] bg-[#fffdf8]/90 px-6 py-10 text-center text-sm text-[#6e706b]">
         No questions matched the current filters yet.
       </div>
     );
@@ -81,7 +81,7 @@ export function QuestionTable({
 
   return (
     <>
-      <div className="overflow-x-auto rounded-2xl border border-white/70 bg-white/92 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)]">
+      <div className="overflow-x-auto rounded-xl border border-[#d8d4c9] bg-[#fffdf8] shadow-[0_14px_30px_-24px_rgba(32,35,33,0.3)]">
         <Table>
           <TableHeader>
             <TableRow>
@@ -90,8 +90,8 @@ export function QuestionTable({
               <TableHead className="w-[210px]">Taxonomy</TableHead>
               <TableHead className="w-[120px]">Type</TableHead>
               <TableHead className="w-[120px]">Difficulty</TableHead>
-              <TableHead className="w-[140px]">Status</TableHead>
-              <TableHead className="w-[180px]">Actions</TableHead>
+              <TableHead className="w-[130px]">Status</TableHead>
+              <TableHead className="w-[76px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -102,12 +102,12 @@ export function QuestionTable({
 
               return (
                 <TableRow key={question.id}>
-                  <TableCell className="font-semibold text-slate-800">
+                  <TableCell className="font-mono text-xs font-semibold text-slate-700">
                     {question.questionCode}
                   </TableCell>
                   <TableCell className="max-w-xl whitespace-normal">
                     <div className="space-y-1">
-                      <p className="line-clamp-2 font-medium text-slate-900">
+                      <p className="line-clamp-2 font-medium text-[#202321]">
                         {question.body}
                       </p>
                       <div className="flex flex-wrap gap-2">
@@ -127,18 +127,18 @@ export function QuestionTable({
                           </Badge>
                         ) : null}
                       </div>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-[#6e706b]">
                         {question.options.length} option(s) • {question.marks} mark(s)
                       </p>
                       {question.creator ? (
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-[#6e706b]">
                           Author: {question.creator.name || question.creator.email}
                         </p>
                       ) : null}
                     </div>
                   </TableCell>
                   <TableCell className="whitespace-normal">
-                    <div className="space-y-1 text-xs text-slate-600">
+                    <div className="space-y-1 text-xs text-[#6e706b]">
                       <p>{question.grade.name}</p>
                       <p>{question.subject.name}</p>
                       {question.chapter ? <p>{question.chapter.name}</p> : null}
@@ -159,48 +159,40 @@ export function QuestionTable({
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={question.isPublished ? "default" : "secondary"}>
-                      {question.isPublished ? "Published" : "Draft"}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={question.isPublished}
+                        disabled={isPublishing || isDeleting}
+                        onCheckedChange={() => {
+                          void onTogglePublish(question);
+                        }}
+                        aria-label={question.isPublished ? "Move to draft" : "Publish question"}
+                      />
+                      <span className="text-xs font-medium text-[#6e706b]">
+                        {isPublishing
+                          ? "Saving"
+                          : question.isPublished
+                            ? "Live"
+                            : "Draft"}
+                      </span>
+                    </div>
                   </TableCell>
-                  <TableCell>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                        <Switch
-                          checked={question.isPublished}
-                          disabled={isPublishing || isDeleting}
-                          onCheckedChange={() => {
-                            void onTogglePublish(question);
-                          }}
-                        />
-                        <span className="text-sm text-slate-700">
-                          {isPublishing
-                            ? "Saving..."
-                            : question.isPublished
-                              ? "Published"
-                              : "Draft"}
-                        </span>
-                      </div>
-                      {!question.isPublished ? (
-                        <p className="text-xs text-slate-500">
-                          Publishing will auto-mark this question as approved.
-                        </p>
-                      ) : null}
-
+                  <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="outline"
-                            className="w-full justify-between border-slate-300/80 bg-white"
+                            size="icon"
+                            className="h-8 w-8 border-[#d8d4c9] bg-[#fffdf8] hover:border-[#7fa99d] hover:bg-[#f8f5ee]"
                             disabled={isDeleting || isPublishing}
+                            aria-label={`Open actions for ${question.questionCode}`}
                           >
-                            <span>Actions</span>
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="w-48 border-slate-200 bg-white/95"
+                          className="w-48 border-[#d8d4c9] bg-[#fffdf8]/95"
                         >
                           <DropdownMenuItem asChild>
                             <Link
@@ -243,7 +235,6 @@ export function QuestionTable({
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </div>
                   </TableCell>
                 </TableRow>
               );

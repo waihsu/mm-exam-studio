@@ -1,9 +1,14 @@
-import { useLocalSearchParams, useRouter, type RelativePathString } from "expo-router";
+import {
+  useLocalSearchParams,
+  useRouter,
+  type RelativePathString,
+} from "expo-router";
 import React, { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "@/i18n";
 import { AuthScreenShell } from "./auth-screen-shell";
-import { AuthBanner, AuthButton, AuthField, authUiStyles } from "./auth-ui";
+import { AuthBanner, AuthButton, AuthField } from "./auth-ui";
+import { authUiStyles } from "./auth-ui.styles";
 import { useResetPasswordMutation } from "../hooks/use-reset-password-mutation";
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -32,7 +37,7 @@ export const ResetPasswordScreen = () => {
       newPassword.length >= MIN_PASSWORD_LENGTH &&
       confirmPassword === newPassword &&
       !resetMutation.isPending,
-    [confirmPassword, newPassword, resetMutation.isPending, token.length],
+    [confirmPassword, newPassword, resetMutation.isPending, token.length]
   );
 
   const submit = async () => {
@@ -64,7 +69,7 @@ export const ResetPasswordScreen = () => {
       setErrorMessage(
         error instanceof Error && error.message.trim().length > 0
           ? error.message
-          : t("resetPassword.failed"),
+          : t("resetPassword.failed")
       );
     }
   };
@@ -76,8 +81,12 @@ export const ResetPasswordScreen = () => {
       title={t("resetPassword.title")}
     >
       <View style={authUiStyles.sectionHeader}>
-        <Text style={authUiStyles.sectionKicker}>{t("resetPassword.kicker")}</Text>
-        <Text style={authUiStyles.sectionTitle}>{t("resetPassword.sectionTitle")}</Text>
+        <Text style={authUiStyles.sectionKicker}>
+          {t("resetPassword.kicker")}
+        </Text>
+        <Text style={authUiStyles.sectionTitle}>
+          {t("resetPassword.sectionTitle")}
+        </Text>
       </View>
 
       <AuthField
@@ -91,7 +100,7 @@ export const ResetPasswordScreen = () => {
         secureToggle
         textContentType="newPassword"
         value={newPassword}
-        onChangeText={(value) => {
+        onChangeText={value => {
           setNewPassword(value);
           if (errorMessage) {
             setErrorMessage(null);
@@ -109,7 +118,7 @@ export const ResetPasswordScreen = () => {
         secureToggle
         textContentType="newPassword"
         value={confirmPassword}
-        onChangeText={(value) => {
+        onChangeText={value => {
           setConfirmPassword(value);
           if (errorMessage) {
             setErrorMessage(null);
@@ -118,7 +127,9 @@ export const ResetPasswordScreen = () => {
       />
 
       <AuthBanner
-        message={errorMessage ?? (!token ? t("resetPassword.invalidLink") : null)}
+        message={
+          errorMessage ?? (!token ? t("resetPassword.invalidLink") : null)
+        }
         tone="error"
       />
       <AuthBanner message={successMessage} tone="success" />
@@ -134,7 +145,9 @@ export const ResetPasswordScreen = () => {
           onPress={() => router.replace("/sign-in" as RelativePathString)}
           style={authUiStyles.textLink}
         >
-          <Text style={authUiStyles.textLinkLabel}>{t("resetPassword.backToSignIn")}</Text>
+          <Text style={authUiStyles.textLinkLabel}>
+            {t("resetPassword.backToSignIn")}
+          </Text>
         </Pressable>
       </View>
     </AuthScreenShell>

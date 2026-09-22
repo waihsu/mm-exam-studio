@@ -392,8 +392,8 @@ export function QuestionPaperEditor({
                 value={String(draftItems.reduce((sum, item) => sum + item.marks, 0))}
               />
               <MiniCard
-                label="Swaps left"
-                value={remainingSwaps == null ? "Plan cap" : String(remainingSwaps)}
+                label="Swaps"
+                value={remainingSwaps == null ? "No cap" : String(remainingSwaps)}
               />
             </div>
           </section>

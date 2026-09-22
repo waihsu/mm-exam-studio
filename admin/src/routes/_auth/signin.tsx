@@ -46,7 +46,7 @@ function SignInPage() {
   const redirectTo = normalizeRedirect(search.redirect);
 
   return (
-    <div className="w-full max-w-md space-y-4">
+    <div className="w-full max-w-md space-y-5">
       <GlassSignInCard
         brandLabel="Study Admin"
         title="Sign in to the admin console"
@@ -84,7 +84,7 @@ function SignInPage() {
       />
       {isMfaRequired ? (
         <form
-          className="space-y-3 rounded-2xl border border-sky-200/80 bg-sky-50/70 p-4"
+          className="space-y-3 rounded-[18px] border border-[#c9dcd3] bg-[#e7efe9]/70 p-4"
           onSubmit={async (event) => {
             event.preventDefault();
             const code = mfaCode.trim();
@@ -117,8 +117,8 @@ function SignInPage() {
           }}
         >
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-slate-900">Two-factor verification</p>
-            <p className="text-xs text-slate-600">
+            <p className="text-sm font-semibold text-[#202321]">Two-factor verification</p>
+            <p className="text-xs text-[#6e706b]">
               Enter your 6-digit authenticator code or a backup code to continue.
             </p>
           </div>
@@ -150,7 +150,7 @@ function SignInPage() {
             </Button>
           </div>
           {mfaMessage ? (
-            <p className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-700">
+              <p className="rounded-lg border border-[#d8d4c9] bg-[#fffdf8] px-3 py-2 text-xs text-[#6e706b]">
               {mfaMessage}
             </p>
           ) : null}
@@ -159,13 +159,13 @@ function SignInPage() {
           </Button>
         </form>
       ) : null}
-      <div className="rounded-2xl border border-white/70 bg-white/80 p-4 text-sm text-slate-600 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)]">
+      <div className="rounded-[18px] border border-[#d8d4c9] bg-[#f8f5ee] p-4 text-sm text-[#6e706b] shadow-[0_18px_48px_-30px_rgba(32,35,33,0.24)]">
         <p>
           Don&apos;t have admin permission yet? Ask a superadmin to assign the
           role first.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <Button asChild variant="outline" className="border-slate-300/80 bg-white">
+          <Button asChild variant="outline" className="border-[#d8d4c9] bg-[#fffdf8] text-[#202321] hover:bg-[#e7efe9]">
             <Link to={ADMIN_ROUTES.signUp}>Request access</Link>
           </Button>
         </div>

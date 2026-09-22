@@ -127,10 +127,10 @@ const auth = {
       "ဒီ app ကို practice လုပ်ရန်, paper ပြင်ဆင်ရန်, နဲ့ export များစီမံရန် အသုံးပြုနိုင်ပါတယ်။ ဆက်လုပ်ခြင်းအားဖြင့် account data, generated content, နဲ့ support requests တွေကို app အတွင်းဘယ်လိုကိုင်တွယ်သလဲဆိုတာကို သဘောပေါက်ထားကြောင်း အတည်ပြုပါသည်။",
     privacyTitle: "သိမ်းဆည်းထားသောအချက်အလက်များ",
     privacyBody:
-      "Signed-in devices အားလုံးမှာ service မှန်မှန်အလုပ်လုပ်စေရန် account profile, sign-in session details, practice activity, generated papers, subscription state, နဲ့ support conversation history တွေကိုသိမ်းထားနိုင်ပါတယ်။",
+      "Signed-in devices အားလုံးမှာ service မှန်မှန်အလုပ်လုပ်စေရန် account profile, sign-in session details, practice activity, generated papers နဲ့ support conversation history တွေကိုသိမ်းထားနိုင်ပါတယ်။",
     dataUseTitle: "ဒေတာအသုံးပြုရသည့်အကြောင်းရင်း",
     dataUseBody:
-      "သင့်ဒေတာကို sign in ဝင်ရန်, progress sync လုပ်ရန်, plan limit များထိန်းရန်, papers နဲ့ previews များ generate လုပ်ရန်, နဲ့ support ကိုဆက်သွယ်သောအခါ account သို့မဟုတ် billing issue များစစ်ဆေးနိုင်ရန် အသုံးပြုပါတယ်။",
+      "သင့်ဒေတာကို sign in ဝင်ရန်, progress sync လုပ်ရန်, papers နဲ့ previews များ generate လုပ်ရန်, နဲ့ support ကိုဆက်သွယ်သောအခါ account, content သို့မဟုတ် app issue များစစ်ဆေးနိုင်ရန် အသုံးပြုပါတယ်။",
     securityTitle: "Files နှင့် device လုံခြုံရေး",
     securityBody:
       "Preview files နှင့် session artifacts တချို့ကို loading မြန်စေရန် device ထဲတွင် ယာယီ cache လုပ်ထားနိုင်ပါတယ်။ Sensitive exports များကို သေချာစွာကိုင်တွယ်ပြီး shared device များမှာ အသုံးပြုပြီးပါက sign out လုပ်ပါ။",
@@ -139,7 +139,7 @@ const auth = {
       "အသုံးပြုခွင့်ရှိသော content များကိုသာ upload သို့မဟုတ် generate လုပ်ပါ။ ခွင့်ပြုချက်မရှိဘဲ copyrighted သို့မဟုတ် confidential assessment material များကို မမျှဝေပါနှင့်။ Export လုပ်ထားသော papers များကို ဖြန့်ချိမီ ပြန်လည်စစ်ဆေးပါ။",
     supportTitle: "Support နှင့် policy update များ",
     supportBody:
-      "Subscription change, payment check, နဲ့ support reply တချို့မှာ manual review အချိန်လိုနိုင်ပါတယ်။ Product ပြောင်းလဲလာသည်နှင့်အမျှ ဒီ policy ကို update လုပ်နိုင်ပြီး app ထဲတွင်မြင်ရသော နောက်ဆုံး version ကို current reference အဖြစ်ယူသင့်ပါတယ်။",
+      "Support reply တချို့မှာ manual review အချိန်လိုနိုင်ပါတယ်။ Product ပြောင်းလဲလာသည်နှင့်အမျှ ဒီ policy ကို update လုပ်နိုင်ပြီး app ထဲတွင်မြင်ရသော နောက်ဆုံး version ကို current reference အဖြစ်ယူသင့်ပါတယ်။",
   },
 } as const;
 

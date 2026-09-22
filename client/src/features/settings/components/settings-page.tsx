@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   FolderOpen,
   ImagePlus,
-  ShieldCheck,
   Trash2,
   UserRound,
 } from "lucide-react";
@@ -13,7 +12,6 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
 import { PageHeader, SectionCard, StatGrid } from "@/components/ui/page-shell";
 import { userAppRoutes } from "@/constants/routes";
-import { getPlanCatalogItem } from "@/features/subscription/subscription-catalog";
 import { useSettingsPageData } from "../hooks/use-settings-page-data";
 import { ChecklistRow, InfoCard } from "./settings-shared";
 
@@ -39,7 +37,6 @@ export function SettingsPage() {
     deleteMutation,
     onLogoFileChange,
   } = useSettingsPageData();
-  const planCatalog = getPlanCatalogItem(summary?.subscription.code ?? "free");
 
   return (
     <div className="space-y-4">
@@ -49,23 +46,17 @@ export function SettingsPage() {
         description="Manage account status and paper logos."
         chips={
           <>
-            <span className="app-chip">Plan {summary?.subscription.name ?? "Free"}</span>
+            <span className="app-chip">Open access</span>
             <span className="app-chip">{summary?.brandingCount ?? 0}/{brandingLimit || 0} saved</span>
             <span className="app-chip">{accountStatus}</span>
           </>
         }
         actions={
           <>
-            <Button asChild variant="outline" className="bg-white">
+            <Button asChild variant="outline" className="bg-[#fffdf8]">
               <Link to={userAppRoutes.profile}>
                 <UserRound className="h-4 w-4" />
                 Open profile
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="bg-white">
-              <Link to={userAppRoutes.subscription}>
-                <ShieldCheck className="h-4 w-4" />
-                Compare plans
               </Link>
             </Button>
           </>
@@ -101,48 +92,40 @@ export function SettingsPage() {
           note={user?.name ? `Signed in as ${user.name}` : "Session metadata unavailable."}
         />
         <InfoCard
-          label="Branding quota"
-          value={summary?.subscription.name ?? "Free"}
+          label="Branding access"
+          value="Open access"
           note={
             brandingLimit > 0
               ? `${remainingBrandSlots} slot(s) left out of ${brandingLimit}`
-              : "Upgrade required for saved logo branding"
+              : "No saved logo slots are currently available."
           }
         />
       </StatGrid>
 
       <SectionCard
-        title={`${summary?.subscription.name ?? "Free"} plan`}
-        description={planCatalog.tagline}
-        actions={
-          <Button asChild variant="outline" className="bg-white">
-            <Link to={userAppRoutes.subscription}>
-              Compare plans
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        }
+        title="Open access"
+        description="All core study and paper tools are available without a subscription."
       >
         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <InfoCard
-            label="Practice limit"
-            value={planCatalog.limitSummary.practice}
-            note="Per practice session"
+            label="Practice"
+            value="No session cap"
+            note="Create practice sessions freely"
           />
           <InfoCard
-            label="Paper limit"
-            value={planCatalog.limitSummary.paper}
-            note="Per generated paper"
+            label="Papers"
+            value="No paper cap"
+            note="Generate and edit papers freely"
           />
           <InfoCard
             label="Exports"
-            value={planCatalog.limitSummary.exports}
-            note="Monthly PDF export allowance"
+            value="No monthly cap"
+            note="Export PDFs when you need them"
           />
           <InfoCard
             label="Devices"
-            value={planCatalog.limitSummary.devices}
-            note="Concurrent device allowance"
+            value={`Up to ${summary?.subscription.limits.deviceLimit ?? 25}`}
+            note="Operational device safety limit"
           />
         </div>
       </SectionCard>
@@ -153,25 +136,25 @@ export function SettingsPage() {
           description="Go to common tasks."
         >
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            <Button asChild variant="outline" className="justify-between bg-white">
+            <Button asChild variant="outline" className="justify-between bg-[#fffdf8]">
               <Link to={userAppRoutes.profile}>
                 Profile and devices
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" className="justify-between bg-white">
+            <Button asChild variant="outline" className="justify-between bg-[#fffdf8]">
               <Link to={userAppRoutes.support}>
                 Support chat
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" className="justify-between bg-white">
+            <Button asChild variant="outline" className="justify-between bg-[#fffdf8]">
               <Link to={userAppRoutes.practice}>
                 Practice builder
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" className="justify-between bg-white">
+            <Button asChild variant="outline" className="justify-between bg-[#fffdf8]">
               <Link to="/question-papers/new">
                 New paper draft
                 <ArrowRight className="h-4 w-4" />
@@ -181,7 +164,7 @@ export function SettingsPage() {
         </SectionCard>
         <SectionCard title="Checklist">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-emerald-700" />
+            <CheckCircle2 className="h-5 w-5 text-[#48766b]" />
           </div>
           <div className="mt-4 space-y-2">
             <ChecklistRow
@@ -189,56 +172,56 @@ export function SettingsPage() {
               ok={Boolean(user?.email)}
             />
             <ChecklistRow label="Email verification" ok={isEmailVerified} />
-            <ChecklistRow label="Branding available for this plan" ok={brandingLimit > 0} />
+            <ChecklistRow label="Branding available in open access" ok={brandingLimit > 0} />
             <ChecklistRow label="At least one logo saved" ok={brandAssets.length > 0} />
           </div>
-          <p className="mt-3 text-xs text-slate-500">Keep these ready before printing papers.</p>
+          <p className="mt-3 text-xs text-[#6e706b]">Keep these ready before printing papers.</p>
         </SectionCard>
       </section>
 
       <section className="stagger-children grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="rounded-xl border border-[#d8d4c9] bg-[#fffdf8] p-4">
           <div className="flex items-center gap-2">
-            <ImagePlus className="h-5 w-5 text-slate-700" />
-            <h3 className="text-base font-semibold text-slate-900">Upload logo</h3>
+            <ImagePlus className="h-5 w-5 text-[#202321]" />
+            <h3 className="text-base font-semibold text-[#202321]">Upload logo</h3>
           </div>
           <div className="mt-4 space-y-4">
             <label className="block space-y-2">
-              <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#6e706b]">
                 Label
               </span>
               <input
                 value={label}
                 onChange={(event) => setLabel(event.target.value)}
                 placeholder="School logo, Personal mark, Main header"
-                className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-900"
+                className="h-11 w-full rounded-xl border border-[#d8d4c9] bg-[#fffdf8] px-3 text-sm outline-none transition focus:border-[#48766b]"
               />
             </label>
             <label className="block space-y-2">
-              <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#6e706b]">
                 Image file
               </span>
-              <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-3">
+              <div className="rounded-lg border border-dashed border-[#d8d4c9] bg-[#f8f5ee] px-3 py-3">
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
                   onChange={onLogoFileChange}
-                  className="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white"
+                  className="block w-full text-sm text-[#202321] file:mr-3 file:rounded-lg file:border-0 file:bg-[#202321] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white"
                 />
               </div>
             </label>
             {selectedFileName ? (
-              <p className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+              <p className="rounded-lg border border-[#d8d4c9] bg-[#f8f5ee] px-3 py-2 text-sm text-[#6e706b]">
                 Selected: {selectedFileName}
               </p>
             ) : (
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-[#6e706b]">
                 PNG, JPG, WEBP, or SVG. Keep the mark simple for cleaner PDF headers.
               </p>
             )}
             {imageDataUrl ? (
-              <div className="flex h-32 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+              <div className="flex h-32 items-center justify-center overflow-hidden rounded-lg border border-[#d8d4c9] bg-[#f8f5ee]">
                 <img
                   src={imageDataUrl}
                   alt="Logo preview"
@@ -249,11 +232,6 @@ export function SettingsPage() {
             {createMutation.data && !createMutation.data.ok ? (
               <Notice tone="error">
                 {createMutation.data.message}
-              </Notice>
-            ) : null}
-            {brandingLimit <= 0 ? (
-              <Notice tone="warning">
-                This plan does not include saved logos. Upgrade subscription to enable branding.
               </Notice>
             ) : null}
             <Button
@@ -268,13 +246,13 @@ export function SettingsPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="rounded-xl border border-[#d8d4c9] bg-[#fffdf8] p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-semibold text-slate-900">Saved branding</h3>
-              <p className="mt-1 text-sm text-slate-500">Pick one as primary logo.</p>
+              <h3 className="text-base font-semibold text-[#202321]">Saved branding</h3>
+              <p className="mt-1 text-sm text-[#6e706b]">Pick one as primary logo.</p>
             </div>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
+            <span className="rounded-full bg-[#e7efe9] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#6e706b]">
               {brandAssets.length} saved
             </span>
           </div>
@@ -294,25 +272,25 @@ export function SettingsPage() {
                 key={asset.id}
                 className={`rounded-lg border p-3 ${
                   asset.isPrimary
-                    ? "border-emerald-300 bg-emerald-50"
-                    : "border-slate-200 bg-slate-50"
+                    ? "border-[#c9dcd3] bg-[#e7efe9]"
+                    : "border-[#d8d4c9] bg-[#f8f5ee]"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-slate-900">{asset.label}</p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="font-semibold text-[#202321]">{asset.label}</p>
+                    <p className="mt-1 text-xs text-[#6e706b]">
                       Added {new Date(asset.createdAt).toLocaleDateString("en-US")}
                     </p>
                   </div>
                   {asset.isPrimary ? (
-                    <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-700">
+                    <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#48766b]">
                       Primary
                     </span>
                   ) : null}
                 </div>
 
-                <div className="mt-3 flex h-28 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white">
+                <div className="mt-3 flex h-28 items-center justify-center overflow-hidden rounded-lg border border-[#d8d4c9] bg-[#fffdf8]">
                   <img
                     src={asset.imageDataUrl}
                     alt={asset.label}
@@ -324,7 +302,7 @@ export function SettingsPage() {
                   {!asset.isPrimary ? (
                     <Button
                       variant="outline"
-                      className="bg-white"
+                      className="bg-[#fffdf8]"
                       disabled={primaryMutation.isPending}
                       onClick={() => {
                         void primaryMutation.mutateAsync(asset.id);
@@ -336,7 +314,7 @@ export function SettingsPage() {
                   ) : null}
                   <Button
                     variant="outline"
-                    className="bg-white text-red-600 hover:text-red-700"
+                    className="bg-[#fffdf8] text-red-600 hover:text-red-700"
                     disabled={deleteMutation.isPending}
                     onClick={() => {
                       if (!window.confirm(`Delete "${asset.label}"?`)) return;

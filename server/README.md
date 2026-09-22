@@ -4,6 +4,7 @@
 
 ```bash
 bun install
+cp .env.example .env
 bun --watch run src/index.ts
 ```
 
@@ -12,6 +13,12 @@ Server default URL:
 ```txt
 http://localhost:3000
 ```
+
+Local defaults:
+
+- `server/.env.example` and `server/.env` now include a ready-to-run local setup.
+- Default local Postgres URL is `postgresql://neon:neon@localhost:5432/postgres`.
+- Password reset and email verification links are logged in development when no email provider is configured.
 
 ## Build
 
@@ -70,55 +77,14 @@ npm run db:migrate:seed
 - `subscriptions`
 - `auth`
 
-## Current Payment Model
+## Open-source access model
 
-Payment gateway is not used yet. Production flow is manual:
+The default configuration is open access. Learners can use core practice, paper-building,
+branding, and PDF-export tools without subscription tiers or payment approval.
 
-- user submits plan request
-- user adds transaction ID
-- user uploads payment proof image
-- admin approves or rejects
-
-Payment proof images are currently stored inline in the database as `data:image/...` payloads.
-That is acceptable for the current manual-review flow with strict size limits, but it is not the
-right long-term shape for high-volume uploads. If payment proof traffic grows, move proofs to
-object storage such as R2 or S3 and store only URLs/metadata in the database.
-
-## Subscription Payment Config
-
-The subscription module exposes a config payload to the mobile app so payment instructions can be
-changed without shipping a new client build.
-
-Recommended environment variables:
-
-| Variable | Purpose | Default |
-| --- | --- | --- |
-| `SUBSCRIPTION_PAYMENT_CHANNEL_NAME` | Payment channel label shown to users. Example: `KBZPay` | empty |
-| `SUBSCRIPTION_PAYMENT_ACCOUNT_NAME` | Receiver account or business name | empty |
-| `SUBSCRIPTION_PAYMENT_ACCOUNT_REFERENCE` | Wallet number, account number, or reference string | empty |
-| `SUBSCRIPTION_PAYMENT_URL` | Optional deep link or web URL that opens the payment channel from the app | empty |
-| `SUBSCRIPTION_PAYMENT_INSTRUCTIONS` | Multi-line payment instructions shown in app | built-in generic instructions |
-| `SUBSCRIPTION_SUPPORT_LABEL` | Support label shown in app | `Support` |
-| `SUBSCRIPTION_SUPPORT_CONTACT` | Support phone, Viber, Telegram, etc. | falls back to `SUBSCRIPTION_SUPPORT_EMAIL` |
-| `SUBSCRIPTION_SUPPORT_URL` | Optional deep link or web URL for support chat/contact | empty |
-| `SUBSCRIPTION_SUPPORT_EMAIL` | Support email fallback | empty |
-| `SUBSCRIPTION_PAYMENT_PROOF_MAX_BYTES` | Max decoded image size accepted for payment proof | `1500000` |
-| `SUBSCRIPTION_PAYMENT_PAYLOAD_MAX_BYTES` | Max request payload size for subscription create route | `2700000` |
-
-Example:
-
-```bash
-SUBSCRIPTION_PAYMENT_CHANNEL_NAME=KBZPay
-SUBSCRIPTION_PAYMENT_ACCOUNT_NAME=MM Exam Studio
-SUBSCRIPTION_PAYMENT_ACCOUNT_REFERENCE=09xxxxxxxxx
-SUBSCRIPTION_PAYMENT_URL=https://t.me/mmexamstudio_pay
-SUBSCRIPTION_PAYMENT_INSTRUCTIONS="Send payment, keep your screenshot, then submit transaction ID and proof image."
-SUBSCRIPTION_SUPPORT_LABEL=Telegram
-SUBSCRIPTION_SUPPORT_CONTACT=@mmexamstudio
-SUBSCRIPTION_SUPPORT_URL=https://t.me/mmexamstudio
-SUBSCRIPTION_PAYMENT_PROOF_MAX_BYTES=1500000
-SUBSCRIPTION_PAYMENT_PAYLOAD_MAX_BYTES=2700000
-```
+Keep `OPEN_SOURCE_MODE=true` in the server environment. Existing subscription tables remain in
+the schema for backward compatibility with older installations, but they do not restrict access in
+open-source mode.
 
 ## Drizzle Migration Notes
 

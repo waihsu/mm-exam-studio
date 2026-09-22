@@ -49,7 +49,7 @@
         "tsconfig.json",
         "tsconfig.*.json"
       ],
-      "outputs": [".eslintcache"],
+      "outputs": [],
       "env": ["NODE_ENV"]
     },
     "type-check": {
@@ -88,7 +88,7 @@
         "tsconfig.json",
         "tsconfig.*.json"
       ],
-      "outputs": ["coverage/**", ".nyc_output/**", "test-results/**"],
+      "outputs": [],
       "env": ["NODE_ENV", "CI"]
     }
   },

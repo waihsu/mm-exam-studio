@@ -37,6 +37,14 @@ const papers = {
     buildHint: "ဒီနေရာမှာ paper title နဲ့ answer key preference ကိုသတ်မှတ်ပါ။ Quick Generate က အောက်က mini blueprint scope ကိုသုံးပါမယ်။",
     paperTitle: "Paper Title",
     paperTitlePlaceholder: "Midterm Mathematics - Grade 9",
+    gradeRequiredHint:
+      "ဒီ paper က သက်ဆိုင်ရာ syllabus ထဲကမေးခွန်းတွေပဲသုံးနိုင်ရန် အရင်ဆုံး အတန်းကိုရွေးပါ။",
+    selectGrade: "အတန်းရွေးမည်",
+    gradeRequiredError: "Paper ဖန်တီးရန် အရင်ဆုံး အတန်းကိုရွေးပါ။",
+    customizeCollapsedHint:
+      "Default draft မှာ မေးခွန်း ၁၀ ခုပါမည်။ Syllabus ကိုပိုကန့်သတ်ချင်လျှင် သို့မဟုတ် question mix ကိုတိတိကျကျသတ်မှတ်ချင်လျှင်သာဖွင့်ပါ။",
+    customizeOpen: "လိုသလိုစီမံမည်",
+    customizeClose: "ရွေးချယ်စရာများဖျောက်မည်",
     quickType: "Quick Type",
     loadingWorkspaceFilters: "Workspace filters တင်နေသည်...",
     failedWorkspaceFilters: "Workspace filters မရယူနိုင်ပါ။",
@@ -92,10 +100,10 @@ const papers = {
     exportedAt: "Exported: {{value}}",
     matchingQuestions: "ကိုက်ညီတဲ့မေးခွန်း {{count}} ခု",
     templatesTitle: "Admin Templates",
-    templatesHint: "Admin က publish လုပ်ထားပြီး သင့် plan အတွက်ဖွင့်ထားတဲ့ paper formats တွေကို ဒီနေရာမှာသုံးနိုင်ပါတယ်။",
+    templatesHint: "Admin က publish လုပ်ထားပြီး learner တိုင်းသုံးနိုင်တဲ့ paper formats တွေကို ဒီနေရာမှာသုံးနိုင်ပါတယ်။",
     loadingTemplates: "Templates တင်နေသည်...",
     failedTemplates: "Templates မရယူနိုင်ပါ။",
-    noTemplates: "ဒီ plan အတွက် template မရှိသေးပါ။",
+    noTemplates: "Publish လုပ်ထားတဲ့ template မရှိသေးပါ။",
     noTemplatesHint: "အောက်က Quick Generate ကိုသုံးနိုင်ပါတယ်၊ သို့မဟုတ် admin ဘက်က template publish လုပ်ပေးဖို့လိုပါတယ်။",
     optionalTemplatesTitle: "Optional Templates",
     optionalTemplatesHint:
@@ -125,7 +133,7 @@ const papers = {
   templates: {
     title: "Paper Templates",
     subtitle:
-      "သင့် plan အတွက်ဖွင့်ထားပြီးသား published templates တွေကိုသက်သက်ကြည့်ပြီး တစ်ချက်နှိပ်နဲ့ draft ထုတ်နိုင်ပါတယ်။",
+      "Learner တိုင်းသုံးနိုင်တဲ့ published templates တွေကိုကြည့်ပြီး တစ်ချက်နှိပ်နဲ့ draft ထုတ်နိုင်ပါတယ်။",
     subtitleCompact: "အသင့်သုံး paper format တစ်ခုရွေးပြီး detail page ကနေ draft ထုတ်နိုင်ပါတယ်။",
     backToPapers: "Papers သို့ပြန်",
     backToCatalog: "Templates သို့ပြန်",
@@ -133,9 +141,9 @@ const papers = {
     openCatalog: "Templates ကြည့်မည်",
     searchPlaceholder: "templates ကိုရှာရန်",
     setupTitle: "Template Setup",
-    planAccess: "လက်ရှိ plan အတွက်မြင်နိုင်သော templates: {{plan}}",
-    planShort: "{{plan}} plan",
-    planFallback: "လက်ရှိ",
+    planAccess: "Open access မှာသုံးနိုင်တဲ့ templates",
+    planShort: "Open access",
+    planFallback: "Open access",
     setupHint: "အရင် template ကိုရွေးပါ။ Paper name ပေးတာနဲ့ generate လုပ်တာကို detail screen မှာဆက်လုပ်နိုင်ပါတယ်။",
     catalogTitle: "အသုံးပြုနိုင်သော Templates",
     catalogHint:
@@ -191,7 +199,10 @@ const papers = {
     saveDraft: "Draft သိမ်းမည်",
     finalize: "Finalize",
     backToDraft: "Draft သို့ပြန်",
+    saveBeforeFinalize: "Finalize မလုပ်ခင် draft ပြင်ထားတာတွေကို အရင်သိမ်းပါ။",
     deletePaper: "Paper ဖျက်မည်",
+    dangerZoneTitle: "ဒီ paper ကိုဖျက်မည်",
+    deletePaperHint: "Draft၊ ထည့်ထားသောမေးခွန်းများနဲ့ export record အားလုံးကို အပြီးဖျက်ပါမည်။",
     export: "Export",
     exportHintReady: "Generate လုပ်ထားတဲ့ PDF ကို protected preview ထဲမှာဖွင့်ပြီး အဲဒီ preview ထဲကနေ print လုပ်ပါ။",
     exportHintPending: "Paper အဆင်ပြီဆို PDF generate လုပ်ပါ။",
@@ -203,7 +214,7 @@ const papers = {
     generatePdfExport: "PDF Export ထုတ်မည်",
     exportConfirmTitle: "PDF Export ထုတ်မည်",
     exportConfirmMessage:
-      "အခု protected PDF ကို generate လုပ်မလား။ ဒီ action က လက်ရှိ monthly plan limit ထဲက PDF export 1 ခုကိုယူပါမယ်။",
+      "အခု protected PDF ကို generate လုပ်မလား။ ပြီးသွားရင် app ထဲကနေ preview နဲ့ print လုပ်နိုင်ပါတယ်။",
     exportConfirmHint:
       "ဒီ step ပြီးသွားရင် preview ကြည့်တာနဲ့ print လုပ်တာက တူညီတဲ့ generated PDF အတွက် export count ထပ်မယူပါ။",
     protectedPreviewTitle: "Protected In-App Preview",

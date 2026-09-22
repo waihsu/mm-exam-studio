@@ -1,34 +1,9 @@
 <svg width="604" height="604" viewBox="0 0 604 604" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <radialGradient id="blob" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(302 268) rotate(90) scale(270)">
-      <stop stop-color="#56B4FF"/>
-      <stop offset="0.56" stop-color="#2290F7"/>
-      <stop offset="1" stop-color="#1166DD"/>
-    </radialGradient>
-    <radialGradient id="outerGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(302 302) rotate(90) scale(302)">
-      <stop stop-color="#A7DBFF" stop-opacity="0.55"/>
-      <stop offset="0.68" stop-color="#A7DBFF" stop-opacity="0.18"/>
-      <stop offset="1" stop-color="#A7DBFF" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="logoMark" x1="204" y1="168" x2="398" y2="454" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#D7EEFF"/>
-    </linearGradient>
-    <filter id="logoShadow" x="102" y="100" width="400" height="412" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
-      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-      <feOffset dy="12"/>
-      <feGaussianBlur stdDeviation="16"/>
-      <feColorMatrix type="matrix" values="0 0 0 0 0.0509804 0 0 0 0 0.211765 0 0 0 0 0.537255 0 0 0 0.28 0"/>
-      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_2"/>
-      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_2" result="shape"/>
-    </filter>
-  </defs>
-  <circle cx="302" cy="302" r="302" fill="url(#outerGlow)"/>
-  <circle cx="302" cy="302" r="246" fill="url(#blob)"/>
-  <circle cx="302" cy="254" r="126" fill="white" fill-opacity="0.08"/>
-  <g filter="url(#logoShadow)">
-    <path d="M184 430L246 206L302 298L358 206L420 430" stroke="url(#logoMark)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
-  <circle cx="302" cy="306" r="10" fill="#9FD4FF" fill-opacity="0.82"/>
+  <circle cx="302" cy="302" r="292" fill="#F8FAFF"/>
+  <circle cx="302" cy="302" r="291" stroke="#DCE3F2" stroke-width="2"/>
+  <path d="M113 134C197 142 261 199 302 276V478C241 428 176 390 113 382V134Z" fill="#101A3B"/>
+  <path d="M491 134C407 142 343 199 302 276V478C363 428 428 390 491 382V134Z" fill="#101A3B"/>
+  <path d="M161 282L270 386L455 183" stroke="#FFF" stroke-width="62" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M161 282L270 386L455 183" stroke="#635BFF" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M448 161L497 133L482 186Z" fill="#2DD4BF"/>
 </svg>
