@@ -15,10 +15,10 @@ function AuthLayout() {
   const location = useLocation();
 
   return (
-    <div className="min-h-dvh bg-[#f3efe6] p-0 text-[#202321] sm:p-5 lg:p-7">
-      <div className="mx-auto grid min-h-dvh max-w-[1500px] overflow-hidden bg-[#fffdf8] shadow-[0_32px_90px_-58px_rgba(32,35,33,0.32)] sm:min-h-[calc(100dvh-2.5rem)] sm:rounded-[28px] sm:border sm:border-[#d8d4c9] lg:min-h-[calc(100dvh-3.5rem)] lg:grid-cols-[minmax(0,1.08fr)_minmax(440px,0.92fr)]">
+    <div className="min-h-dvh bg-[#eef2f8] p-0 text-[#172033] sm:p-5 lg:p-7">
+      <div className="mx-auto grid min-h-dvh max-w-[1500px] overflow-hidden bg-white shadow-[0_32px_90px_-58px_rgba(23,32,51,0.32)] sm:min-h-[calc(100dvh-2.5rem)] sm:rounded-[28px] sm:border sm:border-slate-200 lg:min-h-[calc(100dvh-3.5rem)] lg:grid-cols-[minmax(0,1.08fr)_minmax(440px,0.92fr)]">
         <section className="relative hidden overflow-hidden p-10 text-white lg:block xl:p-14">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_88%_10%,rgba(215,111,85,0.32),transparent_30%),radial-gradient(circle_at_10%_100%,rgba(127,169,157,0.25),transparent_38%),#202321]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_88%_10%,rgba(99,102,241,0.34),transparent_30%),radial-gradient(circle_at_10%_100%,rgba(200,242,122,0.18),transparent_38%),#172033]" />
           <div className="absolute -right-28 top-20 h-96 w-96 rounded-full border border-[#e7efe9]/10" />
           <div className="absolute -right-8 top-36 h-64 w-64 rounded-full border border-[#e7efe9]/10" />
           <div className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-[#e7efe9]/30 to-transparent" />
@@ -49,7 +49,7 @@ function AuthLayout() {
           </div>
         </section>
 
-        <section className="flex min-w-0 items-center bg-[#fffdf8] p-5 sm:p-10 lg:p-12 xl:p-16">
+        <section className="flex min-w-0 items-center bg-white p-5 sm:p-10 lg:p-12 xl:p-16">
           <div className="mx-auto w-full max-w-md">
             <div className="mb-12 flex items-center justify-between">
               <Link to="/" className="text-sm font-semibold text-[#6e706b] transition hover:text-[#202321]">← Back to home</Link>
